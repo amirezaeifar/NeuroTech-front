@@ -10,9 +10,7 @@ const withVar = (name) => `rgb(var(${name}) / <alpha-value>)`
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
-  // Locale JSON is scanned too: some strings inject HTML (v-html) carrying
-  // utility classes (e.g. font-black in the hero title) that must survive purge.
-  content: ['./index.html', './src/**/*.{vue,js,ts}', './src/locales/**/*.json'],
+  content: ['./index.html', './src/**/*.{vue,js,ts}'],
   theme: {
     extend: {
       colors: {
@@ -36,11 +34,9 @@ export default {
         },
       },
       fontFamily: {
-        // English face first, then Mikhak (unicode-range-scoped to Persian) so
-        // Latin keeps the English font and Persian glyphs fall through to Mikhak.
-        serif: ['"Cormorant Garamond"', 'Mikhak', 'Georgia', 'serif'],
-        sans: ['Inter', 'Mikhak', 'sans-serif'],
-        persian: ['Inter', 'Mikhak', 'sans-serif'],
+        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        sans: ['Inter', 'sans-serif'],
+        persian: ['YekanBakh', 'sans-serif'],
       },
       boxShadow: {
         card: '0 1px 2px rgb(var(--c-ink) / 0.04), 0 8px 24px -12px rgb(var(--c-ink) / 0.12)',

@@ -2,26 +2,23 @@
 /**
  * CoursePlayer — an in-house LMS video player.
  *
- * Plays a course playlist of locally-hosted .mp4 lessons through a fully custom
- * dark/gold/glass control layer built directly on the native HTML <video>
- * element. There is NO external player, embed or third-party engine: the file is
- * served from the app's own origin (see src/data/courseVideos.js). Native
- * controls are disabled in favour of our own, and a transparent shield captures
- * click-to-pause.
+ * Plays a course playlist through a fully custom, dark/gold/glass control layer.
+ * The underlying playback engine is loaded lazily and kept entirely behind our
+ * own UI: native controls are disabled, a transparent shield captures clicks,
+ * and no source URLs or external branding are ever surfaced — lessons are
+ * presented purely as internal learning resources.
  *
- * Features: a playlist sidebar, seekable progress bar, prev/next, mute,
- * playback-speed control, fullscreen, continuous auto-next, a graceful fallback
- * when a file is missing, and resume-from-where-you-left-off via localStorage.
- * Playback never autoplays on open — the viewer presses play — so the page never
- * fights browser autoplay policies.
+ * Features: autoplay (muted) on open, continuous auto-next, a playlist sidebar,
+ * seekable progress bar, prev/next, playback-speed control, fullscreen, and
+ * resume-from-where-you-left-off via localStorage.
  *
  * Two-way bound to the parent's current-lesson number (1-based) so the syllabus
  * and progress stay in sync.
  */
-import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
-  /** [{ title, src }] in playlist order. `src` is a local, same-origin URL. */
+  /** [{ title, id }] in playlist order. `id` is an internal resource id. */
   lessons: { type: Array, required: true },
   /** Stable key for resume memory, e.g. "course-3". */
   courseKey: { type: String, required: true },
@@ -36,11 +33,13 @@ const RATES = [1, 1.25, 1.5]
 const STORE_KEY = computed(() => `coursePlayer:${props.courseKey}`)
 
 const root = ref(null)
-const videoEl = ref(null)
+const ytHost = ref(null)
+let player = null
+let poll = null
 
 const currentIndex = ref(Math.max(0, (props.modelValue || 1) - 1))
 const isPlaying = ref(false)
-const muted = ref(false)
+const muted = ref(true)
 const currentTime = ref(0)
 const duration = ref(0)
 const rate = ref(1)
@@ -49,17 +48,10 @@ const speedOpen = ref(false)
 const ready = ref(false)
 const loading = ref(true)
 const errored = ref(false)
-const started = ref(false)        // playback has begun at least once (hides splash)
-
-// Seek/autoplay intent applied once the next source's metadata is ready.
-let pendingSeek = 0
-let pendingAutoplay = false
 
 const currentLesson = computed(() => props.lessons[currentIndex.value] || {})
 const currentTitle = computed(() =>
   currentLesson.value.title || `Lesson ${currentIndex.value + 1}`)
-const currentSrc = computed(() => currentLesson.value.src || '')
-const hasSource = computed(() => !!currentSrc.value)
 const pct = computed(() =>
   duration.value ? `${Math.min(100, (currentTime.value / duration.value) * 100)}%` : '0%')
 const canPrev = computed(() => currentIndex.value > 0)
@@ -70,6 +62,23 @@ const fmt = (s) => {
   const m = Math.floor(s / 60)
   const sec = Math.floor(s % 60)
   return `${m}:${String(sec).padStart(2, '0')}`
+}
+
+// ── Lazy engine loader (singleton) ───────────────────────────────────────────
+let enginePromise = null
+function loadEngine() {
+  if (typeof window === 'undefined') return Promise.reject()
+  if (window.YT && window.YT.Player) return Promise.resolve(window.YT)
+  if (enginePromise) return enginePromise
+  enginePromise = new Promise((resolve) => {
+    const prev = window.onYouTubeIframeAPIReady
+    window.onYouTubeIframeAPIReady = () => { if (prev) prev(); resolve(window.YT) }
+    const tag = document.createElement('script')
+    tag.src = 'https://www.youtube.com/iframe_api'
+    tag.async = true
+    document.head.appendChild(tag)
+  })
+  return enginePromise
 }
 
 // ── Resume memory ─────────────────────────────────────────────────────────────
@@ -89,66 +98,63 @@ function saveResume() {
 }
 
 // ── Playback control ──────────────────────────────────────────────────────────
-// Switch lesson. The <video> :src is bound reactively, so we record the desired
-// seek/autoplay, force a reload, and finish wiring up in onLoadedMetadata.
-async function loadLesson(i, { autoplay = true, seek = 0 } = {}) {
+function startPoll() {
+  stopPoll()
+  poll = window.setInterval(() => {
+    if (!player || !player.getCurrentTime) return
+    currentTime.value = player.getCurrentTime() || 0
+    duration.value = player.getDuration() || 0
+    saveResume()
+  }, 500)
+}
+function stopPoll() { if (poll) { clearInterval(poll); poll = null } }
+
+function loadLesson(i, { autoplay = true, seek = 0 } = {}) {
   const clamped = Math.min(Math.max(0, i), props.lessons.length - 1)
-  const changed = clamped !== currentIndex.value
   currentIndex.value = clamped
   emit('update:modelValue', clamped + 1)
   currentTime.value = seek
   duration.value = 0
   loading.value = true            // show the loading state while the clip swaps
   errored.value = false
-  pendingSeek = seek
-  pendingAutoplay = autoplay
-  speedOpen.value = false
-  const v = videoEl.value
-  if (!v) return
-  // Let the bound :src update first, then reload the media element.
-  await nextTick()
-  v.load()
+  if (!player || !player.loadVideoById) return
+  const id = props.lessons[clamped]?.id
+  if (!id) return
+  const opts = { videoId: id, startSeconds: seek }
+  if (autoplay) player.loadVideoById(opts)
+  else player.cueVideoById(opts)
 }
 
-const play = () => {
-  const v = videoEl.value
-  if (!v || !hasSource.value) return
-  started.value = true
-  v.play().catch(() => { /* user-gesture / decode race — non-fatal */ })
-}
 const togglePlay = () => {
-  const v = videoEl.value
-  if (!v || !hasSource.value) return
-  if (isPlaying.value) v.pause()
-  else play()
+  if (!player) return
+  if (isPlaying.value) player.pauseVideo()
+  else player.playVideo()
 }
-const next = () => { if (canNext.value) loadLesson(currentIndex.value + 1, { autoplay: started.value }) }
-const prev = () => { if (canPrev.value) loadLesson(currentIndex.value - 1, { autoplay: started.value }) }
-const selectLesson = (i) => { loadLesson(i, { autoplay: true }); started.value = true }
-const retry = () => { loadLesson(currentIndex.value, { autoplay: true }) }
+const next = () => { if (canNext.value) loadLesson(currentIndex.value + 1) }
+const prev = () => { if (canPrev.value) loadLesson(currentIndex.value - 1) }
+const selectLesson = (i) => { loadLesson(i); speedOpen.value = false }
 
 const toggleMute = () => {
-  const v = videoEl.value
-  if (!v) return
-  v.muted = !v.muted
-  muted.value = v.muted
+  if (!player) return
+  if (muted.value) { player.unMute(); player.setVolume(100); muted.value = false }
+  else { player.mute(); muted.value = true }
 }
 
 const setRate = (r) => {
   rate.value = r
   speedOpen.value = false
-  if (videoEl.value) videoEl.value.playbackRate = r
+  if (player && player.setPlaybackRate) player.setPlaybackRate(r)
 }
 
 const seek = (e) => {
-  const v = videoEl.value
-  if (!v || !duration.value) return
-  const rect = e.currentTarget.getBoundingClientRect()
-  // Progress always runs visually left→right for the media, regardless of dir.
+  if (!player || !duration.value) return
+  const barEl = e.currentTarget
+  const rect = barEl.getBoundingClientRect()
+  // Account for RTL: progress always runs visually left→right for the media.
   const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))
   const target = ratio * duration.value
   currentTime.value = target
-  v.currentTime = target
+  player.seekTo(target, true)
 }
 
 const toggleFullscreen = () => {
@@ -159,65 +165,68 @@ const toggleFullscreen = () => {
 }
 const onFsChange = () => { isFullscreen.value = !!document.fullscreenElement }
 
-// ── Native <video> events ─────────────────────────────────────────────────────
-const onLoadedMetadata = () => {
-  const v = videoEl.value
-  if (!v) return
-  ready.value = true
-  duration.value = v.duration || 0
-  v.playbackRate = rate.value
-  if (pendingSeek && isFinite(pendingSeek)) {
-    try { v.currentTime = pendingSeek } catch { /* out of range — ignore */ }
-  }
-  pendingSeek = 0
-  loading.value = false
-  if (pendingAutoplay) { pendingAutoplay = false; play() }
-}
-const onTimeUpdate = () => {
-  const v = videoEl.value
-  if (!v) return
-  currentTime.value = v.currentTime || 0
-  saveResume()
-}
-const onPlay = () => { isPlaying.value = true; started.value = true; errored.value = false }
-const onPause = () => { isPlaying.value = false }
-const onWaiting = () => { loading.value = true }
-const onPlaying = () => { loading.value = false; isPlaying.value = true }
-const onEnded = () => { isPlaying.value = false; next() }
-const onError = () => {
-  // The file failed to load (missing / unsupported). Surface a fallback so the
-  // learner is never left staring at a broken player; they can retry or skip.
-  errored.value = true
-  loading.value = false
-  isPlaying.value = false
-}
-
-// ── Lifecycle ──────────────────────────────────────────────────────────────────
+// ── Engine lifecycle ──────────────────────────────────────────────────────────
 onMounted(async () => {
   const resume = readResume()
   if (resume && Number.isInteger(resume.lesson) && resume.lesson < props.lessons.length) {
     currentIndex.value = resume.lesson
     emit('update:modelValue', resume.lesson + 1)
   }
-  pendingSeek = resume?.t || 0
-  pendingAutoplay = false        // never autoplay on first open
+  const startSeconds = resume?.t || 0
 
   document.addEventListener('fullscreenchange', onFsChange)
 
-  // Kick the element to load the initial source (and apply any resume seek).
-  await nextTick()
-  if (videoEl.value && hasSource.value) videoEl.value.load()
+  const YT = await loadEngine().catch(() => null)
+  if (!YT || !ytHost.value) return
+
+  player = new YT.Player(ytHost.value, {
+    videoId: props.lessons[currentIndex.value]?.id,
+    playerVars: {
+      autoplay: 1, mute: 1, controls: 0, modestbranding: 1, rel: 0,
+      iv_load_policy: 3, disablekb: 1, fs: 0, playsinline: 1,
+      enablejsapi: 1, origin: window.location.origin,
+    },
+    events: {
+      onReady: (e) => {
+        ready.value = true
+        e.target.setPlaybackRate(rate.value)
+        e.target.mute()
+        muted.value = true
+        if (startSeconds) e.target.seekTo(startSeconds, true)
+        e.target.playVideo()
+        startPoll()
+      },
+      onStateChange: (e) => {
+        // YT.PlayerState: 1 playing · 2 paused · 0 ended · 3 buffering
+        if (e.data === 1) { isPlaying.value = true; loading.value = false; errored.value = false }
+        else if (e.data === 2) isPlaying.value = false
+        else if (e.data === 3) loading.value = true
+        else if (e.data === 0) { isPlaying.value = false; next() }
+      },
+      onError: () => {
+        // A clip failed to load (removed / not embeddable). Surface it briefly
+        // and advance to the next lesson so the playlist keeps flowing.
+        errored.value = true
+        loading.value = false
+        if (canNext.value) window.setTimeout(() => { if (errored.value) next() }, 1800)
+      },
+    },
+  })
 })
 
 onBeforeUnmount(() => {
+  stopPoll()
   saveResume()
   document.removeEventListener('fullscreenchange', onFsChange)
+  if (player && player.destroy) player.destroy()
+  player = null
 })
 
 // Parent drives the lesson (e.g. clicking the syllabus) → load it here.
 watch(() => props.modelValue, (v) => {
   if (!v) return
-  if (v - 1 !== currentIndex.value) loadLesson(v - 1, { autoplay: started.value })
+  if (v - 1 !== currentIndex.value && ready.value) loadLesson(v - 1)
+  else currentIndex.value = v - 1
 })
 </script>
 
@@ -226,23 +235,9 @@ watch(() => props.modelValue, (v) => {
     <!-- Stage -->
     <div class="cplayer__main">
       <div class="cplayer__stage">
-        <!-- Native, same-origin <video>. Native controls are off; our own UI
-             below drives it. `playsinline` keeps it inline on mobile. -->
-        <video
-          ref="videoEl"
-          class="cplayer__video"
-          :src="currentSrc"
-          preload="metadata"
-          playsinline
-          @loadedmetadata="onLoadedMetadata"
-          @timeupdate="onTimeUpdate"
-          @play="onPlay"
-          @pause="onPause"
-          @waiting="onWaiting"
-          @playing="onPlaying"
-          @ended="onEnded"
-          @error="onError"
-        ></video>
+        <!-- The API replaces the inner node with its iframe; the wrapper keeps
+             our absolute positioning regardless. -->
+        <div class="cplayer__engine"><div ref="ytHost"></div></div>
 
         <!-- Transparent shield: owns click-to-pause, hides any external chrome. -->
         <button
@@ -259,24 +254,24 @@ watch(() => props.modelValue, (v) => {
         </div>
 
         <!-- Loading state (initial load + clip changes + buffering) -->
-        <div v-if="loading && !errored && hasSource" class="cplayer__loading" aria-live="polite">
+        <div v-if="loading && !errored" class="cplayer__loading" aria-live="polite">
           <span class="cplayer__spinner" aria-hidden="true"></span>
         </div>
 
-        <!-- Fallback — the file is missing/unavailable, or the course has no
-             local footage yet. Never a broken player; offer retry / skip. -->
-        <div v-if="errored || !hasSource" class="cplayer__fallback" role="status">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 4.3 1.8 19a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <p class="cplayer__fallback-text">{{ hasSource ? 'This lesson could not be loaded.' : 'Video for this lesson is coming soon.' }}</p>
-          <div class="cplayer__fallback-actions">
-            <button v-if="hasSource" type="button" class="cplayer__fallback-btn" @click="retry">Retry</button>
-            <button v-if="canNext" type="button" class="cplayer__fallback-btn" @click="next">Next lesson</button>
-          </div>
+        <!-- Error notice — a clip is unavailable; auto-advancing. -->
+        <div v-if="errored" class="cplayer__notice" role="status">
+          This lesson is temporarily unavailable — continuing to the next.
         </div>
 
-        <!-- Center play (when paused, with a playable source) -->
-        <button v-if="!isPlaying && !loading && !errored && hasSource" type="button" class="cplayer__bigplay" aria-label="Play" @click="togglePlay">
+        <!-- Center play (when paused) -->
+        <button v-if="!isPlaying && !loading && !errored" type="button" class="cplayer__bigplay" aria-label="Play" @click="togglePlay">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+        </button>
+
+        <!-- Unmute nudge (autoplay starts muted) -->
+        <button v-if="muted && ready" type="button" class="cplayer__unmute" @click="toggleMute">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Tap to unmute
         </button>
 
         <!-- Controls -->
@@ -387,14 +382,13 @@ watch(() => props.modelValue, (v) => {
   background: radial-gradient(120% 120% at 50% 20%, #1c1915 0%, #0b0907 70%);
 }
 .cplayer__engine { position: absolute; inset: 0; }
-.cplayer__video {
+.cplayer__engine :deep(iframe),
+.cplayer__engine :deep(div) {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   border: 0;
-  background: #000;
-  object-fit: contain;   /* never crop the lecture frame */
 }
 
 /* Transparent click layer — owns play/pause, masks any external interaction. */
@@ -455,36 +449,39 @@ watch(() => props.modelValue, (v) => {
   animation: cplayer-spin 0.8s linear infinite;
 }
 @keyframes cplayer-spin { to { transform: rotate(360deg); } }
-/* Missing / failed-source fallback — centred over the dark stage. */
-.cplayer__fallback {
+.cplayer__notice {
   position: absolute;
-  inset: 0;
+  inset-inline: 1.2rem;
+  bottom: 4.6rem;
   z-index: 25;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.9rem;
-  padding: 1.5rem;
+  margin: 0 auto;
+  max-width: 24rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(237, 192, 113, 0.4);
+  background: rgba(16, 14, 11, 0.82);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  color: rgba(246, 243, 236, 0.9);
+  font-size: 0.72rem;
   text-align: center;
-  color: rgba(246, 243, 236, 0.92);
+  line-height: 1.4;
 }
-.cplayer__fallback svg { color: rgba(234, 192, 121, 0.85); }
-.cplayer__fallback-text { font-size: 0.86rem; font-weight: 300; max-width: 22rem; line-height: 1.5; }
-.cplayer__fallback-actions { display: flex; gap: 0.6rem; }
-.cplayer__fallback-btn {
-  padding: 0.45rem 1.05rem;
+
+.cplayer__unmute {
+  position: absolute;
+  z-index: 20;
+  bottom: 4.6rem;
+  inset-inline-end: 1.1rem;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
   border-radius: 9999px;
   border: 1px solid rgba(237, 192, 113, 0.5);
   background: rgba(16, 14, 11, 0.7);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   color: #eac079;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.68rem; letter-spacing: 0.08em;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
 }
-.cplayer__fallback-btn:hover { background: rgba(234, 192, 121, 0.16); color: #f6f3ec; }
 
 /* Control bar — glass strip over a gradient scrim. */
 .cplayer__controls {

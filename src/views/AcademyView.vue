@@ -3,24 +3,13 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LuxeCard from '../components/LuxeCard.vue'
 import SpecimenPlate from '../components/SpecimenPlate.vue'
+import logo from '../assets/logo.png'
 import NeuralProgressTree from '../components/NeuralProgressTree.vue'
 import { courseCode } from '../utils/catalog.js'
 import { courseMediaAt } from '../data/courseMedia.js'
-import { resolveCourseCover } from '../data/courseBackgrounds.js'
 import { useReveal } from '../composables/useReveal.js'
-import { useTheme } from '../composables/useTheme.js'
-
-const logo = '/favicon-new.png'
 
 const { t, tm } = useI18n()
-// Active colour theme — drives the light-/dark- Academy thumbnail selection.
-const { isDark } = useTheme()
-
-// Theme-aware Academy card thumbnail (src/assets/cover-course) for a course.
-const coverFor = (course) => {
-  const media = courseMediaAt(courseIndex(course))
-  return media ? resolveCourseCover(media.slug, isDark.value) : ''
-}
 
 const statusFilters = [
   { key: 'all', label: 'academy.filters.all' },
@@ -208,7 +197,7 @@ useReveal()
             :section-id="`plate-${courseIndex(c)}`"
             :code="courseCode(courses, courseIndex(c))"
             :course="c"
-            :cover="coverFor(c)"
+            :cover="courseMediaAt(courseIndex(c))?.cover || ''"
             :to="`/academy/course/${courseIndex(c)}`"
             :field-label="t(`academy.fields.${c.field}`)"
             :tier-label="t(`academy.filters.${c.tier}`)"

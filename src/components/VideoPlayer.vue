@@ -9,9 +9,8 @@ const props = defineProps({
   poster: { type: String, default: '' },
   duration: { type: String, default: '12:48' },
   elapsed: { type: String, default: '04:12' },
-  /** Embeddable iframe URL for an external live stream (event broadcasts only;
-   *  course lessons never use this). When set, the play button swaps the luxe
-   *  poster for the real responsive video. Empty = mock only. */
+  /** Embeddable iframe URL (e.g. a YouTube embed). When set, the play button
+   *  swaps the luxe poster for the real responsive video. Empty = mock only. */
   embedUrl: { type: String, default: '' },
   /** Notice shown over the poster while the embed is a replaceable placeholder. */
   notice: { type: String, default: '' },

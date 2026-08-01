@@ -1,5 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import { useAuth, ROLES } from '../composables/useAuth.js'
+import { useAuth } from '../composables/useAuth.js'
 
 const router = createRouter({
   history: createWebHashHistory(),
@@ -22,25 +22,7 @@ const router = createRouter({
     { path: '/partners/:id', name: 'PartnerProfile', component: () => import('../views/PartnerProfileView.vue') },
     { path: '/about', name: 'About', component: () => import('../views/AboutView.vue') },
     { path: '/contact', name: 'Contact', component: () => import('../views/ContactView.vue') },
-
-    // ── Admin Panel (spec §7–9) ──────────────────────────────────────────────
-    // A dedicated, secure area behind its own AdminLayout chrome (hideChrome
-    // suppresses the public navbar/footer). The parent gates the whole subtree to
-    // privileged roles; each child narrows further via meta.roles, so a
-    // `specialist` can reach the educational sections but never Users/Settings.
-    {
-      path: '/admin',
-      component: () => import('../views/admin/AdminLayout.vue'),
-      meta: { hideChrome: true, requiresAuth: true, requiresAdmin: true },
-      children: [
-        { path: '', name: 'AdminDashboard', component: () => import('../views/admin/AdminDashboard.vue'), meta: { roles: [ROLES.ADMIN, ROLES.SPECIALIST] } },
-        { path: 'courses', name: 'AdminCourses', component: () => import('../views/admin/AdminCourses.vue'), meta: { roles: [ROLES.ADMIN, ROLES.SPECIALIST] } },
-        { path: 'moderation', name: 'AdminModeration', component: () => import('../views/admin/AdminModeration.vue'), meta: { roles: [ROLES.ADMIN, ROLES.SPECIALIST] } },
-        { path: 'content', name: 'AdminContent', component: () => import('../views/admin/AdminContent.vue'), meta: { roles: [ROLES.ADMIN, ROLES.SPECIALIST] } },
-        { path: 'users', name: 'AdminUsers', component: () => import('../views/admin/AdminUsers.vue'), meta: { roles: [ROLES.ADMIN] } },
-        { path: 'settings', name: 'AdminSettings', component: () => import('../views/admin/AdminSettings.vue'), meta: { roles: [ROLES.ADMIN] } },
-      ],
-    },
+    { path: '/admin', name: 'Admin', component: () => import('../views/AdminPanel.vue') },
   ],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition
@@ -53,31 +35,16 @@ const router = createRouter({
   },
 })
 
-// Navigation guard (spec §7) — enforces authentication and role-based access.
-// `to.meta` is the merge of every matched record, so parent flags (requiresAuth,
-// requiresAdmin) and the child's `roles` are all visible here.
+// Auth guard — protected routes (e.g. Checkout) bounce unauthenticated visitors
+// to the login page, preserving the intended destination so they land back there
+// after signing in.
 router.beforeEach((to) => {
-  const { isAuthenticated, canAccessAdmin, hasRole } = useAuth()
-
-  // 1) Must be signed in — bounce to login, preserving the destination.
-  if (to.meta.requiresAuth && !isAuthenticated.value) {
-    return { name: 'Login', query: { redirect: to.fullPath } }
+  if (to.meta.requiresAuth) {
+    const { isAuthenticated } = useAuth()
+    if (!isAuthenticated.value) {
+      return { name: 'Login', query: { redirect: to.fullPath } }
+    }
   }
-
-  // 2) Admin subtree — must hold a privileged role. A signed-in `user` who lacks
-  //    access is sent home rather than to login (they don't need to re-auth).
-  if (to.meta.requiresAdmin && !canAccessAdmin.value) {
-    return isAuthenticated.value
-      ? { name: 'Home' }
-      : { name: 'Login', query: { redirect: to.fullPath } }
-  }
-
-  // 3) Section-level role gate — e.g. a `specialist` reaching an admin-only page
-  //    (Users/Settings) is redirected to a section they can see.
-  if (to.meta.roles && !hasRole(to.meta.roles)) {
-    return { name: 'AdminDashboard' }
-  }
-
   return true
 })
 

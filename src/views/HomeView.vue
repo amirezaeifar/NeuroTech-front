@@ -22,12 +22,12 @@ useReveal()
         <p class="reveal text-[11px] uppercase tracking-[0.35em] text-gold/80 font-light mb-10">
           {{ t('home.hero.eyebrow') }}
         </p>
-        <!-- Title carries injected HTML (v-html) so a single word can be
-             emphasised: in Persian "نورولوژی" renders font-black while the rest
-             stays font-light; the English em keeps its gold italic accent. -->
         <h1 class="reveal font-serif font-light text-parchment-light text-5xl md:text-6xl lg:text-7xl leading-[1.1] tracking-wide max-w-3xl"
-            style="transition-delay: 80ms"
-            v-html="t('home.hero.titleHtml')"></h1>
+            style="transition-delay: 80ms">
+          {{ t('home.hero.titleA') }}
+          <em class="not-italic md:italic text-gold-light font-light"> {{ t('home.hero.titleEm') }} </em>
+          {{ t('home.hero.titleB') }}
+        </h1>
         <p class="reveal mt-10 max-w-lg text-parchment-dark/70 font-light text-base leading-loose"
            style="transition-delay: 160ms">
           {{ t('home.hero.subline') }}

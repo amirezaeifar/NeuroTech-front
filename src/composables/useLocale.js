@@ -11,13 +11,10 @@ export const SUPPORTED_LOCALES = [
 
 const RTL_LOCALES = ['fa']
 
-// English face leads every stack; Mikhak (unicode-range-scoped to Persian in
-// fonts.css) follows so Latin keeps the English font and Persian glyphs fall
-// through to Mikhak — even within a mixed Persian sentence.
 const FONT_STACKS = {
-  fa: "'Inter', 'Mikhak', sans-serif",
+  fa: "'YekanBakh', sans-serif",
 }
-const DEFAULT_FONT_STACK = "'Inter', 'Mikhak', sans-serif"
+const DEFAULT_FONT_STACK = "'Inter', sans-serif"
 
 export function useLocale() {
   const { locale } = useI18n()

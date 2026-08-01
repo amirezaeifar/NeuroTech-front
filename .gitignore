@@ -12,10 +12,6 @@ dist
 dist-ssr
 *.local
 
-# Local course video junction (public/course-media → D:\Work\Video).
-# Large local media served in dev only; never committed.
-public/course-media
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -27,11 +23,4 @@ public/course-media
 *.sln
 *.sw?
 
-# Python backend local state
-backend/.venv/
-backend/.env
-backend/.pytest_cache/
-backend/.coverage
-backend/htmlcov/
-backend/**/__pycache__/
-backend/**/*.py[cod]
+public/course-media/

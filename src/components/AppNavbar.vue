@@ -5,13 +5,13 @@ import { useRouter } from 'vue-router'
 import { useLocale } from '../composables/useLocale.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useAuth } from '../composables/useAuth.js'
-const logo = '/favicon-new.png'
+import logo from '../assets/logo.png'
 
 const { t } = useI18n()
 const router = useRouter()
 const { locale, setLocale, locales } = useLocale()
 const { isDark, toggle: toggleTheme } = useTheme()
-const { isAuthenticated, canAccessAdmin, logout } = useAuth()
+const { isAuthenticated, logout } = useAuth()
 
 const onAuthClick = () => {
   if (isAuthenticated.value) { logout(); router.push('/') }
@@ -59,7 +59,7 @@ const pickLocale = (code) => { setLocale(code); langOpen.value = false }
       class="shrink-0"
     >
       <span class="flex items-center gap-3 select-none">
-        <img :src="logo" alt="" aria-hidden="true" class="brand-logo-img h-14 w-auto" />
+        <img :src="logo" alt="" aria-hidden="true" class="brand-logo-img h-11 w-auto" />
         <!-- Two-line wordmark — typographically identical to the footer BrandLogo
              (Cormorant "Neuro Tech" over Inter "NEUROLOGY · CRAFTED" + hairline). -->
         <span class="brand-wordmark hidden xl:flex">
@@ -100,17 +100,6 @@ const pickLocale = (code) => { setLocale(code); langOpen.value = false }
           <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" stroke-linecap="round"/>
         </svg>
       </button>
-
-      <!-- Admin Panel — only for privileged roles (admin / specialist) -->
-      <router-link
-        v-if="canAccessAdmin"
-        to="/admin"
-        :aria-label="t('nav.admin')"
-        :title="t('nav.admin')"
-        class="hidden sm:inline-flex items-center text-ink-muted hover:text-gold-dark transition-colors p-1"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3l7 3v5c0 4.2-2.9 7.6-7 8.8C7.9 18.6 5 15.2 5 11V6l7-3z" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 11.8l1.8 1.8 3.4-3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </router-link>
 
       <!-- Sign in / out -->
       <button
@@ -181,12 +170,6 @@ const pickLocale = (code) => { setLocale(code); langOpen.value = false }
           class="nav-link whitespace-nowrap"
           @click="closeMobile"
         >{{ t('nav.' + link.key) }}</router-link>
-        <router-link
-          v-if="canAccessAdmin"
-          to="/admin"
-          class="nav-link whitespace-nowrap text-gold-dark"
-          @click="closeMobile"
-        >{{ t('nav.admin') }}</router-link>
       </nav>
 
       <div class="px-8 pb-6 flex flex-wrap gap-2.5" style="direction: ltr;">

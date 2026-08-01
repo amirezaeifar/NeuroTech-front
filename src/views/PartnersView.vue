@@ -10,7 +10,7 @@ const route = useRoute()
 const people = computed(() => tm('partners.people'))
 
 const initials = (name) => name
-  .replace(/^(Dr\.|د\.|دکتر|Dr|Prof\.?|Eng\.|مهندس)\s*/i, '')
+  .replace(/^(Dr\.|د\.|دکتر|Dr|Prof\.?)\s*/i, '')
   .trim()
   .split(/\s+/)
   .map((w) => w[0])

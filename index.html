@@ -7,11 +7,14 @@
     <title>Neuro Tech — Neurology, Crafted</title>
     <!--
       Favicon — files live in /public and are served from the site root.
-      To use your own brand logo, simply drop it into /public as `favicon-new.png`;
-      no build step or path change is needed.
+      To use your own brand logo, simply drop it into /public as `favicon.svg`
+      (and optionally `favicon.png`); no build step or path change is needed.
+      The SVG is listed first, so modern browsers prefer the crisp vector and
+      fall back to the PNG only where SVG icons aren't supported.
     -->
-    <link rel="icon" type="image/png" sizes="any" href="/favicon-new.png" />
-    <link rel="apple-touch-icon" href="/favicon-new.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="any" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

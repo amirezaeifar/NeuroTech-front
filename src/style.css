@@ -281,51 +281,41 @@ html, body {
   transition: background-color 300ms ease, color 300ms ease;
 }
 
-/* English pages — the primary English face comes first, Mikhak immediately
-   after. Mikhak is unicode-range-restricted to Persian/Arabic, so Latin keeps
-   Inter / Cormorant and any stray Persian glyph still renders in Mikhak. */
 html[lang='en'] body {
-  font-family: 'Inter', 'Mikhak', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-weight: 300;
 }
 html[lang='en'] .font-serif {
-  font-family: 'Cormorant Garamond', 'Mikhak', Georgia, serif;
+  font-family: 'Cormorant Garamond', Georgia, serif;
 }
 
-/* Persian — Mikhak covers the Persian script; Inter leads the stack so Latin
-   characters embedded in Persian copy keep the English face. Mikhak's
-   unicode-range means Persian glyphs always fall through to Mikhak.
-
-   Weight: Mikhak reads heavy, so Persian is deliberately kept LIGHT and minimal
-   — body and light utilities resolve to 300, and headings are only gently
-   weighted (400 / 500) rather than Black/Bold. Because the light-utility rule is
-   !important but the heading rules are not, an explicit `font-light` heading
-   (e.g. the home hero h1) still renders at 300, letting an inner `font-black`
-   span stand out as the single emphasised word. */
+/* Persian — YekanBakh covers all roles, including display headings.
+   Cormorant Garamond is not used in fa locale. Tailwind .font-light (300)
+   is overridden to YekanBakh Regular (400), and display headings are
+   promoted to Fat (900) / Bold (700) per the type system. */
 html[lang='fa'] body,
 html[lang='fa'] .font-serif {
-  font-family: 'Inter', 'Mikhak', system-ui, sans-serif;
+  font-family: 'YekanBakh', system-ui, sans-serif;
   letter-spacing: 0 !important;
 }
 
-html[lang='fa'] body { font-weight: 300; }
+html[lang='fa'] body { font-weight: 400; }
 
-/* Light weight utilities stay genuinely light in Persian (Mikhak Light 300) */
+/* Override Tailwind weight utilities for Persian readability */
 html[lang='fa'] .font-thin,
 html[lang='fa'] .font-extralight,
-html[lang='fa'] .font-light { font-weight: 300 !important; }
+html[lang='fa'] .font-light { font-weight: 400 !important; }
 
-/* Display headings — h1 / h2 with .font-serif → light, elegant (not Black).
-   No !important, so an explicit font-light on the element still wins (→ 300). */
+/* Display headings — h1 / h2 with .font-serif → Fat */
 html[lang='fa'] h1.font-serif,
-html[lang='fa'] h2.font-serif { font-weight: 400; }
+html[lang='fa'] h2.font-serif { font-weight: 900 !important; }
 
-/* Section headings — h3 / h4 with .font-serif → a touch heavier for hierarchy */
+/* Section headings — h3 with .font-serif → Bold */
 html[lang='fa'] h3.font-serif,
-html[lang='fa'] h4.font-serif { font-weight: 500; }
+html[lang='fa'] h4.font-serif { font-weight: 700 !important; }
 
-/* Italic Cormorant pull-quotes — render upright, medium weight in Persian */
-html[lang='fa'] .font-serif.italic { font-style: normal; font-weight: 500; }
+/* Italic Cormorant pull-quotes — render upright YekanBakh Bold in Persian */
+html[lang='fa'] .font-serif.italic { font-style: normal; font-weight: 700; }
 
 html { scroll-behavior: smooth; }
 
@@ -422,7 +412,7 @@ html[dir='rtl'] .marquee-track { animation-direction: reverse; }
   border-bottom: 1px solid var(--parchment-deep);
   padding: 0.5rem 0;
   color: var(--ink);
-  font-family: 'Inter', 'Mikhak', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 300;
   font-size: 0.95rem;
   outline: none;
@@ -431,7 +421,7 @@ html[dir='rtl'] .marquee-track { animation-direction: reverse; }
 html[lang='fa'] .float-field input,
 html[lang='fa'] .float-field textarea,
 html[lang='fa'] .float-field select {
-  font-family: 'Inter', 'Mikhak', sans-serif;
+  font-family: 'YekanBakh', sans-serif;
 }
 .float-field input:focus,
 .float-field textarea:focus,
@@ -483,7 +473,7 @@ html[lang='fa'] .float-field label {
   border-radius: 2px;               /* sharp, precise clinical edge */
   color: var(--gold);
   background: transparent;
-  font-family: 'Inter', 'Mikhak', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 500;                 /* sharper, more sophisticated than 300 */
   font-size: 0.72rem;
   letter-spacing: 0.3em;
@@ -517,7 +507,7 @@ html[lang='fa'] .btn-ghost-gold {
   letter-spacing: 0;
   text-transform: none;
   font-weight: 700;
-  font-family: 'Inter', 'Mikhak', sans-serif;
+  font-family: 'YekanBakh', sans-serif;
 }
 @media (prefers-reduced-motion: reduce) {
   .btn-ghost-gold::before { transition: opacity 200ms ease; transform: scaleX(1); opacity: 0; }
@@ -562,193 +552,3 @@ html[dir='rtl'] .dir-arrow-back::before { content: '\2192'; } /* → back (RTL) 
   background: var(--parchment-light);
   border: 1px solid var(--gold);
 }
-
-/* ═══════════════════════════════════════════════════════════════════════════
-   ADMIN PANEL DESIGN LAYER (spec §8–9)
-   Shared, token-driven primitives for the Admin/Specialist dashboard. Defined
-   globally (not scoped) so every admin child view renders one consistent,
-   luxury-clinical language — subtle neumorphic cards, clean data tables and
-   refined form controls — that adapts automatically to light/dark and RTL via
-   the same CSS variables the rest of the site uses.
-   ══════════════════════════════════════════════════════════════════════════ */
-
-/* Neumorphic depth tokens — soft dual light/shadow, re-pitched for dark mode so
-   raised surfaces read correctly on charcoal instead of glowing. */
-:root {
-  --admin-raise: 6px 6px 16px rgb(2 6 12 / 0.09), -6px -6px 15px rgb(255 255 255 / 0.65);
-  --admin-raise-sm: 3px 3px 8px rgb(2 6 12 / 0.08), -3px -3px 8px rgb(255 255 255 / 0.6);
-  --admin-inset: inset 2px 2px 5px rgb(2 6 12 / 0.08), inset -2px -2px 5px rgb(255 255 255 / 0.55);
-}
-.dark {
-  --admin-raise: 7px 7px 18px rgb(0 0 0 / 0.5), -6px -6px 16px rgb(255 255 255 / 0.02);
-  --admin-raise-sm: 3px 3px 9px rgb(0 0 0 / 0.45), -3px -3px 8px rgb(255 255 255 / 0.02);
-  --admin-inset: inset 2px 2px 6px rgb(0 0 0 / 0.5), inset -2px -2px 6px rgb(255 255 255 / 0.02);
-}
-
-/* Cards / panels */
-.admin-card {
-  background: rgb(var(--c-parchment));
-  border: 1px solid rgb(var(--c-parchment-deep) / 0.6);
-  border-radius: 16px;
-  box-shadow: var(--admin-raise);
-  transition: box-shadow 300ms ease, border-color 300ms ease, transform 300ms ease;
-}
-.admin-card-hover:hover {
-  border-color: rgb(var(--c-gold) / 0.45);
-  transform: translateY(-2px);
-}
-.admin-panel {
-  background: rgb(var(--c-parchment-light));
-  border: 1px solid rgb(var(--c-parchment-deep) / 0.55);
-  border-radius: 14px;
-}
-
-/* Typography helpers */
-.admin-eyebrow {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.32em;
-  font-weight: 300;
-  color: rgb(var(--c-gold-dark));
-}
-.admin-h1 {
-  font-family: 'Cormorant Garamond', 'Mikhak', Georgia, serif;
-  font-weight: 300;
-  font-size: 2rem;
-  line-height: 1.1;
-  letter-spacing: 0.01em;
-  color: rgb(var(--c-ink));
-}
-.admin-h2 {
-  font-family: 'Cormorant Garamond', 'Mikhak', Georgia, serif;
-  font-weight: 300;
-  font-size: 1.4rem;
-  color: rgb(var(--c-ink));
-}
-.admin-label {
-  display: block;
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-weight: 300;
-  color: rgb(var(--c-ink-muted));
-  margin-bottom: 0.5rem;
-}
-html[lang='fa'] .admin-eyebrow,
-html[lang='fa'] .admin-label { letter-spacing: 0; }
-
-/* Form controls */
-.admin-input,
-.admin-select,
-.admin-textarea {
-  width: 100%;
-  background: rgb(var(--c-parchment-light));
-  border: 1px solid rgb(var(--c-parchment-deep));
-  border-radius: 10px;
-  padding: 0.7rem 0.9rem;
-  font-size: 0.875rem;
-  font-weight: 300;
-  color: rgb(var(--c-ink));
-  outline: none;
-  box-shadow: var(--admin-inset);
-  transition: border-color 220ms ease, box-shadow 220ms ease;
-}
-.admin-textarea { resize: vertical; min-height: 5rem; }
-.admin-input:focus,
-.admin-select:focus,
-.admin-textarea:focus {
-  border-color: rgb(var(--c-gold) / 0.7);
-  box-shadow: var(--admin-inset), 0 0 0 3px rgb(var(--c-gold) / 0.12);
-}
-.admin-input::placeholder,
-.admin-textarea::placeholder { color: rgb(var(--c-ink-hint)); }
-
-/* Buttons — the refined primary is a solid gold block; ghost is a hairline. */
-.admin-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.7rem 1.4rem;
-  border-radius: 10px;
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.22em;
-  font-weight: 500;
-  cursor: pointer;
-  transition: transform 180ms ease, box-shadow 220ms ease, background 220ms ease, color 220ms ease, border-color 220ms ease, filter 220ms ease;
-  white-space: nowrap;
-}
-html[lang='fa'] .admin-btn { letter-spacing: 0; font-weight: 700; }
-.admin-btn-primary {
-  border: none;
-  background: linear-gradient(135deg, rgb(var(--c-gold-light)), rgb(var(--c-gold)));
-  color: #1a1714;
-  box-shadow: 0 12px 26px -12px rgb(var(--c-gold) / 0.7);
-}
-.admin-btn-primary:hover { transform: translateY(-1px); filter: brightness(1.05); box-shadow: 0 16px 32px -12px rgb(var(--c-gold) / 0.85); }
-.admin-btn-primary:active { transform: translateY(0); }
-.admin-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; filter: none; }
-.admin-btn-ghost {
-  background: transparent;
-  border: 1px solid rgb(var(--c-parchment-deep));
-  color: rgb(var(--c-ink-soft));
-}
-.admin-btn-ghost:hover { border-color: rgb(var(--c-gold) / 0.6); color: rgb(var(--c-ink)); }
-.admin-btn-danger {
-  background: transparent;
-  border: 1px solid rgb(190 70 60 / 0.4);
-  color: rgb(178 68 58);
-}
-.dark .admin-btn-danger { color: rgb(224 132 122); border-color: rgb(224 132 122 / 0.35); }
-.admin-btn-danger:hover { background: rgb(190 70 60 / 0.08); }
-.admin-btn-sm { padding: 0.45rem 0.9rem; font-size: 10px; letter-spacing: 0.16em; }
-
-/* Data tables */
-.admin-table { width: 100%; border-collapse: collapse; }
-.admin-table thead th {
-  text-align: start;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-weight: 400;
-  color: rgb(var(--c-ink-muted));
-  padding: 0 1rem 0.85rem;
-  border-bottom: 1px solid rgb(var(--c-parchment-deep));
-  white-space: nowrap;
-}
-html[lang='fa'] .admin-table thead th { letter-spacing: 0; }
-.admin-table tbody td {
-  padding: 0.85rem 1rem;
-  font-size: 0.85rem;
-  font-weight: 300;
-  color: rgb(var(--c-ink-soft));
-  border-bottom: 1px solid rgb(var(--c-parchment-deep) / 0.5);
-  vertical-align: middle;
-}
-.admin-table tbody tr { transition: background 200ms ease; }
-.admin-table tbody tr:hover { background: rgb(var(--c-gold) / 0.05); }
-
-/* Badges & chips */
-.admin-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  font-size: 9.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-weight: 500;
-  border: 1px solid transparent;
-  white-space: nowrap;
-}
-html[lang='fa'] .admin-badge { letter-spacing: 0; }
-.admin-badge-gold { background: rgb(var(--c-gold) / 0.12); color: rgb(var(--c-gold-dark)); border-color: rgb(var(--c-gold) / 0.35); }
-.admin-badge-muted { background: rgb(var(--c-ink) / 0.06); color: rgb(var(--c-ink-muted)); border-color: rgb(var(--c-parchment-deep)); }
-.admin-badge-green { background: rgb(54 170 120 / 0.14); color: rgb(38 140 96); border-color: rgb(54 170 120 / 0.35); }
-.dark .admin-badge-green { color: rgb(96 200 150); }
-
-/* Scroll region for wide tables (keeps the density without breaking layout). */
-.admin-scroll { overflow-x: auto; }
-.admin-scroll::-webkit-scrollbar { height: 6px; }

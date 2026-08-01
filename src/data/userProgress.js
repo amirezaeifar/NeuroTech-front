@@ -24,24 +24,20 @@
  * styles the node ring/glyph and damps `locked` nodes so they stay subdued even
  * as the fill front passes them.
  */
-// Launch state: progress reset to zero. No course or module is completed or
-// in-progress — every node is 'locked', so the tree reflects a learner who has
-// not started yet. currentNodeId marks the first module as the entry point.
 export const userProgress = {
   user: 'Dr. Elena Vasquez',
-  currentNodeId: 'nro-101-m1',
+  currentNodeId: 'nro-201-m2',
   courses: [
     {
       id: 'nro-101',
       code: 'NRO-101',
       title: 'Foundations of Clinical Neuroanatomy',
       field: 'neurology',
-      status: 'locked',
+      status: 'completed',
       modules: [
-        // ── currentNodeId points here: the "start here" entry node ──
-        { id: 'nro-101-m1', title: 'The Neuron & the Synapse', status: 'locked' },
-        { id: 'nro-101-m2', title: 'Cortical Organisation', status: 'locked' },
-        { id: 'nro-101-m3', title: 'Ascending Sensory Pathways', status: 'locked' },
+        { id: 'nro-101-m1', title: 'The Neuron & the Synapse', status: 'completed' },
+        { id: 'nro-101-m2', title: 'Cortical Organisation', status: 'completed' },
+        { id: 'nro-101-m3', title: 'Ascending Sensory Pathways', status: 'completed' },
       ],
     },
     {
@@ -49,10 +45,11 @@ export const userProgress = {
       code: 'NRO-201',
       title: 'Acute Ischaemic Stroke Protocols',
       field: 'neurology',
-      status: 'locked',
+      status: 'in-progress',
       modules: [
-        { id: 'nro-201-m1', title: 'The Ischaemic Cascade', status: 'locked' },
-        { id: 'nro-201-m2', title: 'The Thrombolysis Window', status: 'locked' },
+        { id: 'nro-201-m1', title: 'The Ischaemic Cascade', status: 'completed' },
+        // ── currentNodeId points here: the pulsing "You are here" node ──
+        { id: 'nro-201-m2', title: 'The Thrombolysis Window', status: 'in-progress' },
         { id: 'nro-201-m3', title: 'Endovascular Triage', status: 'locked' },
       ],
     },

@@ -14,7 +14,7 @@
     "agencies": "Agencies",
     "about": "About",
     "contact": "Contact",
-    "admin": "Admin Panel",
+    "admin": "Teacher Dashboard",
     "login": "Sign In",
     "logout": "Sign Out"
   },
@@ -55,13 +55,7 @@
     "switchToRegister": "Register",
     "switchToLogin": "Sign in",
     "terms": "By continuing you agree to our terms and privacy policy.",
-    "welcome": "Signed in",
-    "roleTitle": "Access level (demo)",
-    "roles": {
-      "user": "Member",
-      "specialist": "Specialist",
-      "admin": "Admin"
-    }
+    "welcome": "Signed in"
   },
   "home": {
     "hero": {
@@ -69,14 +63,13 @@
       "titleA": "Precision in",
       "titleEm": "Neurology",
       "titleB": "for a connected world",
-      "titleHtml": "Precision in <em class=\"not-italic md:italic text-gold-light font-light\">Neurology</em> for a connected world",
       "subline": "We import, export, and supply considered neurology equipment to hospitals, clinics, and research institutes — partnered with leading manufacturers.",
       "cta": "Discover the portfolio"
     },
     "stats": [
       {
-        "value": "5",
-        "label": "Years of activity"
+        "value": "15",
+        "label": "Years of practice"
       },
       {
         "value": "30+",
@@ -87,7 +80,7 @@
         "label": "Partner countries"
       },
       {
-        "value": "100+",
+        "value": "200+",
         "label": "Institutions served"
       }
     ],
@@ -149,12 +142,7 @@
       "priceNote": "Each system is configured to your clinical specification.",
       "ctaPrimary": "Request a quote",
       "ctaSecondary": "Download brochure",
-      "badges": [
-        "CE Marked",
-        "ISO 13485",
-        "2-Year Warranty",
-        "Clinical-grade"
-      ],
+      "badges": ["CE Marked", "ISO 13485", "2-Year Warranty", "Clinical-grade"],
       "featuresTitle": "Key Features",
       "essenceLabel": "Technical Essence",
       "blueprintTitle": "Technical Blueprint",
@@ -168,12 +156,7 @@
         "Modular, serviceable design for a long operating life"
       ],
       "viewsLabel": "Views",
-      "views": [
-        "Full system",
-        "Console detail",
-        "Interface & ports",
-        "Accessories"
-      ],
+      "views": ["Full system", "Console detail", "Interface & ports", "Accessories"],
       "tabs": {
         "overview": "Overview",
         "specs": "Specifications",
@@ -185,157 +168,56 @@
       "overviewBody": "Every device in the collection is selected for clinical merit and engineering integrity, then finished to the standards of the maison. Precise, quiet and dependable in daily use — built to earn a clinician's trust across years of service.",
       "specsTitle": "Technical Specifications",
       "specs": [
-        {
-          "label": "Acquisition channels",
-          "value": "32 referential / 16 bipolar"
-        },
-        {
-          "label": "Sampling rate",
-          "value": "Up to 16 kHz per channel"
-        },
-        {
-          "label": "Resolution",
-          "value": "24-bit"
-        },
-        {
-          "label": "Input impedance",
-          "value": "> 1 GΩ"
-        },
-        {
-          "label": "Connectivity",
-          "value": "Gigabit Ethernet · Wi-Fi 6 · USB-C"
-        },
-        {
-          "label": "Power",
-          "value": "Medical-grade isolated supply (IEC 60601-1)"
-        },
-        {
-          "label": "Compliance",
-          "value": "CE · ISO 13485 · IEC 60601"
-        },
-        {
-          "label": "Dimensions",
-          "value": "320 × 240 × 90 mm"
-        },
-        {
-          "label": "Weight",
-          "value": "3.4 kg"
-        },
-        {
-          "label": "Warranty",
-          "value": "24 months, extendable"
-        }
+        { "label": "Acquisition channels", "value": "32 referential / 16 bipolar" },
+        { "label": "Sampling rate", "value": "Up to 16 kHz per channel" },
+        { "label": "Resolution", "value": "24-bit" },
+        { "label": "Input impedance", "value": "> 1 GΩ" },
+        { "label": "Connectivity", "value": "Gigabit Ethernet · Wi-Fi 6 · USB-C" },
+        { "label": "Power", "value": "Medical-grade isolated supply (IEC 60601-1)" },
+        { "label": "Compliance", "value": "CE · ISO 13485 · IEC 60601" },
+        { "label": "Dimensions", "value": "320 × 240 × 90 mm" },
+        { "label": "Weight", "value": "3.4 kg" },
+        { "label": "Warranty", "value": "24 months, extendable" }
       ],
       "docsTitle": "Clinical Documentation",
       "docsNote": "Full documentation is released to verified clinical accounts.",
       "docs": [
-        {
-          "name": "Product datasheet",
-          "type": "PDF",
-          "size": "1.8 MB"
-        },
-        {
-          "name": "Clinical evaluation summary",
-          "type": "PDF",
-          "size": "3.2 MB"
-        },
-        {
-          "name": "Quick-start guide",
-          "type": "PDF",
-          "size": "760 KB"
-        },
-        {
-          "name": "Declaration of conformity",
-          "type": "PDF",
-          "size": "420 KB"
-        }
+        { "name": "Product datasheet", "type": "PDF", "size": "1.8 MB" },
+        { "name": "Clinical evaluation summary", "type": "PDF", "size": "3.2 MB" },
+        { "name": "Quick-start guide", "type": "PDF", "size": "760 KB" },
+        { "name": "Declaration of conformity", "type": "PDF", "size": "420 KB" }
       ],
       "reviewsTitle": "Reviews & Ratings",
       "reviewsKicker": "Clinical Voices",
       "ratingSuffix": "verified clinical accounts",
       "reviews": [
-        {
-          "author": "Dr. A. Karimi",
-          "role": "Functional Neurosurgeon",
-          "rating": 5,
-          "text": "Dependable acquisition and a workflow my team trusts in theatre. It has become part of our standard setup."
-        },
-        {
-          "author": "Dr. S. Moradi",
-          "role": "Clinical Neurophysiologist",
-          "rating": 5,
-          "text": "Clean signal, quiet operation and reporting that integrates neatly with our records. Excellent build quality."
-        },
-        {
-          "author": "Eng. R. Tabrizi",
-          "role": "Biomedical Engineer",
-          "rating": 4,
-          "text": "Serviceable, well-documented and robust. Calibration and maintenance are refreshingly straightforward."
-        }
+        { "author": "Dr. A. Karimi", "role": "Functional Neurosurgeon", "rating": 5, "text": "Dependable acquisition and a workflow my team trusts in theatre. It has become part of our standard setup." },
+        { "author": "Dr. S. Moradi", "role": "Clinical Neurophysiologist", "rating": 5, "text": "Clean signal, quiet operation and reporting that integrates neatly with our records. Excellent build quality." },
+        { "author": "Eng. R. Tabrizi", "role": "Biomedical Engineer", "rating": 4, "text": "Serviceable, well-documented and robust. Calibration and maintenance are refreshingly straightforward." }
       ],
       "validationTitle": "Clinical Validation & Certifications",
       "validationKicker": "Trusted Evidence",
       "validationLead": "Independently verified, regulator-cleared, and proven in daily clinical practice.",
       "certs": [
-        {
-          "mark": "FDA",
-          "name": "510(k) Cleared",
-          "note": "Cleared for clinical use by the U.S. Food & Drug Administration."
-        },
-        {
-          "mark": "CE",
-          "name": "CE Marked · MDR",
-          "note": "Conforms to EU Medical Device Regulation 2017/745."
-        },
-        {
-          "mark": "ISO",
-          "name": "ISO 13485",
-          "note": "Built under a certified medical quality-management system."
-        },
-        {
-          "mark": "IEC",
-          "name": "IEC 60601-1",
-          "note": "Meets international standards for medical electrical safety."
-        }
+        { "mark": "FDA", "name": "510(k) Cleared", "note": "Cleared for clinical use by the U.S. Food & Drug Administration." },
+        { "mark": "CE", "name": "CE Marked · MDR", "note": "Conforms to EU Medical Device Regulation 2017/745." },
+        { "mark": "ISO", "name": "ISO 13485", "note": "Built under a certified medical quality-management system." },
+        { "mark": "IEC", "name": "IEC 60601-1", "note": "Meets international standards for medical electrical safety." }
       ],
       "trialsLabel": "Clinical Evidence",
       "trials": [
-        {
-          "stat": "98.6%",
-          "label": "Signal fidelity",
-          "note": "Agreement with reference-grade acquisition across a 1,200-record multi-site study."
-        },
-        {
-          "stat": "n = 420",
-          "label": "Prospective cohort",
-          "note": "Peer-reviewed evaluation across three tertiary neurology centres."
-        },
-        {
-          "stat": "< 0.4%",
-          "label": "Adverse events",
-          "note": "No device-related serious adverse events over 24 months of monitored use."
-        }
+        { "stat": "98.6%", "label": "Signal fidelity", "note": "Agreement with reference-grade acquisition across a 1,200-record multi-site study." },
+        { "stat": "n = 420", "label": "Prospective cohort", "note": "Peer-reviewed evaluation across three tertiary neurology centres." },
+        { "stat": "< 0.4%", "label": "Adverse events", "note": "No device-related serious adverse events over 24 months of monitored use." }
       ],
       "ecosystemTitle": "Software Ecosystem",
       "ecosystemKicker": "Connected Platform",
       "ecosystemLead": "Every device is a node in a secure, connected clinical platform — from bedside to record.",
       "ecosystem": [
-        {
-          "name": "Clinical Dashboard",
-          "desc": "A unified web console for live review, annotation and multi-patient oversight."
-        },
-        {
-          "name": "Cloud Sync & Archive",
-          "desc": "Encrypted, redundant storage with instant cross-site retrieval of every study."
-        },
-        {
-          "name": "EHR · HL7-FHIR",
-          "desc": "One-click, standards-based export straight into the patient record."
-        },
-        {
-          "name": "Developer API",
-          "desc": "A documented REST & streaming API for research pipelines and custom tooling."
-        }
+        { "name": "Clinical Dashboard", "desc": "A unified web console for live review, annotation and multi-patient oversight." },
+        { "name": "Cloud Sync & Archive", "desc": "Encrypted, redundant storage with instant cross-site retrieval of every study." },
+        { "name": "EHR · HL7-FHIR", "desc": "One-click, standards-based export straight into the patient record." },
+        { "name": "Developer API", "desc": "A documented REST & streaming API for research pipelines and custom tooling." }
       ],
       "ecosystemNote": "Single sign-on, role-based access and full audit trails are standard across the platform."
     },
@@ -424,9 +306,9 @@
     "courses": [
       {
         "title": "Introduction to Clinical Neurology",
-        "instructor": "Prof. Ali Shalash",
+        "instructor": "Dr. N. Farahani",
         "level": "Intermediate",
-        "duration": "7 lessons · 4h 30m",
+        "duration": "16 lessons · 9h 00m",
         "tier": "free",
         "field": "clinicalNeurology",
         "desc": "Clinical reasoning from examination and localization to headache, epilepsy, movement and neurodegenerative disorders."
@@ -451,9 +333,9 @@
       },
       {
         "title": "Brain Anatomy & Functional Pathways",
-        "instructor": "Sam Webster",
+        "instructor": "Dr. R. Tabrizi",
         "level": "Introductory",
-        "duration": "6 lessons · 3h 40m",
+        "duration": "18 lessons · 9h 30m",
         "tier": "free",
         "field": "brainAnatomy",
         "desc": "Regional neuroanatomy — lobes, brainstem, diencephalon, basal ganglia, cerebellum and white-matter pathways."
@@ -511,456 +393,7 @@
       "demoVideoNotice": "Demo lecture — to be replaced with the academy's proprietary course content.",
       "simulateHint": "Demo — takes you to a mock checkout; lessons unlock when you return.",
       "unlockedNotice": "Subscription active. All lessons are now unlocked — select any lesson to begin.",
-      "dismiss": "Dismiss",
-      "descriptions": [
-        "Clinical Neurology develops the structured reasoning that distinguishes confident neurological practice: the disciplined progression from history and examination to anatomical localisation and a prioritised differential diagnosis. The course is built around the bedside and revisits the neurological examination not as a checklist but as a hypothesis-driven investigation.\n\nThe curriculum then works through the disorders a neurologist meets most often — headache, epilepsy, movement disorders and the neurodegenerative diseases — emphasising pattern recognition, appropriate investigation and current principles of management. A closing block of integrated case discussions consolidates the method, asking the learner to localise, differentiate and plan as they would in clinic.\n\nThe course is intended for neurology residents, medical students and clinicians seeking a systematic foundation in clinical neurological decision-making.",
-        "Neuroscience provides the mechanistic foundation on which clinical neurology rests. Beginning at the level of the single neuron, the course establishes the cellular and electrical principles of neural signalling before advancing to synaptic transmission and the neurotransmitter systems that are the targets of much of modern therapeutics.\n\nLater modules move from cell to circuit, examining neuroplasticity, the organisation of neural networks, and the cognitive systems — attention, memory, language and executive function — that emerge from them. Each concept is linked to its clinical correlate so that mechanism continually informs practice.\n\nThe course suits students and clinicians who want a rigorous, concept-led grounding in cellular and systems neuroscience.",
-        "Neuroimaging teaches a systematic, transferable approach to interpreting the studies that now underpin almost every neurological decision. The course begins with the physical principles of CT and MRI, to the depth a clinician requires, then builds disciplined search patterns for reading the head CT and the core MRI sequences.\n\nDedicated modules address the techniques that most often determine management — diffusion imaging in acute stroke, CT and MR angiography in vascular disease, and the principles of functional imaging — before a concluding case-based review. Throughout, emphasis falls on recognising critical findings and avoiding common interpretive pitfalls.\n\nIt is designed for trainees in neurology, emergency medicine and radiology who wish to read studies with confidence.",
-        "Brain Anatomy presents functional neuroanatomy as the working language of clinical neurology, with every structure tied to its function and to the deficit produced when it fails. The course is organised regionally, progressing from the cerebral lobes through the brainstem, diencephalon, basal ganglia and cerebellum.\n\nA final block traces the major white-matter pathways that connect these regions into functional systems, and a clinical review relates the anatomy directly to examination findings and lesion localisation.\n\nThe detailed, region-by-region structure makes the course suitable both as a first systematic course in neuroanatomy and as a focused revision resource ahead of postgraduate examinations.",
-        "Neurocritical Care addresses the management of patients with life-threatening neurological illness, where decisions are made in minutes and physiological monitoring guides every intervention. The course opens with the organisation of the neurocritical care unit and the principles of multimodal neuromonitoring.\n\nSubsequent modules cover the conditions that define the specialty — raised intracranial pressure, acute stroke, status epilepticus, and traumatic and hypoxic-ischaemic brain injury — each presented with current, protocol-driven management. A concluding module on neurocritical decision-making, including prognostication, draws the threads together.\n\nThe course is aimed at neurology and intensive-care trainees and the wider neuro-ICU team.",
-        "Neurosurgery introduces the principles, anatomy and core procedures of the specialty for surgical trainees and for the clinicians who work alongside the operating team. The early modules establish safe operative practice and the surgical anatomy of the corridors through which the brain and spine are approached.\n\nThe course then covers the cranial approaches, image-guided navigation and intra-operative monitoring that define modern surgery, before surveying the major subspecialties: tumour, vascular and functional neurosurgery, together with the fundamentals of spinal surgery and peri-operative complication management.\n\nThe emphasis throughout is on sound operative reasoning rather than technique in isolation."
-      ],
-      "modules": [
-        [
-          "Neurological Examination",
-          "Localization Principles",
-          "Headache Disorders",
-          "Epilepsy",
-          "Movement Disorders",
-          "Neurodegenerative Diseases",
-          "Clinical Case Discussions"
-        ],
-        [
-          "Cellular Neuroscience",
-          "Synaptic Transmission",
-          "Neuroplasticity",
-          "Neural Networks",
-          "Brain Function",
-          "Cognitive Systems"
-        ],
-        [
-          "CT Interpretation",
-          "MRI Fundamentals",
-          "Diffusion Imaging",
-          "Vascular Imaging",
-          "Functional Imaging",
-          "Case Review"
-        ],
-        [
-          "Cerebral Lobes",
-          "Brainstem",
-          "Diencephalon",
-          "Basal Ganglia",
-          "Cerebellum",
-          "White Matter Pathways"
-        ],
-        [
-          "ICU Monitoring",
-          "Intracranial Pressure",
-          "Stroke Management",
-          "Seizure Emergencies",
-          "Brain Injury",
-          "Neurocritical Decision Making"
-        ],
-        [
-          "Surgical Anatomy",
-          "Cranial Approaches",
-          "Navigation Systems",
-          "Tumor Surgery",
-          "Vascular Neurosurgery",
-          "Functional Neurosurgery"
-        ]
-      ],
-      "lessons": [
-        [
-          "The Neurological History",
-          "Cranial Nerve Examination",
-          "Motor & Sensory Examination",
-          "Reflexes, Coordination & Gait",
-          "Principles of Lesion Localization",
-          "Localizing the Common Syndromes",
-          "Approach to the Headache Patient",
-          "Migraine & Tension-Type Headache",
-          "Secondary & Red-Flag Headaches",
-          "Seizure Semiology & Classification",
-          "Epilepsy Diagnosis & the Role of EEG",
-          "Principles of Antiseizure Therapy",
-          "Parkinsonism & Tremor",
-          "Hyperkinetic Movement Disorders",
-          "Dementia & Neurodegenerative Disease",
-          "Integrated Clinical Case Discussions"
-        ],
-        [
-          "The Neuron: Structure & Function",
-          "Glial Cells & the Neural Environment",
-          "The Resting Membrane Potential",
-          "The Action Potential",
-          "Synaptic Structure & Neurotransmitter Release",
-          "Receptors & Postsynaptic Signalling",
-          "Excitatory & Inhibitory Neurotransmission",
-          "Mechanisms of Neuroplasticity",
-          "Long-Term Potentiation & Depression",
-          "Principles of Neural Networks",
-          "Sensory & Motor Network Organisation",
-          "Functional Specialisation of the Cortex",
-          "Attention, Memory & Executive Systems",
-          "Language & Higher Cognitive Function"
-        ],
-        [
-          "Principles of CT Image Formation",
-          "Systematic CT Head Interpretation",
-          "CT in Acute Stroke & Haemorrhage",
-          "MRI Physics for Clinicians",
-          "Core MRI Sequences: T1, T2 & FLAIR",
-          "Contrast Enhancement & Its Patterns",
-          "Diffusion-Weighted Imaging & the ADC Map",
-          "Diffusion in Stroke & Beyond",
-          "CT & MR Angiography",
-          "Venous Imaging & Perfusion",
-          "Principles of Functional MRI",
-          "Spectroscopy & Advanced Techniques",
-          "Common Pitfalls & Artefacts",
-          "Integrated Imaging Case Review"
-        ],
-        [
-          "Surface Anatomy of the Cerebrum",
-          "The Frontal Lobe",
-          "The Parietal Lobe",
-          "The Temporal Lobe",
-          "The Occipital & Limbic Cortex",
-          "Organisation of the Brainstem",
-          "The Midbrain",
-          "The Pons",
-          "The Medulla Oblongata",
-          "The Thalamus",
-          "The Hypothalamus & Epithalamus",
-          "Basal Ganglia: Structure",
-          "Basal Ganglia: Circuitry",
-          "Cerebellar Anatomy",
-          "Cerebellar Functional Divisions",
-          "Association & Commissural Fibres",
-          "Projection Fibres & the Internal Capsule",
-          "Clinical Neuroanatomy Review"
-        ],
-        [
-          "The Neurocritical Care Unit",
-          "Multimodal Neuromonitoring",
-          "ICP Physiology & Monitoring",
-          "Managing Raised Intracranial Pressure",
-          "Acute Ischaemic Stroke in the ICU",
-          "Intracerebral & Subarachnoid Haemorrhage",
-          "Status Epilepticus",
-          "Refractory Seizure Emergencies",
-          "Traumatic Brain Injury",
-          "Hypoxic-Ischaemic Brain Injury",
-          "Brain Death & Prognostication",
-          "Neurocritical Decision-Making"
-        ],
-        [
-          "Principles of Neurosurgical Practice",
-          "Operative Surgical Anatomy",
-          "Patient Positioning & Planning",
-          "The Craniotomy",
-          "Supratentorial Approaches",
-          "Skull Base & Posterior Fossa Approaches",
-          "Frameless Neuronavigation",
-          "Intra-operative Imaging",
-          "Intra-operative Neuromonitoring",
-          "Principles of Tumour Resection",
-          "Gliomas & Metastases",
-          "Cerebral Aneurysm Surgery",
-          "Arteriovenous Malformations",
-          "Functional Neurosurgery & DBS",
-          "Spinal Neurosurgery Fundamentals",
-          "Peri-operative Complication Management"
-        ]
-      ],
-      "outcomes": [
-        [
-          "Perform a complete, systematic neurological examination.",
-          "Localise lesions from history and examination findings.",
-          "Differentiate the major primary and secondary headache disorders.",
-          "Apply a structured approach to seizures and epilepsy.",
-          "Recognise common movement and neurodegenerative disorders.",
-          "Build and prioritise a clinical differential diagnosis."
-        ],
-        [
-          "Explain the ionic basis of resting and action potentials.",
-          "Describe synaptic transmission and the major neurotransmitter systems.",
-          "Relate neuroplasticity to learning, memory and recovery.",
-          "Analyse how neural networks generate behaviour.",
-          "Connect cognitive systems to their anatomical substrates.",
-          "Link circuit dysfunction to neurological and psychiatric disease."
-        ],
-        [
-          "Select CT or MRI appropriately for a given clinical question.",
-          "Interpret the core MRI sequences and their signal patterns.",
-          "Identify acute ischaemia on diffusion-weighted imaging.",
-          "Recognise vascular pathology on CT and MR angiography.",
-          "Apply a systematic search pattern to every study.",
-          "Avoid common interpretive pitfalls and imaging artefacts."
-        ],
-        [
-          "Identify the cerebral lobes and their functional regions.",
-          "Locate the brainstem nuclei and their clinical correlates.",
-          "Describe the organisation of the diencephalon and basal ganglia.",
-          "Explain cerebellar anatomy and its functional divisions.",
-          "Trace the major white-matter pathways of the brain.",
-          "Relate neuroanatomy directly to bedside examination findings."
-        ],
-        [
-          "Apply structured neuromonitoring in the intensive care unit.",
-          "Interpret and manage raised intracranial pressure.",
-          "Deliver time-critical acute stroke management.",
-          "Treat status epilepticus and seizure emergencies.",
-          "Manage traumatic and hypoxic-ischaemic brain injury.",
-          "Make evidence-based neurocritical-care decisions."
-        ],
-        [
-          "Describe the surgical anatomy of common operative corridors.",
-          "Select appropriate cranial approaches for a given lesion.",
-          "Apply neuronavigation and intra-operative neuromonitoring.",
-          "Outline the principles of intracranial tumour resection.",
-          "Explain core vascular neurosurgical techniques.",
-          "Describe the indications for functional neurosurgery."
-        ]
-      ],
-      "discussions": [
-        [
-          {
-            "role": "Resident",
-            "name": "Dr. P. Ahmadi",
-            "time": "2 days ago",
-            "body": "How do you approach localizing a lesion clinically, before any imaging?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. N. Farahani",
-            "time": "2 days ago",
-            "body": "Separate central from peripheral first, then work by level — cortex, subcortex, brainstem, cord, root, nerve, junction, muscle. The pattern of weakness, the reflexes and any sensory level usually narrow it to one or two sites before you order a single test."
-          },
-          {
-            "role": "Medical student",
-            "name": "S. Rahimi",
-            "time": "4 days ago",
-            "body": "Which examination findings carry the most localizing value?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. N. Farahani",
-            "time": "4 days ago",
-            "body": "Reflex asymmetry, a discrete sensory level, and the distribution of weakness are highest-yield. Pronator drift and observed gait are remarkably sensitive screens when time is short."
-          },
-          {
-            "role": "Resident",
-            "name": "Dr. M. Kazemi",
-            "time": "1 week ago",
-            "body": "Any practical rule for separating migraine from a secondary headache in clinic?"
-          },
-          {
-            "role": "Fellow",
-            "name": "Dr. L. Hosseini",
-            "time": "1 week ago",
-            "body": "Run the red-flag screen first — thunderclap onset, new headache over 50, immunosuppression, focal signs or papilloedema. A stereotyped pattern over years with a normal examination is reassuringly primary."
-          },
-          {
-            "role": "Medical student",
-            "name": "A. Tehrani",
-            "time": "2 weeks ago",
-            "body": "Could you add a worked case on the first unprovoked seizure?"
-          }
-        ],
-        [
-          {
-            "role": "Student",
-            "name": "M. Davari",
-            "time": "3 days ago",
-            "body": "How does neuroplasticity actually affect learning?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. S. Moradi",
-            "time": "3 days ago",
-            "body": "Learning is largely synaptic remodelling — long-term potentiation strengthens active synapses while unused connections weaken. Repetition and salience decide which circuits are consolidated, which is why spaced, meaningful practice works."
-          },
-          {
-            "role": "Resident",
-            "name": "Dr. R. Najafi",
-            "time": "5 days ago",
-            "body": "Which neurotransmitters are most important clinically?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. S. Moradi",
-            "time": "5 days ago",
-            "body": "Dopamine, acetylcholine, GABA, glutamate and serotonin between them underlie most of what we prescribe — from antiparkinsonian and anticholinesterase drugs to antiepileptics and antidepressants."
-          },
-          {
-            "role": "Student",
-            "name": "N. Eskandari",
-            "time": "1 week ago",
-            "body": "Is the resting membrane potential maintained mainly by the Na/K pump?"
-          },
-          {
-            "role": "Fellow",
-            "name": "Dr. H. Bagheri",
-            "time": "1 week ago",
-            "body": "The pump establishes the ionic gradients, but the resting potential is set chiefly by the membrane’s resting permeability to potassium. The pump’s direct electrogenic contribution is small."
-          }
-        ],
-        [
-          {
-            "role": "Resident",
-            "name": "Dr. K. Sadeghi",
-            "time": "1 day ago",
-            "body": "What imaging sequence is most useful for acute stroke?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. A. Karimi",
-            "time": "1 day ago",
-            "body": "DWI remains the most sensitive sequence during the hyperacute phase — restricted diffusion appears within minutes, well before changes are visible on CT or conventional MRI."
-          },
-          {
-            "role": "Student",
-            "name": "F. Mousavi",
-            "time": "3 days ago",
-            "body": "When should I choose CT over MRI in the emergency department?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. A. Karimi",
-            "time": "3 days ago",
-            "body": "CT first for suspected acute haemorrhage, trauma, or an unstable patient — it is fast and highly sensitive to fresh blood. Reach for MRI when you need tissue characterisation or posterior-fossa detail."
-          },
-          {
-            "role": "Resident",
-            "name": "Dr. T. Jalali",
-            "time": "5 days ago",
-            "body": "Any common pitfall when reading DWI?"
-          },
-          {
-            "role": "Fellow",
-            "name": "Dr. Z. Rostami",
-            "time": "5 days ago",
-            "body": "T2 shine-through is the classic trap — always confirm true restriction on the ADC map before calling acute ischaemia."
-          }
-        ],
-        [
-          {
-            "role": "Student",
-            "name": "B. Ghorbani",
-            "time": "2 days ago",
-            "body": "Which structures do you find most difficult to identify on cross-section?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. R. Tabrizi",
-            "time": "2 days ago",
-            "body": "The thalamic nuclei and the brainstem tracts trip up most learners. Fix the major landmarks first, then reason inward — relative position is far more reliable than trying to memorise every nucleus in isolation."
-          },
-          {
-            "role": "Resident",
-            "name": "Dr. S. Amiri",
-            "time": "4 days ago",
-            "body": "What anatomy is most relevant clinically, day to day?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. R. Tabrizi",
-            "time": "4 days ago",
-            "body": "The internal capsule, the brainstem cranial-nerve nuclei, and the arterial territories. Together they account for the majority of localisable deficits you will meet on the ward."
-          },
-          {
-            "role": "Student",
-            "name": "M. Khalili",
-            "time": "1 week ago",
-            "body": "Is it worth learning the cerebellar peduncles in detail?"
-          },
-          {
-            "role": "Fellow",
-            "name": "Dr. P. Ranjbar",
-            "time": "1 week ago",
-            "body": "Yes — knowing which peduncle carries what makes cerebellar and brainstem syndromes much easier to reason through."
-          }
-        ],
-        [
-          {
-            "role": "Resident",
-            "name": "Dr. A. Shirazi",
-            "time": "1 day ago",
-            "body": "What is your first-line strategy for an acute rise in ICP?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. L. Hashemi",
-            "time": "1 day ago",
-            "body": "Optimise the basics first — head up 30°, neck neutral, normocapnia, adequate sedation and analgesia — then escalate to osmotherapy. Hyperosmolar therapy buys time; it never replaces treating the underlying cause."
-          },
-          {
-            "role": "Fellow",
-            "name": "Dr. N. Yazdani",
-            "time": "3 days ago",
-            "body": "Hypertonic saline or mannitol for raised ICP?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. L. Hashemi",
-            "time": "3 days ago",
-            "body": "Either lowers ICP; let volume status decide. Mannitol if euvolaemic with good renal function; hypertonic saline if hypovolaemic or hyponatraemic. Track the osmolar gap and sodium closely either way."
-          },
-          {
-            "role": "Resident",
-            "name": "Dr. H. Mahmoudi",
-            "time": "5 days ago",
-            "body": "What do you find hardest about running the neuro-ICU?"
-          },
-          {
-            "role": "Attending",
-            "name": "Dr. F. Sadr",
-            "time": "5 days ago",
-            "body": "Balancing competing targets — perfusion against oedema, sedation against preserving the neurological examination. Multimodal monitoring helps, but clinical judgement still makes the call."
-          }
-        ],
-        [
-          {
-            "role": "Resident",
-            "name": "Dr. O. Mirzaei",
-            "time": "2 days ago",
-            "body": "What is the real role of neuronavigation in routine cases?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. M. Saadat",
-            "time": "2 days ago",
-            "body": "It is most valuable for planning the trajectory and craniotomy, and for deep or small lesions. Stay aware of brain shift after the dura is opened — re-orient to fixed landmarks and do not trust it blindly late in the case."
-          },
-          {
-            "role": "Student",
-            "name": "D. Akbari",
-            "time": "4 days ago",
-            "body": "What goes into surgical planning before a tumour resection?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. M. Saadat",
-            "time": "4 days ago",
-            "body": "Define the lesion and its relationship to eloquent cortex and vessels on MRI, choose the approach and positioning, and settle the adjuncts — navigation, monitoring, awake mapping — before the patient is anaesthetised."
-          },
-          {
-            "role": "Fellow",
-            "name": "Dr. S. Lotfi",
-            "time": "1 week ago",
-            "body": "When do you add intra-operative neuromonitoring?"
-          },
-          {
-            "role": "Instructor",
-            "name": "Dr. M. Saadat",
-            "time": "1 week ago",
-            "body": "Whenever the approach puts motor, brainstem or cranial-nerve pathways at risk. The trend across the case is more informative than any single reading."
-          }
-        ]
-      ]
+      "dismiss": "Dismiss"
     },
     "comments": {
       "title": "Discussion",
@@ -1005,7 +438,6 @@
       "past": "Past",
       "pastDesc": "Recordings, galleries and write-ups from sessions that have concluded.",
       "liveNow": "Live now",
-      "unavailable": "Currently unavailable",
       "takingPlace": "{name} is currently taking place.",
       "completedEvent": "Completed event",
       "emptyOngoing": "No sessions are live at the moment. Browse what's coming up below."
@@ -1033,7 +465,7 @@
         {
           "title": "Vagus Nerve Stimulation: Patient Selection Roundtable",
           "host": "Dr. S. Moradi & panel",
-          "date": "1 September 2026 · 18:30 (GMT+3:30)",
+          "date": "27 June 2026 · 18:30 (GMT+3:30)",
           "tag": "Panel discussion",
           "status": "Upcoming",
           "phase": "upcoming"
@@ -1041,7 +473,7 @@
         {
           "title": "Intra-operative Neuromonitoring Masterclass",
           "host": "Dr. M. Saadat",
-          "date": "8 September 2026 · 16:00 (GMT+3:30)",
+          "date": "4 July 2026 · 16:00 (GMT+3:30)",
           "tag": "Teaching clinic",
           "status": "Registration open",
           "phase": "upcoming"
@@ -1065,7 +497,7 @@
         {
           "title": "Regulatory Standards for Medical Import & Export",
           "venue": "Neuro Tech Studio, Valiasr Ave.",
-          "date": "3 September 2026",
+          "date": "5 July 2026",
           "tag": "Briefing",
           "status": "Open registration",
           "phase": "upcoming"
@@ -1073,7 +505,7 @@
         {
           "title": "Annual Clinical Neurophysiology Seminar",
           "venue": "Milad Conference Centre",
-          "date": "20–21 September 2026",
+          "date": "14–15 September 2026",
           "tag": "Seminar",
           "status": "Save the date",
           "phase": "upcoming"
@@ -1257,172 +689,7 @@
         "sessions": "Sessions",
         "duration": "Total runtime",
         "materials": "Materials"
-      },
-      "schedule": [
-        {
-          "time": "08:30",
-          "label": "Doors open & registration"
-        },
-        {
-          "time": "09:00",
-          "label": "Morning sessions — Main Hall"
-        },
-        {
-          "time": "12:30",
-          "label": "Lunch & networking"
-        },
-        {
-          "time": "14:00",
-          "label": "Hands-on stations — Hall B"
-        },
-        {
-          "time": "17:00",
-          "label": "Closing remarks"
-        }
-      ],
-      "agendaItems": [
-        {
-          "time": "12:00",
-          "title": "Welcome & case introduction",
-          "status": "done"
-        },
-        {
-          "time": "12:10",
-          "title": "Pre-operative imaging & target planning",
-          "status": "done"
-        },
-        {
-          "time": "12:25",
-          "title": "Live lead trajectory & microelectrode recording",
-          "status": "live"
-        },
-        {
-          "time": "13:05",
-          "title": "Intra-operative test stimulation",
-          "status": "soon"
-        },
-        {
-          "time": "13:30",
-          "title": "Closing & programming strategy",
-          "status": "upcoming"
-        },
-        {
-          "time": "13:50",
-          "title": "Open Q&A with the faculty panel",
-          "status": "upcoming"
-        }
-      ],
-      "speakers": [
-        {
-          "name": "Dr. A. Karimi",
-          "title": "Functional Neurosurgeon",
-          "org": "Tehran Neurology Institute",
-          "tag": "Presenting",
-          "live": true,
-          "talks": 142
-        },
-        {
-          "name": "Dr. L. Hashemi",
-          "title": "Clinical Neurophysiologist",
-          "org": "Milad Medical Centre",
-          "tag": "Moderator",
-          "live": false,
-          "talks": 87
-        },
-        {
-          "name": "Eng. R. Tabrizi",
-          "title": "Biomedical Engineer",
-          "org": "Neuro Tech",
-          "tag": "Device support",
-          "live": false,
-          "talks": 54
-        }
-      ],
-      "documents": [
-        {
-          "name": "Pre-operative MRI & CT fusion plan",
-          "type": "PDF",
-          "size": "2.4 MB"
-        },
-        {
-          "name": "DBS programming parameter sheet",
-          "type": "XLSX",
-          "size": "180 KB"
-        },
-        {
-          "name": "Patient consent & screening summary",
-          "type": "PDF",
-          "size": "640 KB"
-        },
-        {
-          "name": "Session reading pack — lead trajectory",
-          "type": "PDF",
-          "size": "3.1 MB"
-        }
-      ],
-      "chat": [
-        {
-          "user": "Dr. L. Hashemi",
-          "role": "Faculty",
-          "time": "12:02",
-          "text": "Welcome everyone — we begin with the pre-op imaging review in two minutes.",
-          "faculty": true
-        },
-        {
-          "user": "M. Rezaei",
-          "role": "Resident",
-          "time": "12:04",
-          "text": "Great to be here. Will the lead trajectory planning be covered today?"
-        },
-        {
-          "user": "S. Nouri",
-          "role": "Attendee",
-          "time": "12:06",
-          "text": "Audio and video are crystal clear from Shiraz 👏"
-        },
-        {
-          "user": "Dr. A. Karimi",
-          "role": "Presenter",
-          "time": "12:08",
-          "text": "Yes — trajectory planning is the next segment. Keep questions coming in the Q&A tab.",
-          "faculty": true
-        },
-        {
-          "user": "P. Ahmadi",
-          "role": "Attendee",
-          "time": "12:11",
-          "text": "Could you clarify the microelectrode recording thresholds you target intra-operatively?"
-        },
-        {
-          "user": "F. Karbasi",
-          "role": "Fellow",
-          "time": "12:13",
-          "text": "Following from Tabriz — excellent case selection."
-        }
-      ],
-      "qa": [
-        {
-          "user": "M. Rezaei",
-          "time": "12:05",
-          "text": "What stimulation frequency do you start with for tremor-dominant presentations?",
-          "votes": 17,
-          "answered": true
-        },
-        {
-          "user": "P. Ahmadi",
-          "time": "12:11",
-          "text": "How do you manage stimulation-induced dyskinesia in the first programming session?",
-          "votes": 12,
-          "answered": false
-        },
-        {
-          "user": "N. Saadat",
-          "time": "12:14",
-          "text": "Any tips for distinguishing capsular side-effects from genuine benefit?",
-          "votes": 9,
-          "answered": false
-        }
-      ]
+      }
     },
     "reservation": {
       "eyebrow": "Reservation",
@@ -1650,361 +917,263 @@
     },
     "people": [
       {
-        "name": "Dr. Raee",
-        "title": "Chief Executive Officer",
-        "qualification": "MD · MBA, Health Technology Management",
-        "councilNumber": "—",
-        "status": "Executive Leadership",
+        "name": "Dr. A. Karimi",
+        "qualification": "MD, Functional Neurosurgery — Tehran University of Medical Sciences",
+        "councilNumber": "IR-NS-10342",
         "collaborations": [
-          "Executive Leadership",
-          "Strategy & Vision",
-          "Clinical Partnerships"
+          "Device Advisory Board",
+          "Surgical Workshop Lead"
         ],
-        "affiliation": "Neuro Tech",
-        "bio": "Dr. Raee founded and leads Neuro Tech, setting the company's clinical and commercial direction. A physician by training with a management background, he pairs bedside insight with operational discipline — steering the platform from neurology devices toward a complete education-and-care ecosystem while keeping clinical value at the centre of every decision.",
-        "expertise": [
-          "Corporate strategy & vision",
-          "Clinical product direction",
-          "Healthcare innovation",
-          "Strategic partnerships",
-          "Organisational leadership"
-        ],
+        "bio": "Leads deep-brain stimulation programmes at Tehran Neurology Institute; advises on device selection and surgical workflow.",
+        "title": "Functional Neurosurgeon",
+        "affiliation": "Tehran Neurology Institute",
         "experience": [
-          {
-            "role": "Chief Executive Officer",
-            "org": "Neuro Tech",
-            "period": "Founder — Present"
-          },
-          {
-            "role": "Clinical & Innovation Advisor",
-            "org": "Imam Khomeini Hospital, Tehran",
-            "period": "Earlier career"
-          }
+          { "role": "Head of Functional Neurosurgery", "org": "Tehran Neurology Institute", "period": "2016 — Present" },
+          { "role": "Consultant Neurosurgeon", "org": "Milad Medical Centre", "period": "2011 — 2016" },
+          { "role": "Device Advisory Board Member", "org": "Neuro Tech", "period": "2018 — Present" }
         ],
         "education": [
-          {
-            "degree": "MBA, Health Technology Management",
-            "school": "Sharif University of Technology, Tehran"
-          },
-          {
-            "degree": "MD, Medicine",
-            "school": "Tehran University of Medical Sciences"
-          }
+          { "degree": "Fellowship, Functional & Stereotactic Neurosurgery", "school": "Tehran University of Medical Sciences", "period": "2009 — 2011" },
+          { "degree": "MD, Medicine", "school": "Tehran University of Medical Sciences", "period": "1999 — 2007" }
+        ],
+        "publications": [
+          { "title": "Long-term outcomes of subthalamic deep-brain stimulation in Parkinson's disease", "venue": "Iranian Journal of Neurology · 2022" },
+          { "title": "Lead-trajectory planning with intra-operative microelectrode recording", "venue": "Stereotactic & Functional Neurosurgery · 2020" }
         ]
       },
       {
-        "name": "Eng. Zirouhi",
-        "title": "Vice President",
-        "qualification": "MSc, Biomedical & Electrical Engineering",
-        "councilNumber": "—",
-        "status": "Executive Leadership",
+        "name": "Dr. S. Moradi",
+        "qualification": "MD, Clinical Neurophysiology — Shahid Beheshti University of Medical Sciences",
+        "councilNumber": "IR-NP-20567",
         "collaborations": [
-          "Operations",
-          "Product Engineering",
-          "R&D Oversight"
-        ],
-        "affiliation": "Neuro Tech",
-        "bio": "Eng. Zirouhi serves as Vice President, translating company strategy into delivery. With a background spanning biomedical and electrical engineering, he oversees product development and day-to-day operations — aligning engineering, clinical and commercial teams so that research reaches practitioners as dependable, well-built tools.",
-        "expertise": [
-          "Operations management",
-          "Biomedical engineering",
-          "Product development",
-          "Cross-functional execution",
-          "Quality & reliability"
-        ],
-        "experience": [
-          {
-            "role": "Vice President",
-            "org": "Neuro Tech",
-            "period": "2019 — Present"
-          },
-          {
-            "role": "Lead Biomedical Engineer",
-            "org": "Iran Medical Devices Co., Tehran",
-            "period": "2012 — 2019"
-          }
-        ],
-        "education": [
-          {
-            "degree": "MSc, Biomedical Engineering",
-            "school": "Amirkabir University of Technology, Tehran"
-          },
-          {
-            "degree": "BSc, Electrical Engineering",
-            "school": "Sharif University of Technology, Tehran"
-          }
-        ]
-      },
-      {
-        "name": "Eng. Shafiei",
-        "title": "Chief Technology Officer (CTO)",
-        "qualification": "MSc, Software & Systems Engineering",
-        "councilNumber": "—",
-        "status": "Engineering Leadership",
-        "collaborations": [
-          "Platform Architecture",
-          "Engineering Leadership",
-          "Security & Reliability"
-        ],
-        "affiliation": "Neuro Tech",
-        "bio": "Eng. Shafiei is Chief Technology Officer, owning the architecture of the platform end to end. He leads the engineering organisation across the learning platform, clinical applications and data services — setting technical standards and guiding the team toward systems that are scalable, secure and maintainable as the product grows.",
-        "expertise": [
-          "Software architecture",
-          "Engineering leadership",
-          "Scalable web platforms",
-          "Data & security engineering",
-          "Technical strategy"
-        ],
-        "experience": [
-          {
-            "role": "Chief Technology Officer (CTO)",
-            "org": "Neuro Tech",
-            "period": "2020 — Present"
-          },
-          {
-            "role": "Senior Software Engineer",
-            "org": "Technology Sector, Tehran",
-            "period": "2013 — 2020"
-          }
-        ],
-        "education": [
-          {
-            "degree": "MSc, Software Engineering",
-            "school": "Sharif University of Technology, Tehran"
-          },
-          {
-            "degree": "BSc, Computer Engineering",
-            "school": "Amirkabir University of Technology, Tehran"
-          }
-        ]
-      },
-      {
-        "name": "Dr. Meybodi",
-        "title": "Human Resources Manager",
-        "qualification": "MA, Organisational Psychology",
-        "councilNumber": "—",
-        "status": "People & Culture",
-        "collaborations": [
-          "People & Culture",
-          "Talent Acquisition",
-          "Team Development"
-        ],
-        "affiliation": "Neuro Tech",
-        "bio": "Dr. Meybodi leads People & Culture at Neuro Tech, building the teams behind the product. With a background in organisational psychology, she shapes hiring, development and a working culture that helps clinicians, engineers and educators do their best work — keeping the organisation healthy as it scales.",
-        "expertise": [
-          "Talent acquisition",
-          "Organisational development",
-          "Culture & engagement",
-          "Performance & growth",
-          "HR strategy"
-        ],
-        "experience": [
-          {
-            "role": "Human Resources Manager",
-            "org": "Neuro Tech",
-            "period": "2019 — Present"
-          },
-          {
-            "role": "HR Business Partner",
-            "org": "Technology Sector, Tehran",
-            "period": "2014 — 2019"
-          }
-        ],
-        "education": [
-          {
-            "degree": "MA, Organisational Psychology",
-            "school": "University of Tehran"
-          },
-          {
-            "degree": "BA, Psychology",
-            "school": "Shahid Beheshti University, Tehran"
-          }
-        ]
-      },
-      {
-        "name": "Eng. Rezaeifar",
-        "title": "Commercial Manager",
-        "qualification": "MBA, Commercial & Brand Strategy",
-        "councilNumber": "—",
-        "status": "Commercial & Growth",
-        "collaborations": [
-          "Commercial Strategy",
-          "Market Development",
-          "Partnerships"
-        ],
-        "affiliation": "Neuro Tech",
-        "bio": "Eng. Rezaeifar leads the commercial function, carrying Neuro Tech's work to the clinicians and institutions it serves. He owns sales, market development and partnership strategy — translating a complex clinical-technology offering into a clear, trustworthy proposition, and building the commercial pathways that bring the devices and the Academy to a wider audience.",
-        "expertise": [
-          "Commercial strategy",
-          "Market development",
-          "Sales & partnerships",
-          "Pricing & positioning",
-          "Go-to-market"
-        ],
-        "experience": [
-          {
-            "role": "Commercial Manager",
-            "org": "Neuro Tech",
-            "period": "2020 — Present"
-          },
-          {
-            "role": "Business Development Lead",
-            "org": "Health Technology, Tehran",
-            "period": "2015 — 2020"
-          }
-        ],
-        "education": [
-          {
-            "degree": "MBA, Commercial & Brand Strategy",
-            "school": "University of Tehran"
-          },
-          {
-            "degree": "BA, Communications",
-            "school": "Allameh Tabataba'i University, Tehran"
-          }
-        ]
-      },
-      {
-        "name": "Prof. Ali Shalash",
-        "kind": "educator",
-        "title": "Professor of Clinical Neurology",
-        "qualification": "MD, PhD — Neurology & Movement Disorders",
-        "councilNumber": "—",
-        "platform": "Clinical Neurology",
-        "status": "Iranian Persian Doctor",
-        "collaborations": [
-          "Clinical Neurology Curriculum",
           "Course Instructor",
-          "Active Partner"
+          "Device Validation Consultant"
         ],
-        "affiliation": "Tehran University of Medical Sciences",
-        "bio": "Prof. Ali Shalash is an Iranian Persian doctor and professor of clinical neurology whose teaching anchors the Academy’s Clinical Neurology course. His work centres on the neurological examination, lesion localisation and movement disorders, taught in a methodical, bedside-first style. Drawing on years of clinical practice and academic teaching, he guides learners from the history and examination through to a prioritised differential diagnosis.",
+        "bio": "Specialist in EMG and nerve-conduction diagnostics; collaborates on device validation and clinical training.",
+        "title": "Clinical Neurophysiologist",
+        "affiliation": "Shahid Beheshti Medical Centre",
+        "experience": [
+          { "role": "Attending Neurophysiologist", "org": "Shahid Beheshti Medical Centre", "period": "2014 — Present" },
+          { "role": "Device Validation Consultant", "org": "Neuro Tech", "period": "2019 — Present" }
+        ],
+        "education": [
+          { "degree": "MD, Clinical Neurophysiology", "school": "Shahid Beheshti University of Medical Sciences", "period": "2008 — 2014" }
+        ],
+        "publications": [
+          { "title": "Surface versus needle EMG in early carpal-tunnel diagnosis", "venue": "Clinical Neurophysiology Practice · 2021" }
+        ]
+      },
+      {
+        "name": "Dr. N. Farahani",
+        "qualification": "MD, Epileptology & EEG — Tabriz University of Medical Sciences",
+        "councilNumber": "IR-EP-30781",
+        "collaborations": [
+          "Course Instructor",
+          "Live Reading Clinic Host"
+        ],
+        "bio": "Teaches the Foundations of Clinical EEG course and hosts the Academy's live reading clinics.",
+        "title": "Epileptologist & EEG Specialist",
+        "affiliation": "Tabriz Neuroscience Centre",
+        "experience": [
+          { "role": "Director, EEG Reading Clinic", "org": "Tabriz Neuroscience Centre", "period": "2015 — Present" },
+          { "role": "Course Instructor — Clinical EEG", "org": "Neuro Tech Academy", "period": "2019 — Present" }
+        ],
+        "education": [
+          { "degree": "MD, Epileptology & Clinical EEG", "school": "Tabriz University of Medical Sciences", "period": "2006 — 2013" }
+        ],
+        "publications": [
+          { "title": "Interictal epileptiform patterns in long-term ambulatory EEG", "venue": "Epilepsia Open · 2023" }
+        ]
+      },
+      {
+        "name": "Dr. L. Hashemi",
+        "qualification": "MD, Sleep Medicine — Isfahan University of Medical Sciences",
+        "councilNumber": "IR-SM-40219",
+        "collaborations": [
+          "Course Instructor",
+          "Curriculum Reviewer"
+        ],
+        "bio": "Designs polysomnography curricula and reviews premium-tier course materials before publication.",
+        "title": "Sleep Medicine Physician",
+        "affiliation": "Isfahan Sleep Disorders Centre",
+        "experience": [
+          { "role": "Lead Physician, Polysomnography Unit", "org": "Isfahan Sleep Disorders Centre", "period": "2013 — Present" },
+          { "role": "Curriculum Reviewer", "org": "Neuro Tech Academy", "period": "2020 — Present" }
+        ],
+        "education": [
+          { "degree": "MD, Sleep Medicine", "school": "Isfahan University of Medical Sciences", "period": "2005 — 2012" }
+        ],
+        "publications": [
+          { "title": "Home polysomnography protocols for paediatric sleep apnoea", "venue": "Journal of Clinical Sleep Medicine · 2022" }
+        ]
+      },
+      {
+        "name": "Dr. M. Saadat",
+        "qualification": "MD, Critical Care & Status Epilepticus — Tehran Neurology Institute",
+        "councilNumber": "IR-CC-50934",
+        "collaborations": [
+          "Status Epilepticus Consultant",
+          "Clinical Documentation Lead"
+        ],
+        "bio": "Advises on intensive-care escalation pathways and produces case-study writing for the Events archive and Academy library.",
+        "title": "Critical Care Neurologist",
+        "affiliation": "Tehran Neurology Institute",
+        "experience": [
+          { "role": "Consultant, Neurocritical Care", "org": "Tehran Neurology Institute", "period": "2012 — Present" },
+          { "role": "Clinical Documentation Lead", "org": "Neuro Tech", "period": "2018 — Present" }
+        ],
+        "education": [
+          { "degree": "MD, Critical Care & Status Epilepticus", "school": "Tehran University of Medical Sciences", "period": "2004 — 2011" }
+        ],
+        "publications": [
+          { "title": "Escalation pathways in refractory status epilepticus", "venue": "Neurocritical Care · 2021" }
+        ]
+      },
+      {
+        "name": "Eng. R. Tabrizi",
+        "qualification": "MSc, Biomedical Engineering — Sharif University of Technology",
+        "councilNumber": "—",
+        "collaborations": [
+          "Course Instructor",
+          "Device Technique Designer"
+        ],
+        "bio": "Builds device-technique modules bridging engineering principles and clinical application.",
+        "title": "Biomedical Engineer",
+        "affiliation": "Neuro Tech",
+        "experience": [
+          { "role": "Senior Biomedical Engineer", "org": "Neuro Tech", "period": "2017 — Present" },
+          { "role": "Device Technique Designer", "org": "Neuro Tech Academy", "period": "2019 — Present" }
+        ],
+        "education": [
+          { "degree": "MSc, Biomedical Engineering", "school": "Sharif University of Technology", "period": "2013 — 2016" }
+        ],
+        "publications": [
+          { "title": "Signal-integrity considerations in multi-channel EMG acquisition", "venue": "IFMBE Proceedings · 2020" }
+        ]
+      },
+      {
+        "name": "F. Karbasi",
+        "qualification": "BFA, Medical Illustration — Tehran University of Art",
+        "councilNumber": "—",
+        "collaborations": [
+          "Medical Illustrator",
+          "Seminar Material Designer"
+        ],
+        "bio": "Creates anatomical and procedural illustration used across courses and seminar materials.",
+        "title": "Medical Illustrator",
+        "affiliation": "Neuro Tech Studio",
+        "experience": [
+          { "role": "Lead Medical Illustrator", "org": "Neuro Tech Studio", "period": "2018 — Present" },
+          { "role": "Seminar Material Designer", "org": "Neuro Tech Academy", "period": "2019 — Present" }
+        ],
+        "education": [
+          { "degree": "BFA, Medical Illustration", "school": "Tehran University of Art", "period": "2012 — 2016" }
+        ],
+        "publications": [
+          { "title": "Procedural illustration for neurostimulation training modules", "venue": "Neuro Tech Academy · 2023" }
+        ]
+      },
+      {
+        "name": "Sam Webster",
+        "kind": "educator",
+        "title": "Neuroanatomy Education",
+        "qualification": "Anatomy Educator · Educational Content Provider",
+        "councilNumber": "—",
+        "platform": "Medical Education",
+        "status": "Active Partner",
+        "collaborations": ["Educational Content Provider", "Brain Anatomy Curriculum", "Active Partner"],
+        "affiliation": "Medical Education",
+        "bio": "Sam Webster is an anatomy educator whose structured, dissection-led teaching of the human brain underpins the Academy's Brain Anatomy curriculum. His work is distinguished by a clear, regional progression through neuroanatomy — surface landmarks, brainstem, deep grey matter and white-matter pathways — that consistently connects structure to clinical function. The Academy curates his lecture series as foundational visual learning material for trainees building their first systematic map of the brain.",
+        "expertise": [
+          "Gross and functional neuroanatomy",
+          "Brainstem and cranial-nerve nuclei",
+          "Anatomical dissection technique",
+          "Visual and spatial anatomy teaching",
+          "Undergraduate and postgraduate education"
+        ],
+        "methodology": "Webster's teaching favours a regional, image-led method: each structure is introduced in situ, oriented against fixed landmarks, and immediately tied to the deficit it produces when damaged. Complex three-dimensional relationships are built up incrementally rather than memorised in isolation, which suits learners moving from first exposure toward confident localisation.",
+        "impact": "His openly accessible neuroanatomy material has supported medical and allied-health students internationally, and within the Academy forms the visual backbone of the Brain Anatomy course — giving clinicians a durable, examination-ready mental model of cerebral structure.",
+        "courses": [{ "title": "Brain Anatomy", "index": 3 }],
+        "playlists": [{ "title": "Brain Anatomy — Structural Series", "lessons": 18 }],
+        "experience": [
+          { "role": "Anatomy Educator & Content Provider", "org": "Neuro Tech Academy", "period": "2024 — Present" },
+          { "role": "Lecturer in Anatomy", "org": "University Medical School", "period": "2012 — Present" }
+        ],
+        "education": [
+          { "degree": "PhD, Anatomical Sciences", "school": "University Medical School" },
+          { "degree": "BSc, Human Anatomy", "school": "University Medical School" }
+        ],
+        "publications": [
+          { "title": "Structured neuroanatomy for the early clinical learner", "venue": "Anatomical Education Review" },
+          { "title": "Region-first approaches to teaching the brainstem", "venue": "Journal of Anatomy Education" }
+        ]
+      },
+      {
+        "name": "Therapy in a Nutshell",
+        "kind": "educator",
+        "title": "Neuroscience & Neuroplasticity Education",
+        "qualification": "Applied Neuroscience Educator · Educational Content Provider",
+        "councilNumber": "—",
+        "platform": "Medical Education",
+        "status": "Active Partner",
+        "collaborations": ["Educational Content Provider", "Neuroscience Curriculum", "Active Partner"],
+        "affiliation": "Medical Education",
+        "bio": "Therapy in a Nutshell is an educational content provider specialising in the translation of contemporary neuroscience — particularly neuroplasticity and the stress response — into clear, evidence-informed teaching. The Academy draws on this material for its Neuroscience course, where the emphasis on mechanism made accessible complements the programme's progression from the single neuron to whole-brain networks and cognition.",
+        "expertise": [
+          "Neuroplasticity and learning",
+          "Applied and behavioural neuroscience",
+          "The stress response and the nervous system",
+          "Translational science communication",
+          "Clinician and patient education"
+        ],
+        "methodology": "The approach distils primary neuroscience into concise, mechanism-first explanations, pairing each concept with a concrete clinical or behavioural correlate. This keeps abstract cellular and network principles anchored to outcomes that matter at the bedside and in practice.",
+        "impact": "Its accessible neuroscience education has reached a broad international audience of clinicians, students and patients, and within the Academy it strengthens the Neuroscience course's bridge between cellular mechanism and applied understanding.",
+        "courses": [{ "title": "Neuroscience", "index": 1 }],
+        "playlists": [{ "title": "Neuroplasticity — Foundations", "lessons": 14 }],
+        "experience": [
+          { "role": "Neuroscience Educator & Content Provider", "org": "Neuro Tech Academy", "period": "2024 — Present" },
+          { "role": "Clinical Educator, Applied Neuroscience", "org": "Independent Practice", "period": "2017 — Present" }
+        ],
+        "education": [
+          { "degree": "Graduate training, Clinical Mental Health", "school": "Accredited Graduate Programme" }
+        ],
+        "publications": [
+          { "title": "Neuroplasticity as a framework for clinical change", "venue": "Applied Neuroscience Education" },
+          { "title": "Communicating the stress response to non-specialists", "venue": "Translational Education Notes" }
+        ]
+      },
+      {
+        "name": "All About Clinical Medicine",
+        "kind": "educator",
+        "title": "Clinical Neurology Education",
+        "qualification": "Clinical Medicine Educator · Educational Content Provider",
+        "councilNumber": "—",
+        "platform": "Medical Education",
+        "status": "Active Partner",
+        "collaborations": ["Educational Content Provider", "Clinical Neurology Curriculum", "Active Partner"],
+        "affiliation": "Medical Education",
+        "bio": "All About Clinical Medicine is an educational content provider whose complete clinical neurology series anchors the Academy's Clinical Neurology course. The material is structured around examination-room reasoning — history, neurological examination, localisation and the common disease groups — in the methodical, examination-oriented style favoured by postgraduate trainees preparing for clinical practice and board assessment.",
         "expertise": [
           "Clinical neurology",
           "The neurological examination",
-          "Movement disorders & Parkinsonism",
           "Lesion localisation",
-          "Case-based clinical reasoning"
+          "Case-based clinical reasoning",
+          "Postgraduate examination preparation"
         ],
-        "methodology": "Prof. Shalash teaches in a structured, case-led way: each topic begins as a clinical problem at the bedside, is worked through from presentation to localisation and management, and is reinforced with the high-yield reasoning expected of postgraduate trainees. The sequence is deliberately cumulative, building toward independent diagnostic judgement.",
-        "impact": "His clinical neurology teaching supports residents and students preparing for practice and board assessment, and provides the Academy’s Clinical Neurology course with a coherent pathway from the bedside examination to a confident differential diagnosis.",
-        "courses": [
-          {
-            "title": "Clinical Neurology",
-            "index": 0
-          }
-        ],
-        "playlists": [
-          {
-            "title": "Clinical Neurology — Complete Series",
-            "lessons": 7
-          }
-        ],
+        "methodology": "The teaching follows a structured, case-led format: each topic is framed as a clinical problem, worked through from presentation to localisation and management, and reinforced with the kind of high-yield reasoning expected in postgraduate assessment. The sequence is deliberately cumulative, building toward independent diagnostic judgement.",
+        "impact": "Its comprehensive clinical neurology teaching supports residents and students worldwide, and provides the Academy's Clinical Neurology course with a coherent, end-to-end pathway from the bedside examination to a prioritised differential diagnosis.",
+        "courses": [{ "title": "Clinical Neurology", "index": 0 }],
+        "playlists": [{ "title": "Clinical Neurology — Complete Series", "lessons": 16 }],
         "experience": [
-          {
-            "role": "Professor of Clinical Neurology",
-            "org": "Tehran University of Medical Sciences",
-            "period": "2014 — Present"
-          },
-          {
-            "role": "Consultant Neurologist",
-            "org": "Imam Khomeini Hospital, Tehran",
-            "period": "2008 — Present"
-          },
-          {
-            "role": "Clinical Neurology Educator & Content Provider",
-            "org": "Neuro Tech Academy",
-            "period": "2024 — Present"
-          }
+          { "role": "Clinical Neurology Educator & Content Provider", "org": "Neuro Tech Academy", "period": "2024 — Present" },
+          { "role": "Clinical Medicine Educator", "org": "Independent Medical Education", "period": "2015 — Present" }
         ],
         "education": [
-          {
-            "degree": "PhD, Neurology & Movement Disorders",
-            "school": "Tehran University of Medical Sciences"
-          },
-          {
-            "degree": "MD, Medicine",
-            "school": "Shahid Beheshti University of Medical Sciences, Tehran"
-          }
+          { "degree": "MD, Medicine", "school": "Accredited Medical School" }
         ],
         "publications": [
-          {
-            "title": "A structured approach to the neurological examination",
-            "venue": "Clinical Neurology Education"
-          },
-          {
-            "title": "Localisation-first teaching in clinical neurology",
-            "venue": "Neurology Teaching Notes"
-          }
-        ]
-      },
-      {
-        "name": "Dr. Sam Webster",
-        "kind": "educator",
-        "title": "Anatomist & Neuroscience Educator",
-        "qualification": "PhD, Neuroscience · Anatomical Sciences",
-        "councilNumber": "—",
-        "platform": "Brain Anatomy",
-        "status": "Active Partner",
-        "collaborations": [
-          "Brain Anatomy Curriculum",
-          "Course Instructor",
-          "Active Partner"
-        ],
-        "affiliation": "School of Medicine",
-        "bio": "Sam Webster is an anatomist and neuroscience educator whose clear, structured teaching of the human brain underpins the Academy’s Brain Anatomy course. He is known for making complex neuroanatomy approachable — moving through surface landmarks, the brainstem, the deep grey matter and the white-matter pathways in a logical, region-by-region sequence that always ties structure back to clinical function.",
-        "expertise": [
-          "Gross & functional neuroanatomy",
-          "Brainstem & cranial-nerve nuclei",
-          "Anatomical dissection & prosection",
-          "Visual & spatial anatomy teaching",
-          "Undergraduate & postgraduate education"
-        ],
-        "methodology": "Sam Webster teaches with a calm, narrative style: each structure is introduced in context, oriented against fixed landmarks, and immediately related to the deficit it produces when damaged. Three-dimensional relationships are built up step by step rather than memorised in isolation, which suits learners moving from first exposure toward confident localisation.",
-        "impact": "His anatomy teaching has reached students of medicine and the allied health sciences, and within the Academy it forms the visual backbone of the Brain Anatomy course — giving clinicians a durable, examination-ready mental model of cerebral structure.",
-        "courses": [
-          {
-            "title": "Brain Anatomy",
-            "index": 3
-          }
-        ],
-        "playlists": [
-          {
-            "title": "Brain Anatomy — Structural Series",
-            "lessons": 6
-          }
-        ],
-        "experience": [
-          {
-            "role": "Anatomist & Neuroscience Educator",
-            "org": "School of Medicine",
-            "period": "2010 — Present"
-          },
-          {
-            "role": "Anatomy Educator & Content Provider",
-            "org": "Neuro Tech Academy",
-            "period": "2024 — Present"
-          }
-        ],
-        "education": [
-          {
-            "degree": "PhD, Neuroscience",
-            "school": "University"
-          },
-          {
-            "degree": "BSc, Anatomical Sciences",
-            "school": "University"
-          }
-        ],
-        "publications": [
-          {
-            "title": "Structured neuroanatomy for the early clinical learner",
-            "venue": "Anatomical Education Review"
-          },
-          {
-            "title": "Region-first approaches to teaching the brainstem",
-            "venue": "Journal of Anatomy Education"
-          }
+          { "title": "A structured approach to the neurological examination", "venue": "Clinical Medicine Education" },
+          { "title": "Localisation-first teaching in clinical neurology", "venue": "Neurology Teaching Notes" }
         ]
       }
     ],
@@ -2039,21 +1208,9 @@
       "upcomingTitle": "Upcoming Clinical Sessions",
       "upcomingNote": "Open to registered clinicians.",
       "upcoming": [
-        {
-          "date": "12 Sep 2026",
-          "title": "Live EEG Reading Clinic",
-          "venue": "Neuro Tech Academy"
-        },
-        {
-          "date": "04 Oct 2026",
-          "title": "DBS Programming Clinical Session",
-          "venue": "Tehran Neurology Institute"
-        },
-        {
-          "date": "18 Nov 2026",
-          "title": "Case Conference — Movement Disorders",
-          "venue": "Online"
-        }
+        { "date": "12 Sep 2026", "title": "Live EEG Reading Clinic", "venue": "Neuro Tech Academy" },
+        { "date": "04 Oct 2026", "title": "DBS Programming Clinical Session", "venue": "Tehran Neurology Institute" },
+        { "date": "18 Nov 2026", "title": "Case Conference — Movement Disorders", "venue": "Online" }
       ]
     }
   },
@@ -2089,21 +1246,8 @@
     "paymentTitle": "Payment Method",
     "paymentOptions": {
       "card": "Credit / Debit Card",
-      "bank": "Bank Transfer",
-      "paypal": "PayPal"
+      "bank": "Bank Transfer"
     },
-    "formTitle": "Your Details",
-    "fields": {
-      "name": "Full name",
-      "email": "Email",
-      "phone": "Phone",
-      "address": "Billing address",
-      "card": "Card details"
-    },
-    "cardNote": "Payment is processed by a third-party provider. No card details are stored by Neuro Tech.",
-    "stepPersonal": "Personal details",
-    "stepPayment": "Payment method",
-    "next": "Next step",
     "securedNote": "Encrypted & secure — your details are protected.",
     "submit": "Complete Enrolment",
     "processing": "Confirming your enrolment…",
@@ -2150,8 +1294,7 @@
         }
       ],
       "approved": "Approved — now visible beneath the lesson.",
-      "rejected": "Rejected — hidden from learners.",
-      "log": "Decision log"
+      "rejected": "Rejected — hidden from learners."
     },
     "content": {
       "title": "Manage dynamic content",
@@ -2171,158 +1314,6 @@
         "publish": "Publish"
       },
       "saved": "Draft saved. Awaiting publish."
-    },
-    "eyebrow": "Admin Panel",
-    "consoleTag": "ADMIN CONSOLE",
-    "backToSite": "Back to site",
-    "menu": "Menu",
-    "roles": {
-      "admin": "Admin",
-      "specialist": "Specialist",
-      "user": "Member"
-    },
-    "sections": {
-      "dashboard": {
-        "label": "Dashboard",
-        "blurb": "A calm overview of the platform's living numbers."
-      },
-      "courses": {
-        "label": "Course Management",
-        "blurb": "Control every course's media, resources, imagery and metadata."
-      },
-      "moderation": {
-        "label": "Moderation",
-        "blurb": "Review pending discussion before it publishes."
-      },
-      "content": {
-        "label": "Site Content",
-        "blurb": "Keep the public site's dynamic copy current."
-      },
-      "users": {
-        "label": "Users & Roles",
-        "blurb": "Manage member accounts and their access levels."
-      },
-      "settings": {
-        "label": "System Settings",
-        "blurb": "Core platform configuration — admin only."
-      }
-    },
-    "dashboard": {
-      "welcome": "Welcome back, {name}",
-      "subtitleAdmin": "You hold unrestricted administrative access. Everything on the platform answers to this console.",
-      "subtitleSpecialist": "You hold specialist access: educational and clinical content is yours to curate. System and user management remain with the administrator.",
-      "quick": "Quick actions",
-      "stats": {
-        "courses": "Courses",
-        "published": "Published",
-        "pending": "Pending comments",
-        "documents": "Resources",
-        "premium": "Premium courses",
-        "members": "Members"
-      },
-      "accessAdmin": "Signed in as admin — every section of this panel, including Users & Roles and System Settings, is available to you.",
-      "accessSpecialist": "Signed in as specialist — you can manage courses, moderation and site content. Users & Roles and System Settings are reserved for administrators."
-    },
-    "users": {
-      "title": "Users & roles",
-      "subtitle": "The member directory with each account's access level. Role changes here are mock and in-memory only.",
-      "demoTitle": "Role simulator",
-      "demoHint": "Switch YOUR active session role to feel the guards at work — pick Specialist and watch this very page lock away, or Member to lose the panel entirely.",
-      "demoActive": "Active session: {identity}",
-      "directory": "Member directory",
-      "search": "Search members…",
-      "cols": {
-        "member": "Member",
-        "role": "Role",
-        "joined": "Joined",
-        "active": "Active"
-      },
-      "empty": "No members match your search."
-    },
-    "settings": {
-      "title": "System settings",
-      "subtitle": "Core platform configuration. This section is visible to administrators only.",
-      "identity": "Site identity",
-      "platform": "Platform switches",
-      "fields": {
-        "siteName": "Site name",
-        "supportEmail": "Support email",
-        "maintenance": "Maintenance mode",
-        "maintenanceHint": "Take the public site offline for visitors while you work.",
-        "registrations": "Open registrations",
-        "registrationsHint": "Allow new visitors to create an account.",
-        "autoApprove": "Auto-approve comments",
-        "autoApproveHint": "Skip the moderation queue and publish new discussion instantly.",
-        "premiumCheckout": "Premium checkout",
-        "premiumCheckoutHint": "Enable purchasing of premium courses and events."
-      },
-      "save": "Save settings",
-      "saved": "Settings saved (mock)."
-    },
-    "courses": {
-      "title": "Course management",
-      "subtitle": "Everything a course page shows — its film, documents, imagery and metadata — is controlled from here.",
-      "add": "New course",
-      "search": "Search courses…",
-      "cols": {
-        "course": "Course",
-        "category": "Category",
-        "tier": "Tier",
-        "price": "Price",
-        "published": "Published",
-        "actions": "Actions"
-      },
-      "edit": "Edit",
-      "remove": "Delete",
-      "confirm": "Sure?",
-      "empty": "No courses match your filters.",
-      "editing": "Editing",
-      "close": "Close",
-      "save": "Save changes",
-      "saved": "Course saved.",
-      "tabs": {
-        "metadata": "Metadata",
-        "media": "Video & media",
-        "documents": "Documents",
-        "imagery": "Imagery"
-      },
-      "docTypes": {
-        "pdf": "PDF",
-        "slides": "Slide deck",
-        "protocol": "Protocol",
-        "dataset": "Dataset",
-        "link": "External link"
-      },
-      "fields": {
-        "title": "Course title",
-        "instructor": "Instructor",
-        "desc": "Description",
-        "descHint": "The summary shown on the course page and the Academy card.",
-        "category": "Category",
-        "field": "Clinical field",
-        "level": "Level",
-        "duration": "Duration",
-        "tier": "Access tier",
-        "price": "Price (USD)",
-        "published": "Published",
-        "progressReset": "Reset learner progress",
-        "progressResetHint": "When enabled, every learner's saved progress for this course is cleared on next save — used after a major curriculum revision.",
-        "videoUrl": "Primary video / media URL",
-        "videoUrlHint": "A locally-hosted .mp4 under /course-media, served by the in-house native player. Lessons resolve by numeric order; this is the course's lead film.",
-        "videoPreview": "Preview",
-        "documentsHint": "Downloadable documents and clinical resources attached to the course page.",
-        "addDocument": "Add resource",
-        "docName": "Resource name",
-        "docType": "Type",
-        "docUrl": "URL",
-        "noDocuments": "No resources yet — add the first one.",
-        "imagerySlug": "Imagery identity (slug)",
-        "imageryHint": "The slug selects the matching light/dark thumbnail (cover-course) and header background (course_background) pair from the assets folders. Both themes are previewed below.",
-        "coverLight": "Thumbnail — light",
-        "coverDark": "Thumbnail — dark",
-        "headerLight": "Header — light",
-        "headerDark": "Header — dark"
-      }
     }
   },
   "agencies": {
@@ -2442,7 +1433,7 @@
       },
       {
         "year": "2023",
-        "event": "Partner network reaches ten countries and one hundred institutions."
+        "event": "Partner network reaches ten countries and two hundred institutions."
       },
       {
         "year": "2026",

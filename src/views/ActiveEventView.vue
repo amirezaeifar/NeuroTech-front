@@ -21,9 +21,13 @@ const isOnsite = computed(() => eventType.value === 'onsite')
 // live-streamed. The hub presents the VOD recording, the day's schedule, a
 // venue guide (location, hall map, timings) and an open comments/discussion
 // thread — but no live Q&A.
-// Localized mock content (schedule / agenda / speakers / documents / chat / qa)
-// lives under events.active.* so Persian and English render their own copy.
-const venueSchedule = computed(() => tm('events.active.schedule'))
+const venueSchedule = [
+  { time: '08:30', label: 'Doors open & registration' },
+  { time: '09:00', label: 'Morning sessions — Main Hall' },
+  { time: '12:30', label: 'Lunch & networking' },
+  { time: '14:00', label: 'Hands-on stations — Hall B' },
+  { time: '17:00', label: 'Closing remarks' },
+]
 
 // ---- Live mock state ----
 const viewers = ref(412)
@@ -42,7 +46,7 @@ const onsiteStats = computed(() => [
   { label: t('events.active.onsiteStats.attendees'), value: 248 },
   { label: t('events.active.onsiteStats.sessions'), value: 6 },
   { label: t('events.active.onsiteStats.duration'), value: '1:12:40' },
-  { label: t('events.active.onsiteStats.materials'), value: documents.value.length },
+  { label: t('events.active.onsiteStats.materials'), value: documents.length },
 ])
 
 // Dismissible "you're registered" banner.
@@ -54,9 +58,20 @@ const panel = ref('chat')
 // ---- Chat / Q&A mock ----
 const initials = (name) => name.split(/[\s.]+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase()
 
-// Seeded from the locale (deep-copied so the thread stays mutable as users post).
-const chat = reactive((tm('events.active.chat') || []).map((m) => ({ ...m })))
-const qa = reactive((tm('events.active.qa') || []).map((m) => ({ ...m })))
+const chat = reactive([
+  { user: 'Dr. L. Hashemi', role: 'Faculty', time: '12:02', text: 'Welcome everyone — we begin with the pre-op imaging review in two minutes.', faculty: true },
+  { user: 'M. Rezaei', role: 'Resident', time: '12:04', text: 'Great to be here. Will the lead trajectory planning be covered today?' },
+  { user: 'S. Nouri', role: 'Attendee', time: '12:06', text: 'Audio and video are crystal clear from Shiraz 👏' },
+  { user: 'Dr. A. Karimi', role: 'Presenter', time: '12:08', text: 'Yes — trajectory planning is the next segment. Keep questions coming in the Q&A tab.', faculty: true },
+  { user: 'P. Ahmadi', role: 'Attendee', time: '12:11', text: 'Could you clarify the microelectrode recording thresholds you target intra-operatively?' },
+  { user: 'F. Karbasi', role: 'Fellow', time: '12:13', text: 'Following from Tabriz — excellent case selection.' },
+])
+
+const qa = reactive([
+  { user: 'M. Rezaei', time: '12:05', text: 'What stimulation frequency do you start with for tremor-dominant presentations?', votes: 17, answered: true },
+  { user: 'P. Ahmadi', time: '12:11', text: 'How do you manage stimulation-induced dyskinesia in the first programming session?', votes: 12, answered: false },
+  { user: 'N. Saadat', time: '12:14', text: 'Any tips for distinguishing capsular side-effects from genuine benefit?', votes: 9, answered: false },
+])
 
 const draft = ref('')
 const send = () => {
@@ -72,7 +87,14 @@ const send = () => {
 }
 
 // ---- Agenda timeline ----
-const agenda = computed(() => tm('events.active.agendaItems'))
+const agenda = [
+  { time: '12:00', title: 'Welcome & case introduction', status: 'done' },
+  { time: '12:10', title: 'Pre-operative imaging & target planning', status: 'done' },
+  { time: '12:25', title: 'Live lead trajectory & microelectrode recording', status: 'live' },
+  { time: '13:05', title: 'Intra-operative test stimulation', status: 'soon' },
+  { time: '13:30', title: 'Closing & programming strategy', status: 'upcoming' },
+  { time: '13:50', title: 'Open Q&A with the faculty panel', status: 'upcoming' },
+]
 const statusLabel = (s) => ({ done: t('events.active.done'), live: t('events.active.now'), soon: t('events.active.soon'), upcoming: '' }[s] || '')
 
 // ---- Speakers ----
@@ -82,10 +104,19 @@ const statusLabel = (s) => ({ done: t('events.active.done'), live: t('events.act
 const partners = computed(() => tm('partners.people'))
 const partnerIndex = (name) => partners.value.findIndex((p) => p.name === name)
 
-const speakers = computed(() => tm('events.active.speakers'))
+const speakers = [
+  { name: 'Dr. A. Karimi', title: 'Functional Neurosurgeon', org: 'Tehran Neurology Institute', tag: 'Presenting', live: true, talks: 142 },
+  { name: 'Dr. L. Hashemi', title: 'Clinical Neurophysiologist', org: 'Milad Medical Centre', tag: 'Moderator', live: false, talks: 87 },
+  { name: 'Eng. R. Tabrizi', title: 'Biomedical Engineer', org: 'Neuro Tech', tag: 'Device support', live: false, talks: 54 },
+]
 
 // ---- Documents ----
-const documents = computed(() => tm('events.active.documents'))
+const documents = [
+  { name: 'Pre-operative MRI & CT fusion plan', type: 'PDF', size: '2.4 MB' },
+  { name: 'DBS programming parameter sheet', type: 'XLSX', size: '180 KB' },
+  { name: 'Patient consent & screening summary', type: 'PDF', size: '640 KB' },
+  { name: 'Session reading pack — lead trajectory', type: 'PDF', size: '3.1 MB' },
+]
 const docIcon = (type) => (type === 'XLSX'
   ? 'M7 3h7l4 4v14H7z M9 12l4 4 M13 12l-4 4'
   : 'M7 3h7l4 4v14H7z M14 3v4h4 M9 13h6 M9 16h4')

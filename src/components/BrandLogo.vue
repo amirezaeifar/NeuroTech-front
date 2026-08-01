@@ -1,5 +1,5 @@
 <script setup>
-const logo = '/favicon-new.png'
+import logo from '../assets/logo.png'
 
 defineProps({
   width: { type: [Number, String], default: 220 },

@@ -3,18 +3,12 @@ import { ref, computed, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import BrandLogo from '../components/BrandLogo.vue'
-import { useAuth, ROLES } from '../composables/useAuth.js'
+import { useAuth } from '../composables/useAuth.js'
 
 const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { login } = useAuth()
-
-// Mock RBAC demo — the visitor picks which access level this session carries.
-// A real backend would derive the role from the account; here it drives the
-// router guards and the Admin Panel sidebar so all three tiers can be tried.
-const roleOptions = Object.values(ROLES)
-const selectedRole = ref(ROLES.USER)
 
 // Writing direction — drives the back-chevron glyph and the slide-transition
 // direction natively, without scaleX mirroring or unreliable :global() rules.
@@ -47,10 +41,9 @@ const setMethod = (m) => { method.value = m; codeSent.value = false }
 
 const finish = (identity, usedMethod) => {
   submitting.value = true
-  // Simulate a network round-trip, then sign in (with the chosen access level)
-  // and honour ?redirect=.
+  // Simulate a network round-trip, then sign in and honour ?redirect=.
   window.setTimeout(() => {
-    login(identity, usedMethod, selectedRole.value)
+    login(identity, usedMethod)
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
     router.replace(redirect)
   }, 700)
@@ -112,23 +105,6 @@ const verifyCode = () => {
       <div class="auth-methods auth-rise" style="--d: 340ms">
         <button type="button" class="auth-method" :class="{ 'is-active': method === 'password' }" @click="setMethod('password')">{{ t('auth.methodPassword') }}</button>
         <button type="button" class="auth-method" :class="{ 'is-active': method === 'sms' }" @click="setMethod('sms')">{{ t('auth.methodSms') }}</button>
-      </div>
-
-      <!-- Access-level picker (mock RBAC demo) -->
-      <div class="auth-roles auth-rise" style="--d: 370ms" role="radiogroup" :aria-label="t('auth.roleTitle')">
-        <span class="auth-roles-label">{{ t('auth.roleTitle') }}</span>
-        <div class="auth-roles-row">
-          <button
-            v-for="r in roleOptions"
-            :key="r"
-            type="button"
-            role="radio"
-            :aria-checked="selectedRole === r"
-            class="auth-role"
-            :class="{ 'is-active': selectedRole === r }"
-            @click="selectedRole = r"
-          >{{ t('auth.roles.' + r) }}</button>
-        </div>
       </div>
 
       <div class="auth-rise" style="--d: 400ms">
@@ -445,44 +421,6 @@ const verifyCode = () => {
 }
 .auth-method.is-active { color: #F2EDE4; }
 .auth-method.is-active::after { transform: scaleX(1); }
-
-/* ── Access-level picker (mock RBAC demo) ── */
-.auth-roles { margin-top: 0.95rem; }
-.auth-roles-label {
-  display: block;
-  text-align: center;
-  font-size: 9.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.24em;
-  font-weight: 300;
-  color: rgba(242, 237, 228, 0.4);
-  margin-bottom: 0.55rem;
-}
-html[lang='fa'] .auth-roles-label { letter-spacing: 0; }
-.auth-roles-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.45rem;
-}
-.auth-role {
-  padding: 0.5rem 0.4rem;
-  border: 1px solid rgba(242, 237, 228, 0.16);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.2);
-  color: rgba(242, 237, 228, 0.55);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 400;
-  transition: background 220ms ease, color 220ms ease, border-color 220ms ease;
-}
-html[lang='fa'] .auth-role { letter-spacing: 0; }
-.auth-role:hover { border-color: rgba(242, 237, 228, 0.35); color: #F2EDE4; }
-.auth-role.is-active {
-  background: rgba(237, 192, 113, 0.12);
-  border-color: rgba(237, 192, 113, 0.55);
-  color: #EDC071;
-}
 
 /* ── Form & floating-label inputs ── */
 .auth-form { margin-top: 1.25rem; }

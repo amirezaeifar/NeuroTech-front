@@ -8,17 +8,12 @@ import StratumStack from '../components/StratumStack.vue'
 import CoursePlayer from '../components/CoursePlayer.vue'
 import { courseCode, sectionLetter } from '../utils/catalog.js'
 import { courseMediaAt } from '../data/courseMedia.js'
-import { videosForCourse } from '../data/courseVideos.js'
-import { resolveCourseCover, resolveCourseBackground, courseBackgroundPlaceholder } from '../data/courseBackgrounds.js'
 import { courseDiscussionsAt } from '../data/courseDiscussions.js'
 import { useReveal } from '../composables/useReveal.js'
-import { useTheme } from '../composables/useTheme.js'
 
 const { t, tm, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
-// Active colour theme — drives dark_/light_ header background selection.
-const { isDark } = useTheme()
 
 // Writing direction — drives native RTL chevron glyphs (no scaleX mirroring).
 const isRtl = computed(() => locale.value === 'fa')
@@ -32,87 +27,183 @@ const courseIndex = computed(() => Number(route.params.id))
 const course = computed(() => courses.value[courseIndex.value])
 const isFree = computed(() => course.value?.tier === 'free')
 
-// Locally-hosted lesson videos for this course (numeric order). Empty for
-// courses without footage yet — those degrade to a "coming soon" fallback.
-const localVideos = computed(() => videosForCourse(courseIndex.value))
-
-// Derive lesson count: when real footage exists, the count IS the number of
-// local lessons; otherwise fall back to the count in the duration string.
+// Derive lesson count from duration string.
 const lessonCount = computed(() => {
-  if (localVideos.value.length) return localVideos.value.length
   const match = (course.value?.duration || '').match(/(\d+)\s*lesson/i)
   return match ? Number(match[1]) : 6
 })
 
-// Per-course curriculum — descriptions, syllabus modules and lesson titles are
-// LOCALIZED: sourced from the active locale (academy.courseDetail.*) so Persian
-// and English render their own copy. Order matches academy.courses[] /
-// src/data/courseMedia.js.
-const videoTitleSets = computed(() => tm('academy.courseDetail.lessons'))
-const moduleSets = computed(() => tm('academy.courseDetail.modules'))
-const longDescriptions = computed(() => tm('academy.courseDetail.descriptions'))
+// Per-course video lesson lists (full curriculum, neurology education).
+// Length matches the lesson count in each course's `duration` string, and the
+// order matches academy.courses[] / src/data/courseMedia.js.
+const videoTitleSets = [
+  // 0: Clinical Neurology (16 lessons)
+  [
+    'The Neurological History',
+    'Cranial Nerve Examination',
+    'Motor & Sensory Examination',
+    'Reflexes, Coordination & Gait',
+    'Principles of Lesion Localization',
+    'Localizing the Common Syndromes',
+    'Approach to the Headache Patient',
+    'Migraine & Tension-Type Headache',
+    'Secondary & Red-Flag Headaches',
+    'Seizure Semiology & Classification',
+    'Epilepsy Diagnosis & the Role of EEG',
+    'Principles of Antiseizure Therapy',
+    'Parkinsonism & Tremor',
+    'Hyperkinetic Movement Disorders',
+    'Dementia & Neurodegenerative Disease',
+    'Integrated Clinical Case Discussions',
+  ],
+  // 1: Neuroscience (14 lessons)
+  [
+    'The Neuron: Structure & Function',
+    'Glial Cells & the Neural Environment',
+    'The Resting Membrane Potential',
+    'The Action Potential',
+    'Synaptic Structure & Neurotransmitter Release',
+    'Receptors & Postsynaptic Signalling',
+    'Excitatory & Inhibitory Neurotransmission',
+    'Mechanisms of Neuroplasticity',
+    'Long-Term Potentiation & Depression',
+    'Principles of Neural Networks',
+    'Sensory & Motor Network Organisation',
+    'Functional Specialisation of the Cortex',
+    'Attention, Memory & Executive Systems',
+    'Language & Higher Cognitive Function',
+  ],
+  // 2: Neuroimaging (14 lessons)
+  [
+    'Principles of CT Image Formation',
+    'Systematic CT Head Interpretation',
+    'CT in Acute Stroke & Haemorrhage',
+    'MRI Physics for Clinicians',
+    'Core MRI Sequences: T1, T2 & FLAIR',
+    'Contrast Enhancement & Its Patterns',
+    'Diffusion-Weighted Imaging & the ADC Map',
+    'Diffusion in Stroke & Beyond',
+    'CT & MR Angiography',
+    'Venous Imaging & Perfusion',
+    'Principles of Functional MRI',
+    'Spectroscopy & Advanced Techniques',
+    'Common Pitfalls & Artefacts',
+    'Integrated Imaging Case Review',
+  ],
+  // 3: Brain Anatomy (18 lessons)
+  [
+    'Surface Anatomy of the Cerebrum',
+    'The Frontal Lobe',
+    'The Parietal Lobe',
+    'The Temporal Lobe',
+    'The Occipital & Limbic Cortex',
+    'Organisation of the Brainstem',
+    'The Midbrain',
+    'The Pons',
+    'The Medulla Oblongata',
+    'The Thalamus',
+    'The Hypothalamus & Epithalamus',
+    'Basal Ganglia: Structure',
+    'Basal Ganglia: Circuitry',
+    'Cerebellar Anatomy',
+    'Cerebellar Functional Divisions',
+    'Association & Commissural Fibres',
+    'Projection Fibres & the Internal Capsule',
+    'Clinical Neuroanatomy Review',
+  ],
+  // 4: Neurocritical Care (12 lessons)
+  [
+    'The Neurocritical Care Unit',
+    'Multimodal Neuromonitoring',
+    'ICP Physiology & Monitoring',
+    'Managing Raised Intracranial Pressure',
+    'Acute Ischaemic Stroke in the ICU',
+    'Intracerebral & Subarachnoid Haemorrhage',
+    'Status Epilepticus',
+    'Refractory Seizure Emergencies',
+    'Traumatic Brain Injury',
+    'Hypoxic-Ischaemic Brain Injury',
+    'Brain Death & Prognostication',
+    'Neurocritical Decision-Making',
+  ],
+  // 5: Neurosurgery (16 lessons)
+  [
+    'Principles of Neurosurgical Practice',
+    'Operative Surgical Anatomy',
+    'Patient Positioning & Planning',
+    'The Craniotomy',
+    'Supratentorial Approaches',
+    'Skull Base & Posterior Fossa Approaches',
+    'Frameless Neuronavigation',
+    'Intra-operative Imaging',
+    'Intra-operative Neuromonitoring',
+    'Principles of Tumour Resection',
+    'Gliomas & Metastases',
+    'Cerebral Aneurysm Surgery',
+    'Arteriovenous Malformations',
+    'Functional Neurosurgery & DBS',
+    'Spinal Neurosurgery Fundamentals',
+    'Peri-operative Complication Management',
+  ],
+]
 
-const courseDesc = computed(() => longDescriptions.value[courseIndex.value] || course.value?.desc || '')
+// Per-course syllabus (high-level reference sections shown in the sidebar).
+const moduleSets = [
+  ['Neurological Examination', 'Localization Principles', 'Headache Disorders', 'Epilepsy', 'Movement Disorders', 'Neurodegenerative Diseases', 'Clinical Case Discussions'],
+  ['Cellular Neuroscience', 'Synaptic Transmission', 'Neuroplasticity', 'Neural Networks', 'Brain Function', 'Cognitive Systems'],
+  ['CT Interpretation', 'MRI Fundamentals', 'Diffusion Imaging', 'Vascular Imaging', 'Functional Imaging', 'Case Review'],
+  ['Cerebral Lobes', 'Brainstem', 'Diencephalon', 'Basal Ganglia', 'Cerebellum', 'White Matter Pathways'],
+  ['ICU Monitoring', 'Intracranial Pressure', 'Stroke Management', 'Seizure Emergencies', 'Brain Injury', 'Neurocritical Decision Making'],
+  ['Surgical Anatomy', 'Cranial Approaches', 'Navigation Systems', 'Tumor Surgery', 'Vascular Neurosurgery', 'Functional Neurosurgery'],
+]
+
+// Course descriptions (academic, CME-style). Order matches academy.courses[].
+// Replace with the academy's own course copy as needed.
+const longDescriptions = [
+  // 0: Clinical Neurology
+  `Clinical Neurology develops the structured reasoning that distinguishes confident neurological practice: the disciplined progression from history and examination to anatomical localisation and a prioritised differential diagnosis. The course is built around the bedside and revisits the neurological examination not as a checklist but as a hypothesis-driven investigation.\n\nThe curriculum then works through the disorders a neurologist meets most often — headache, epilepsy, movement disorders and the neurodegenerative diseases — emphasising pattern recognition, appropriate investigation and current principles of management. A closing block of integrated case discussions consolidates the method, asking the learner to localise, differentiate and plan as they would in clinic.\n\nThe course is intended for neurology residents, medical students and clinicians seeking a systematic foundation in clinical neurological decision-making.`,
+
+  // 1: Neuroscience
+  `Neuroscience provides the mechanistic foundation on which clinical neurology rests. Beginning at the level of the single neuron, the course establishes the cellular and electrical principles of neural signalling before advancing to synaptic transmission and the neurotransmitter systems that are the targets of much of modern therapeutics.\n\nLater modules move from cell to circuit, examining neuroplasticity, the organisation of neural networks, and the cognitive systems — attention, memory, language and executive function — that emerge from them. Each concept is linked to its clinical correlate so that mechanism continually informs practice.\n\nThe course suits students and clinicians who want a rigorous, concept-led grounding in cellular and systems neuroscience.`,
+
+  // 2: Neuroimaging
+  `Neuroimaging teaches a systematic, transferable approach to interpreting the studies that now underpin almost every neurological decision. The course begins with the physical principles of CT and MRI, to the depth a clinician requires, then builds disciplined search patterns for reading the head CT and the core MRI sequences.\n\nDedicated modules address the techniques that most often determine management — diffusion imaging in acute stroke, CT and MR angiography in vascular disease, and the principles of functional imaging — before a concluding case-based review. Throughout, emphasis falls on recognising critical findings and avoiding common interpretive pitfalls.\n\nIt is designed for trainees in neurology, emergency medicine and radiology who wish to read studies with confidence.`,
+
+  // 3: Brain Anatomy
+  `Brain Anatomy presents functional neuroanatomy as the working language of clinical neurology, with every structure tied to its function and to the deficit produced when it fails. The course is organised regionally, progressing from the cerebral lobes through the brainstem, diencephalon, basal ganglia and cerebellum.\n\nA final block traces the major white-matter pathways that connect these regions into functional systems, and a clinical review relates the anatomy directly to examination findings and lesion localisation.\n\nThe detailed, region-by-region structure makes the course suitable both as a first systematic course in neuroanatomy and as a focused revision resource ahead of postgraduate examinations.`,
+
+  // 4: Neurocritical Care
+  `Neurocritical Care addresses the management of patients with life-threatening neurological illness, where decisions are made in minutes and physiological monitoring guides every intervention. The course opens with the organisation of the neurocritical care unit and the principles of multimodal neuromonitoring.\n\nSubsequent modules cover the conditions that define the specialty — raised intracranial pressure, acute stroke, status epilepticus, and traumatic and hypoxic-ischaemic brain injury — each presented with current, protocol-driven management. A concluding module on neurocritical decision-making, including prognostication, draws the threads together.\n\nThe course is aimed at neurology and intensive-care trainees and the wider neuro-ICU team.`,
+
+  // 5: Neurosurgery
+  `Neurosurgery introduces the principles, anatomy and core procedures of the specialty for surgical trainees and for the clinicians who work alongside the operating team. The early modules establish safe operative practice and the surgical anatomy of the corridors through which the brain and spine are approached.\n\nThe course then covers the cranial approaches, image-guided navigation and intra-operative monitoring that define modern surgery, before surveying the major subspecialties: tumour, vascular and functional neurosurgery, together with the fundamentals of spinal surgery and peri-operative complication management.\n\nThe emphasis throughout is on sound operative reasoning rather than technique in isolation.`,
+]
+
+const courseDesc = computed(() => longDescriptions[courseIndex.value] || course.value?.desc || '')
 
 // Replaceable video embeds, cover image + learning outcomes (courseMedia.js).
 const media = computed(() => courseMediaAt(courseIndex.value))
-// Academy thumbnail — theme-aware (light-/dark- artwork from src/assets/cover-course).
-const cover = computed(() => {
-  const m = media.value
-  if (!m) return ''
-  return resolveCourseCover(m.slug, isDark.value) || m.cover || ''
-})
-// Cinematic header background — theme-aware (light_/dark_ artwork from
-// src/assets/course_background), resolved from the course's slug and the active
-// theme, with a robust fallback chain. Falls back to the thumbnail only if no
-// background asset exists at all.
-const headerBg = computed(() => {
-  const m = media.value
-  if (!m) return ''
-  return resolveCourseBackground(m.slug, isDark.value) || cover.value || ''
-})
-// Last-resort src if a resolved background image ever fails to load — guarantees
-// no broken header image link.
-const onHeaderBgError = (e) => {
-  if (courseBackgroundPlaceholder && e.target.src !== courseBackgroundPlaceholder) {
-    e.target.src = courseBackgroundPlaceholder
-  }
-}
-// Theme-aware thumbnail for any course by index (used by the related-courses rail).
-const coverFor = (i) => {
-  const m = courseMediaAt(i)
-  return m ? resolveCourseCover(m.slug, isDark.value) : ''
-}
-// Learning outcomes are localized (academy.courseDetail.outcomes) so Persian and
-// English differ; the English list in courseMedia.js remains a safe fallback.
-const outcomes = computed(() => {
-  const localized = tm('academy.courseDetail.outcomes')
-  return (Array.isArray(localized) && localized[courseIndex.value]) || media.value?.outcomes || []
-})
+const cover = computed(() => media.value?.cover || '')
+// Cinematic header background (course_background art); falls back to the cover.
+const headerBg = computed(() => media.value?.headerBg || media.value?.cover || '')
+const outcomes = computed(() => media.value?.outcomes || [])
 // Per-course discussion thread (see src/data/courseDiscussions.js).
-// Discussion thread is localized (academy.courseDetail.discussions); the English
-// thread in courseDiscussions.js stays as a fallback for out-of-range indices.
-const discussions = computed(() => {
-  const localized = tm('academy.courseDetail.discussions')
-  return (Array.isArray(localized) && localized[courseIndex.value]) || courseDiscussionsAt(courseIndex.value)
-})
-// The course playlist fed to the in-house player. When local footage exists it
-// drives the list directly (lesson N ↔ video N); otherwise we present
-// title-only lessons whose player shows a "coming soon" fallback — never an
-// external source.
+const discussions = computed(() => courseDiscussionsAt(courseIndex.value))
+// The course playlist fed to the in-house player: clean lesson titles paired
+// with internal resource ids (cycled, since the demo id pool is shorter than
+// the lesson list — drop the real ids into courseMedia.js for production).
 const playlist = computed(() => {
-  const vids = localVideos.value
-  if (vids.length) return vids.map((v) => ({ title: v.title, src: v.src }))
-  const titles = videoTitleSets.value[courseIndex.value] || []
+  const ids = media.value?.videoIds || []
+  const titles = videoTitleSets[courseIndex.value] || []
   return Array.from({ length: lessonCount.value }, (_, i) => ({
     title: titles[i] || `Lesson ${i + 1}`,
-    src: '',
+    id: ids.length ? ids[i % ids.length] : '',
   }))
 })
 
 // Get video lesson titles for a given course
 const videoLessons = computed(() => {
-  const titles = videoTitleSets.value[courseIndex.value] || []
+  const titles = videoTitleSets[courseIndex.value] || []
   return Array.from({ length: lessonCount.value }, (_, i) => ({
     index: i + 1,
     title: titles[i] ? `${t('academy.courseDetail.lesson')} ${i + 1}: ${titles[i]}` : `${t('academy.courseDetail.lesson')} ${String(i + 1).padStart(2, '0')}`,
@@ -123,7 +214,7 @@ const videoLessons = computed(() => {
 // independent of the (larger) lesson count: the syllabus lists topics, the
 // "Course Videos" list enumerates the individual lessons.
 const modules = computed(() =>
-  (moduleSets.value[courseIndex.value] || []).map((name, i) => ({ index: i + 1, name })))
+  (moduleSets[courseIndex.value] || []).map((name, i) => ({ index: i + 1, name })))
 
 // Stable catalog code for this course (e.g. "CLN-101").
 const code = computed(() => courseCode(courses.value, courseIndex.value))
@@ -145,8 +236,8 @@ const strata = computed(() => modules.value.map((m, i) => ({
   current: m.index === topicsDone.value + 1 && topicsDone.value < modules.value.length,
 })))
 
-// Mock progress — reset to zero for launch: no lessons watched on any course yet.
-const completed = computed(() => 0)
+// Mock progress
+const completed = computed(() => (isFree.value ? Math.min(2, lessonCount.value) : 0))
 const progressPct = computed(() => Math.round((completed.value / Math.max(lessonCount.value, 1)) * 100))
 
 // Premium gating: the player stays unrendered for premium courses until the
@@ -233,11 +324,7 @@ useReveal()
     <!-- Hero / course header — cinematic background under a dark gradient. -->
     <section class="relative overflow-hidden bg-ink py-16 md:py-24">
       <template v-if="headerBg">
-        <!-- Keyed transition cross-fades the dark_/light_ artwork on theme swap.
-             Both frames are absolutely positioned, so the swap never shifts layout. -->
-        <transition name="hero-fade">
-          <img :key="headerBg" :src="headerBg" alt="" class="course-hero-cover" decoding="async" @error="onHeaderBgError" />
-        </transition>
+        <img :src="headerBg" alt="" class="course-hero-cover" />
         <div class="course-hero-overlay" aria-hidden="true"></div>
       </template>
       <div class="relative z-10 max-w-5xl mx-auto px-8">
@@ -485,7 +572,7 @@ useReveal()
             <article class="bg-parchment border border-parchment-deep/70 rounded-lg overflow-hidden h-full flex flex-col shadow-card transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-card-hover group-hover:border-gold/50">
               <!-- Thumbnail -->
               <div class="relative aspect-video w-full overflow-hidden" :style="thumbStyle(rc.i)">
-                <img v-if="coverFor(rc.i)" :src="coverFor(rc.i)" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <img v-if="courseMediaAt(rc.i)?.cover" :src="courseMediaAt(rc.i).cover" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-black/30"></div>
                 <div class="absolute inset-0 opacity-[0.08]" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 28px 28px;"></div>
                 <span class="absolute top-3 left-3 text-[9px] uppercase tracking-[0.25em] font-light px-2 py-1 rounded-sm border"
@@ -552,21 +639,6 @@ useReveal()
   height: 100%;
   object-fit: cover;
   object-position: center;
-}
-/* Cross-fade between the dark_/light_ header artwork on theme toggle. */
-.hero-fade-enter-active,
-.hero-fade-leave-active {
-  transition: opacity 0.4s ease;
-}
-.hero-fade-enter-from,
-.hero-fade-leave-to {
-  opacity: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-fade-enter-active,
-  .hero-fade-leave-active {
-    transition: none;
-  }
 }
 .course-hero-overlay {
   position: absolute;

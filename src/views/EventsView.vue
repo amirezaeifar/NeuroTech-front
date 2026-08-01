@@ -23,6 +23,7 @@ const ongoing = computed(() => currentItems.value.filter((x) => x.phase === 'ong
 const upcoming = computed(() => currentItems.value.filter((x) => (x.phase || 'upcoming') !== 'ongoing'))
 
 const reserveLabel = computed(() => (active.value === 'online' ? t('events.online.watch') : t('events.onsite.register')))
+const joinLabel = computed(() => (active.value === 'online' ? t('events.online.join') : t('events.onsite.join')))
 const personOf = (item) => item.host || item.venue || ''
 
 useReveal()
@@ -67,11 +68,8 @@ useReveal()
           </div>
         </div>
 
-        <!-- ===================== ONGOING / ACTIVE EVENTS =====================
-             Strictly conditional: when there are no live sessions the ENTIRE
-             section (heading, description and grid) is removed from the DOM
-             rather than rendered as an empty container or placeholder. -->
-        <div v-if="ongoing && ongoing.length > 0" class="mt-16">
+        <!-- ===================== ONGOING ===================== -->
+        <div class="mt-16">
           <div class="flex items-center justify-center gap-3">
             <span class="relative flex h-2.5 w-2.5">
               <span class="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-60 animate-ping"></span>
@@ -81,16 +79,11 @@ useReveal()
           </div>
           <p class="mt-3 text-center text-sm text-ink-muted font-light max-w-lg mx-auto">{{ t('events.sections.ongoingDesc') }}</p>
 
-          <div class="mt-9 grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <!-- Ongoing cards are intentionally NON-interactive for launch: the
-                 whole card is pointer-events-none + slightly dimmed, the join
-                 link is removed, and a "Currently unavailable" chip explains why. -->
+          <div v-if="ongoing.length" class="mt-9 grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <article
               v-for="item in ongoing"
               :key="'ongoing-' + item.i"
-              class="reveal relative rounded-lg border border-gold/40 bg-gradient-to-br from-gold/[0.07] to-transparent p-7 shadow-card pointer-events-none select-none opacity-70"
-              aria-disabled="true"
-              :title="t('events.sections.unavailable')"
+              class="reveal relative rounded-lg border border-gold/40 bg-gradient-to-br from-gold/[0.07] to-transparent p-7 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-gold/60"
             >
               <div class="flex items-center justify-between gap-3">
                 <span class="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-medium text-red-600 dark:text-red-400">
@@ -103,15 +96,18 @@ useReveal()
               <p class="mt-1.5 text-xs text-ink-muted font-light">{{ personOf(item) }}</p>
               <p class="mt-1 text-xs text-ink-hint font-light uppercase tracking-[0.15em]">{{ item.date }}</p>
 
-              <!-- Join action disabled (no router-link / @click): shown as a
-                   static "Currently unavailable" state instead of a live link. -->
-              <div
-                class="mt-6 inline-flex items-center justify-center gap-2.5 w-full text-[11px] uppercase tracking-[0.3em] font-light px-6 py-3.5 rounded-md bg-ink/50 text-parchment-light/80 cursor-not-allowed"
+              <!-- Both online and on-site sessions stream into the same Live
+                   Event hub. On-site sessions additionally surface the admin
+                   broadcast ("Events messages") panel inside that hub. -->
+              <router-link
+                :to="`/events/active/${active}/${item.i}`"
+                class="mt-6 inline-flex items-center justify-center gap-2.5 w-full text-[11px] uppercase tracking-[0.3em] font-light px-6 py-3.5 rounded-md bg-ink text-parchment-light hover:bg-gold-dark transition-colors"
               >
-                {{ t('events.sections.unavailable') }}
-              </div>
+                {{ joinLabel }} <span class="dir-arrow" aria-hidden="true"></span>
+              </router-link>
             </article>
           </div>
+          <p v-else class="reveal mt-9 text-center text-sm text-ink-hint font-light italic">{{ t('events.sections.emptyOngoing') }}</p>
         </div>
 
         <!-- ===================== UPCOMING ===================== -->

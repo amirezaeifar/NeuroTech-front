@@ -36,7 +36,8 @@ npm run build
 ```
 ├── public/
 │   ├── fonts/             # Custom typography (YekanBakh)
-│   └── favicon-new.png
+│   ├── favicon.png
+│   └── favicon.svg
 ├── src/
 │   ├── assets/
 │   │   └── fonts.css      # Font-face declarations
@@ -117,21 +118,3 @@ Handled dynamically via src/composables/useLocale.js.
 4. Styling & Typography
 Use Tailwind CSS utility classes exclusively.
 Use font-persian (YekanBakh) for Persian/Arabic contexts and font-sans (Inter) / font-serif (Cormorant Garamond) for Latin scripts.
-
----
-
-## Backend Phase 1
-
-The repository now includes a Flask backend under `backend/` while the Vue frontend remains in its original root layout.
-
-```powershell
-cd backend
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-alembic upgrade head
-flask --app app.main create-roles
-flask --app app.main run --debug
-```
-
-See [backend/README.md](backend/README.md) for architecture, environment, MariaDB, Redis, authentication, OTP, migration, testing, and Docker documentation.
