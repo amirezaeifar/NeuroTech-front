@@ -1,1 +1,0 @@
-"""NeuroTech backend test suite."""
