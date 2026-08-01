@@ -1,0 +1,1 @@
+"""NeuroTech backend application package."""
