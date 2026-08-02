@@ -9,10 +9,8 @@
  *
  * ── How it maps ────────────────────────────────────────────────────────────
  * `courseMedia[i]` corresponds to `academy.courses[i]` (same index/order).
- *   cover      string    course cover image (card thumbnail), by filename in
- *                        src/assets/cover-course
- *   headerBg   string    cinematic header background, by filename in
- *                        src/assets/course_background
+ *   slug       string    stable, locale-independent course identity used to
+ *                        resolve theme-aware cover and background artwork
  *   videoIds[] string[]  raw lesson video ids, in playlist order — consumed by
  *                        the in-house CoursePlayer (never shown in the UI)
  *   featured   string    embed URL (legacy fallback player)
@@ -34,23 +32,16 @@
  * — and the UI continues to work against real data unchanged.
  */
 
-// Course cover images — matched to each course by filename. Imported so Vite
-// fingerprints and optimises them; swap a file here to re-skin a course.
-import coverClinicalNeurology from '../assets/cover-course/cover-course-clinical-neurology.png'
-import coverNeuroscience from '../assets/cover-course/cover-course-neurosience.png'
-import coverNeuroimaging from '../assets/cover-course/cover-course-neuroimaging.png'
-import coverBrainAnatomy from '../assets/cover-course/cover-course-brainanatomy.png'
-import coverNeurocriticalCare from '../assets/cover-course/cover-course-neurociticalcare.png'
-import coverNeurosurgery from '../assets/cover-course/cover-course-neurosurgery.png'
-
-// Cinematic course header backgrounds — matched by filename. Neuroscience has no
-// dedicated artwork, so it falls back to the generic course background.
-import bgClinicalNeurology from '../assets/course_background/course_background-cover-course-clinical-neurology.png'
-import bgGeneric from '../assets/course_background/course_background.png'
-import bgNeuroimaging from '../assets/course_background/course_background-neuroimaging.png'
-import bgBrainAnatomy from '../assets/course_background/course_background-brainanatomy.png'
-import bgNeurocriticalCare from '../assets/course_background/course_background-neurociticalca.png'
-import bgNeurosurgery from '../assets/course_background/course_background-neurosurgery.png'
+// Stable identities shared by localized course copy, admin tooling and the
+// theme-aware filename resolver in courseBackgrounds.js.
+export const COURSE_SLUGS = Object.freeze({
+  clinicalNeurology: 'clinical-neurology',
+  neuroscience: 'neuroscience',
+  neuroimaging: 'neuroimaging',
+  brainAnatomy: 'brain-anatomy',
+  neurocriticalCare: 'neurocritical-care',
+  neurosurgery: 'neurosurgery',
+})
 
 // Build a privacy-friendly embed URL for the legacy fallback player.
 const embed = (id) => `https://www.youtube-nocookie.com/embed/${id}?rel=0&modestbranding=1`
@@ -74,9 +65,8 @@ const IDS = {
   neurosurgery: [...DEMO],
 }
 
-const course = (cover, headerBg, ids, outcomes) => ({
-  cover,
-  headerBg,
+const course = (slug, ids, outcomes) => ({
+  slug,
   videoIds: ids,
   featured: embed(ids[0]),
   lessons: ids.map(embed),
@@ -86,7 +76,7 @@ const course = (cover, headerBg, ids, outcomes) => ({
 // Order matches academy.courses[] in the locale files.
 export const courseMedia = [
   // 0 · Clinical Neurology
-  course(coverClinicalNeurology, bgClinicalNeurology, IDS.clinicalNeurology, [
+  course(COURSE_SLUGS.clinicalNeurology, IDS.clinicalNeurology, [
     'Perform a complete, systematic neurological examination.',
     'Localise lesions from history and examination findings.',
     'Differentiate the major primary and secondary headache disorders.',
@@ -95,7 +85,7 @@ export const courseMedia = [
     'Build and prioritise a clinical differential diagnosis.',
   ]),
   // 1 · Neuroscience
-  course(coverNeuroscience, bgGeneric, IDS.neuroscience, [
+  course(COURSE_SLUGS.neuroscience, IDS.neuroscience, [
     'Explain the ionic basis of resting and action potentials.',
     'Describe synaptic transmission and the major neurotransmitter systems.',
     'Relate neuroplasticity to learning, memory and recovery.',
@@ -104,7 +94,7 @@ export const courseMedia = [
     'Link circuit dysfunction to neurological and psychiatric disease.',
   ]),
   // 2 · Neuroimaging
-  course(coverNeuroimaging, bgNeuroimaging, IDS.neuroimaging, [
+  course(COURSE_SLUGS.neuroimaging, IDS.neuroimaging, [
     'Select CT or MRI appropriately for a given clinical question.',
     'Interpret the core MRI sequences and their signal patterns.',
     'Identify acute ischaemia on diffusion-weighted imaging.',
@@ -113,7 +103,7 @@ export const courseMedia = [
     'Avoid common interpretive pitfalls and imaging artefacts.',
   ]),
   // 3 · Brain Anatomy
-  course(coverBrainAnatomy, bgBrainAnatomy, IDS.brainAnatomy, [
+  course(COURSE_SLUGS.brainAnatomy, IDS.brainAnatomy, [
     'Identify the cerebral lobes and their functional regions.',
     'Locate the brainstem nuclei and their clinical correlates.',
     'Describe the organisation of the diencephalon and basal ganglia.',
@@ -122,7 +112,7 @@ export const courseMedia = [
     'Relate neuroanatomy directly to bedside examination findings.',
   ]),
   // 4 · Neurocritical Care
-  course(coverNeurocriticalCare, bgNeurocriticalCare, IDS.neurocriticalCare, [
+  course(COURSE_SLUGS.neurocriticalCare, IDS.neurocriticalCare, [
     'Apply structured neuromonitoring in the intensive care unit.',
     'Interpret and manage raised intracranial pressure.',
     'Deliver time-critical acute stroke management.',
@@ -131,7 +121,7 @@ export const courseMedia = [
     'Make evidence-based neurocritical-care decisions.',
   ]),
   // 5 · Neurosurgery
-  course(coverNeurosurgery, bgNeurosurgery, IDS.neurosurgery, [
+  course(COURSE_SLUGS.neurosurgery, IDS.neurosurgery, [
     'Describe the surgical anatomy of common operative corridors.',
     'Select appropriate cranial approaches for a given lesion.',
     'Apply neuronavigation and intra-operative neuromonitoring.',

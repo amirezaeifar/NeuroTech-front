@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 import { useLocale } from '../composables/useLocale.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useAuth } from '../composables/useAuth.js'
-import logo from '../assets/logo.png'
+import { brandLogoUrl } from '../data/brandAssets.js'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -59,7 +59,7 @@ const pickLocale = (code) => { setLocale(code); langOpen.value = false }
       class="shrink-0"
     >
       <span class="flex items-center gap-3 select-none">
-        <img :src="logo" alt="" aria-hidden="true" class="brand-logo-img h-11 w-auto" />
+        <img :src="brandLogoUrl" alt="" aria-hidden="true" class="brand-logo-img h-11 w-auto" />
         <!-- Two-line wordmark — typographically identical to the footer BrandLogo
              (Cormorant "Neuro Tech" over Inter "NEUROLOGY · CRAFTED" + hairline). -->
         <span class="brand-wordmark hidden xl:flex">

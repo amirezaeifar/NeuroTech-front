@@ -3,13 +3,16 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LuxeCard from '../components/LuxeCard.vue'
 import SpecimenPlate from '../components/SpecimenPlate.vue'
-import logo from '../assets/logo.png'
 import NeuralProgressTree from '../components/NeuralProgressTree.vue'
 import { courseCode } from '../utils/catalog.js'
 import { courseMediaAt } from '../data/courseMedia.js'
+import { resolveCourseCover } from '../data/courseBackgrounds.js'
+import { brandLogoUrl } from '../data/brandAssets.js'
+import { useTheme } from '../composables/useTheme.js'
 import { useReveal } from '../composables/useReveal.js'
 
 const { t, tm } = useI18n()
+const { isDark } = useTheme()
 
 const statusFilters = [
   { key: 'all', label: 'academy.filters.all' },
@@ -38,6 +41,10 @@ const scrollToCourses = (tier) => {
 
 const courses = computed(() => tm('academy.courses'))
 const courseIndex = (course) => courses.value.indexOf(course)
+const courseCover = (course) => {
+  const slug = courseMediaAt(courseIndex(course))?.slug
+  return resolveCourseCover(slug, isDark.value)
+}
 const filtered = computed(() => courses.value.filter((c) =>
   (activeStatus.value === 'all' || c.tier === activeStatus.value) &&
   (activeField.value === 'all' || c.field === activeField.value)
@@ -54,7 +61,7 @@ useReveal()
       <div class="academy-hero-grid pointer-events-none absolute inset-0"></div>
       <div class="academy-hero-glow pointer-events-none absolute inset-0"></div>
       <img
-        :src="logo"
+        :src="brandLogoUrl"
         alt=""
         aria-hidden="true"
         class="academy-hero-logo pointer-events-none absolute -top-16 w-[420px] h-auto opacity-[0.05] hidden md:block"
@@ -197,7 +204,7 @@ useReveal()
             :section-id="`plate-${courseIndex(c)}`"
             :code="courseCode(courses, courseIndex(c))"
             :course="c"
-            :cover="courseMediaAt(courseIndex(c))?.cover || ''"
+            :cover="courseCover(c)"
             :to="`/academy/course/${courseIndex(c)}`"
             :field-label="t(`academy.fields.${c.field}`)"
             :tier-label="t(`academy.filters.${c.tier}`)"

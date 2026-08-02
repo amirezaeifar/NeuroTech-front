@@ -8,12 +8,15 @@ import StratumStack from '../components/StratumStack.vue'
 import CoursePlayer from '../components/CoursePlayer.vue'
 import { courseCode, sectionLetter } from '../utils/catalog.js'
 import { courseMediaAt } from '../data/courseMedia.js'
+import { resolveCourseCover, resolveCourseBackground } from '../data/courseBackgrounds.js'
 import { courseDiscussionsAt } from '../data/courseDiscussions.js'
+import { useTheme } from '../composables/useTheme.js'
 import { useReveal } from '../composables/useReveal.js'
 
 const { t, tm, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const { isDark } = useTheme()
 
 // Writing direction — drives native RTL chevron glyphs (no scaleX mirroring).
 const isRtl = computed(() => locale.value === 'fa')
@@ -181,11 +184,11 @@ const longDescriptions = [
 
 const courseDesc = computed(() => longDescriptions[courseIndex.value] || course.value?.desc || '')
 
-// Replaceable video embeds, cover image + learning outcomes (courseMedia.js).
+// Replaceable video embeds, stable image identity + learning outcomes.
 const media = computed(() => courseMediaAt(courseIndex.value))
-const cover = computed(() => media.value?.cover || '')
-// Cinematic header background (course_background art); falls back to the cover.
-const headerBg = computed(() => media.value?.headerBg || media.value?.cover || '')
+const cover = computed(() => resolveCourseCover(media.value?.slug, isDark.value))
+// Cinematic course_background art, resolved strictly within the active theme.
+const headerBg = computed(() => resolveCourseBackground(media.value?.slug, isDark.value) || cover.value)
 const outcomes = computed(() => media.value?.outcomes || [])
 // Per-course discussion thread (see src/data/courseDiscussions.js).
 const discussions = computed(() => courseDiscussionsAt(courseIndex.value))
@@ -572,7 +575,7 @@ useReveal()
             <article class="bg-parchment border border-parchment-deep/70 rounded-lg overflow-hidden h-full flex flex-col shadow-card transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-card-hover group-hover:border-gold/50">
               <!-- Thumbnail -->
               <div class="relative aspect-video w-full overflow-hidden" :style="thumbStyle(rc.i)">
-                <img v-if="courseMediaAt(rc.i)?.cover" :src="courseMediaAt(rc.i).cover" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <img v-if="resolveCourseCover(courseMediaAt(rc.i)?.slug, isDark)" :src="resolveCourseCover(courseMediaAt(rc.i)?.slug, isDark)" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-black/30"></div>
                 <div class="absolute inset-0 opacity-[0.08]" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 28px 28px;"></div>
                 <span class="absolute top-3 left-3 text-[9px] uppercase tracking-[0.25em] font-light px-2 py-1 rounded-sm border"

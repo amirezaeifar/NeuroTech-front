@@ -54,22 +54,34 @@ useReveal()
 
     <!-- ───────────────────────── Intro ───────────────────────── -->
     <section class="bg-parchment-light pt-20 md:pt-28">
-      <p class="reveal max-w-2xl mx-auto px-8 text-center font-serif italic font-light text-2xl md:text-[2rem] text-ink-soft leading-relaxed">
-        {{ t('partners.intro') }}
-      </p>
+      <div class="max-w-3xl mx-auto px-8">
+        <p class="reveal max-w-2xl mx-auto text-center font-serif italic font-light text-2xl md:text-[2rem] text-ink-soft leading-relaxed">
+          {{ t('partners.intro') }}
+        </p>
+        <dl class="reveal mt-10 grid sm:grid-cols-2 border-y border-parchment-deep">
+          <div class="py-5 text-center sm:border-e sm:border-parchment-deep">
+            <dt class="text-[10px] uppercase tracking-[0.25em] text-gold-dark font-light">{{ t('partners.company.countryLabel') }}</dt>
+            <dd class="mt-1.5 text-sm text-ink font-light">{{ t('partners.company.country') }}</dd>
+          </div>
+          <div class="py-5 text-center border-t sm:border-t-0 border-parchment-deep">
+            <dt class="text-[10px] uppercase tracking-[0.25em] text-gold-dark font-light">{{ t('partners.company.contextLabel') }}</dt>
+            <dd class="mt-1.5 text-sm text-ink font-light">{{ t('partners.company.context') }}</dd>
+          </div>
+        </dl>
+      </div>
     </section>
 
     <!-- ───────────────────────── Profiles ─────────────────────────
          Compact "preview" cards. The whole card is a single flat link that
          routes to the dedicated Doctor/Partner profile page (/partners/:id).
          Footprint is deliberately small — a gold-ringed avatar, name + lead
-         role, a slim credential line and the Areas-of-Collaboration chips —
+         role, a slim credential line and the team location —
          with the long bio removed so the grid stays minimal. A slim gold accent
          rail and a gold hairline keep the rhythm without any 3D. Reverses
          naturally under dir="rtl". -->
     <section class="py-20 md:py-28 bg-parchment-light">
       <div class="max-w-6xl mx-auto px-8">
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+        <div class="grid sm:grid-cols-2 gap-5 lg:gap-6">
           <router-link
             v-for="(p, i) in people" :key="p.name + i"
             :id="`partner-${i}`"
@@ -99,18 +111,13 @@ useReveal()
               <span class="partner-divider" aria-hidden="true"></span>
 
               <div class="flex flex-col gap-0.5 text-center sm:text-start">
-                <span class="text-[10px] uppercase tracking-[0.25em] text-gold-dark font-light">{{ t('partners.labels.qualification') }}</span>
+                <span class="text-[10px] uppercase tracking-[0.25em] text-gold-dark font-light">{{ t('partners.labels.description') }}</span>
                 <span class="text-[13px] text-ink-soft font-light leading-snug line-clamp-2">{{ p.qualification }}</span>
               </div>
 
-              <div class="mt-4">
-                <span class="text-[10px] uppercase tracking-[0.25em] text-ink-muted font-light">{{ t('partners.labels.collaborations') }}</span>
-                <div class="mt-2 flex flex-wrap justify-center sm:justify-start gap-1.5">
-                  <span
-                    v-for="(c, j) in p.collaborations" :key="j"
-                    class="partner-tag text-[11px] px-2.5 py-0.5 rounded-full font-light tracking-wide"
-                  >{{ c }}</span>
-                </div>
+              <div class="mt-4 flex flex-col gap-0.5 text-center sm:text-start">
+                <span class="text-[10px] uppercase tracking-[0.25em] text-ink-muted font-light">{{ t('partners.labels.location') }}</span>
+                <span class="text-[13px] text-ink-soft font-light leading-snug">{{ p.location }}</span>
               </div>
 
               <!-- View-profile affordance pinned to the foot of the card. -->

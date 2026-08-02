@@ -6,7 +6,7 @@ import { useAuth } from '../../composables/useAuth.js'
 import { useTheme } from '../../composables/useTheme.js'
 import { useLocale } from '../../composables/useLocale.js'
 import { sectionsForRole } from '../../data/adminSections.js'
-const logo = '/favicon-new.png'
+import { brandLogoUrl } from '../../data/brandAssets.js'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -59,7 +59,7 @@ const ICONS = {
     <aside class="admin-sidebar" :class="{ 'is-open': drawerOpen }">
       <div class="admin-sidebar-inner">
         <router-link to="/admin" class="admin-brand" @click="closeDrawer">
-          <img :src="logo" alt="" aria-hidden="true" class="admin-brand-logo" />
+          <img :src="brandLogoUrl" alt="" aria-hidden="true" class="admin-brand-logo" />
           <span class="admin-brand-text">
             <span class="admin-brand-name">Neuro Tech</span>
             <span class="admin-brand-sub">{{ t('admin.consoleTag') }}</span>

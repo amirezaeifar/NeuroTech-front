@@ -1,5 +1,5 @@
 <script setup>
-import logo from '../assets/logo.png'
+import { brandLogoUrl } from '../data/brandAssets.js'
 
 defineProps({
   width: { type: [Number, String], default: 220 },
@@ -21,7 +21,7 @@ defineProps({
     class="brand-logo-wrap"
     style="direction: ltr; unicode-bidi: isolate; display: inline-flex; align-items: center; gap: 12px; line-height: 0;"
   >
-    <img :src="logo" alt="" aria-hidden="true" :style="{ height: height + 'px', width: 'auto' }" />
+    <img :src="brandLogoUrl" alt="" aria-hidden="true" :style="{ height: height + 'px', width: 'auto' }" />
 
     <svg
       :width="width"

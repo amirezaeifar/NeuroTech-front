@@ -59,12 +59,12 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Biomedical Engineering — Est. 2010",
-      "titleA": "Precision in",
-      "titleEm": "Neurology",
-      "titleB": "for a connected world",
-      "subline": "We import, export, and supply considered neurology equipment to hospitals, clinics, and research institutes — partnered with leading manufacturers.",
-      "cta": "Discover the portfolio"
+      "eyebrow": "Education • Innovation • Healthcare",
+      "titleA": "Healthy",
+      "titleEm": "Mind",
+      "titleB": "in a Healthy Body",
+      "subline": "Empowering neuroscience through education, collaboration, and trusted medical solutions.",
+      "cta": "Explore Our Portfolio"
     },
     "stats": [
       {
@@ -76,11 +76,11 @@
         "label": "Devices represented"
       },
       {
-        "value": "10",
+        "value": "6",
         "label": "Partner countries"
       },
       {
-        "value": "200+",
+        "value": "50+",
         "label": "Institutions served"
       }
     ],
@@ -909,283 +909,63 @@
       "eyebrow": "In Confidence With",
       "title": "Partners"
     },
-    "intro": "The clinicians, instructors and creators who lend their expertise to our devices, our courses and our community.",
+    "intro": "The leadership team guiding Neuro Tech's work in neurotechnology from Iran.",
+    "company": {
+      "countryLabel": "Country",
+      "country": "Iran",
+      "contextLabel": "Team Context",
+      "context": "Iran-based neurotechnology team"
+    },
     "labels": {
+      "description": "Background",
+      "location": "Location",
       "qualification": "Educational Qualification",
       "council": "Medical Council Number",
       "collaborations": "Collaboration Areas"
     },
     "people": [
       {
-        "name": "Dr. A. Karimi",
-        "qualification": "MD, Functional Neurosurgery — Tehran University of Medical Sciences",
-        "councilNumber": "IR-NS-10342",
-        "collaborations": [
-          "Device Advisory Board",
-          "Surgical Workshop Lead"
-        ],
-        "bio": "Leads deep-brain stimulation programmes at Tehran Neurology Institute; advises on device selection and surgical workflow.",
-        "title": "Functional Neurosurgeon",
-        "affiliation": "Tehran Neurology Institute",
-        "experience": [
-          { "role": "Head of Functional Neurosurgery", "org": "Tehran Neurology Institute", "period": "2016 — Present" },
-          { "role": "Consultant Neurosurgeon", "org": "Milad Medical Centre", "period": "2011 — 2016" },
-          { "role": "Device Advisory Board Member", "org": "Neuro Tech", "period": "2018 — Present" }
-        ],
-        "education": [
-          { "degree": "Fellowship, Functional & Stereotactic Neurosurgery", "school": "Tehran University of Medical Sciences", "period": "2009 — 2011" },
-          { "degree": "MD, Medicine", "school": "Tehran University of Medical Sciences", "period": "1999 — 2007" }
-        ],
-        "publications": [
-          { "title": "Long-term outcomes of subthalamic deep-brain stimulation in Parkinson's disease", "venue": "Iranian Journal of Neurology · 2022" },
-          { "title": "Lead-trajectory planning with intra-operative microelectrode recording", "venue": "Stereotactic & Functional Neurosurgery · 2020" }
-        ]
+        "name": "Dr. Raee",
+        "title": "Chief Executive Officer",
+        "qualification": "Doctorate in Neurology",
+        "location": "Iran",
+        "affiliation": "Neuro Tech · Iran",
+        "collaborations": []
       },
       {
-        "name": "Dr. S. Moradi",
-        "qualification": "MD, Clinical Neurophysiology — Shahid Beheshti University of Medical Sciences",
-        "councilNumber": "IR-NP-20567",
-        "collaborations": [
-          "Course Instructor",
-          "Device Validation Consultant"
-        ],
-        "bio": "Specialist in EMG and nerve-conduction diagnostics; collaborates on device validation and clinical training.",
-        "title": "Clinical Neurophysiologist",
-        "affiliation": "Shahid Beheshti Medical Centre",
-        "experience": [
-          { "role": "Attending Neurophysiologist", "org": "Shahid Beheshti Medical Centre", "period": "2014 — Present" },
-          { "role": "Device Validation Consultant", "org": "Neuro Tech", "period": "2019 — Present" }
-        ],
-        "education": [
-          { "degree": "MD, Clinical Neurophysiology", "school": "Shahid Beheshti University of Medical Sciences", "period": "2008 — 2014" }
-        ],
-        "publications": [
-          { "title": "Surface versus needle EMG in early carpal-tunnel diagnosis", "venue": "Clinical Neurophysiology Practice · 2021" }
-        ]
+        "name": "Eng. Zirouhi",
+        "title": "Vice President",
+        "qualification": "Bachelor's Degree in Electronic Engineering",
+        "location": "Iran",
+        "affiliation": "Neuro Tech · Iran",
+        "collaborations": []
       },
       {
-        "name": "Dr. N. Farahani",
-        "qualification": "MD, Epileptology & EEG — Tabriz University of Medical Sciences",
-        "councilNumber": "IR-EP-30781",
-        "collaborations": [
-          "Course Instructor",
-          "Live Reading Clinic Host"
-        ],
-        "bio": "Teaches the Foundations of Clinical EEG course and hosts the Academy's live reading clinics.",
-        "title": "Epileptologist & EEG Specialist",
-        "affiliation": "Tabriz Neuroscience Centre",
-        "experience": [
-          { "role": "Director, EEG Reading Clinic", "org": "Tabriz Neuroscience Centre", "period": "2015 — Present" },
-          { "role": "Course Instructor — Clinical EEG", "org": "Neuro Tech Academy", "period": "2019 — Present" }
-        ],
-        "education": [
-          { "degree": "MD, Epileptology & Clinical EEG", "school": "Tabriz University of Medical Sciences", "period": "2006 — 2013" }
-        ],
-        "publications": [
-          { "title": "Interictal epileptiform patterns in long-term ambulatory EEG", "venue": "Epilepsia Open · 2023" }
-        ]
+        "name": "Eng. Shafiei",
+        "title": "Technical Director",
+        "qualification": "Bachelor's Degree in Computer Engineering",
+        "location": "Iran",
+        "affiliation": "Neuro Tech · Iran",
+        "collaborations": []
       },
       {
-        "name": "Dr. L. Hashemi",
-        "qualification": "MD, Sleep Medicine — Isfahan University of Medical Sciences",
-        "councilNumber": "IR-SM-40219",
-        "collaborations": [
-          "Course Instructor",
-          "Curriculum Reviewer"
-        ],
-        "bio": "Designs polysomnography curricula and reviews premium-tier course materials before publication.",
-        "title": "Sleep Medicine Physician",
-        "affiliation": "Isfahan Sleep Disorders Centre",
-        "experience": [
-          { "role": "Lead Physician, Polysomnography Unit", "org": "Isfahan Sleep Disorders Centre", "period": "2013 — Present" },
-          { "role": "Curriculum Reviewer", "org": "Neuro Tech Academy", "period": "2020 — Present" }
-        ],
-        "education": [
-          { "degree": "MD, Sleep Medicine", "school": "Isfahan University of Medical Sciences", "period": "2005 — 2012" }
-        ],
-        "publications": [
-          { "title": "Home polysomnography protocols for paediatric sleep apnoea", "venue": "Journal of Clinical Sleep Medicine · 2022" }
-        ]
-      },
-      {
-        "name": "Dr. M. Saadat",
-        "qualification": "MD, Critical Care & Status Epilepticus — Tehran Neurology Institute",
-        "councilNumber": "IR-CC-50934",
-        "collaborations": [
-          "Status Epilepticus Consultant",
-          "Clinical Documentation Lead"
-        ],
-        "bio": "Advises on intensive-care escalation pathways and produces case-study writing for the Events archive and Academy library.",
-        "title": "Critical Care Neurologist",
-        "affiliation": "Tehran Neurology Institute",
-        "experience": [
-          { "role": "Consultant, Neurocritical Care", "org": "Tehran Neurology Institute", "period": "2012 — Present" },
-          { "role": "Clinical Documentation Lead", "org": "Neuro Tech", "period": "2018 — Present" }
-        ],
-        "education": [
-          { "degree": "MD, Critical Care & Status Epilepticus", "school": "Tehran University of Medical Sciences", "period": "2004 — 2011" }
-        ],
-        "publications": [
-          { "title": "Escalation pathways in refractory status epilepticus", "venue": "Neurocritical Care · 2021" }
-        ]
-      },
-      {
-        "name": "Eng. R. Tabrizi",
-        "qualification": "MSc, Biomedical Engineering — Sharif University of Technology",
-        "councilNumber": "—",
-        "collaborations": [
-          "Course Instructor",
-          "Device Technique Designer"
-        ],
-        "bio": "Builds device-technique modules bridging engineering principles and clinical application.",
-        "title": "Biomedical Engineer",
-        "affiliation": "Neuro Tech",
-        "experience": [
-          { "role": "Senior Biomedical Engineer", "org": "Neuro Tech", "period": "2017 — Present" },
-          { "role": "Device Technique Designer", "org": "Neuro Tech Academy", "period": "2019 — Present" }
-        ],
-        "education": [
-          { "degree": "MSc, Biomedical Engineering", "school": "Sharif University of Technology", "period": "2013 — 2016" }
-        ],
-        "publications": [
-          { "title": "Signal-integrity considerations in multi-channel EMG acquisition", "venue": "IFMBE Proceedings · 2020" }
-        ]
-      },
-      {
-        "name": "F. Karbasi",
-        "qualification": "BFA, Medical Illustration — Tehran University of Art",
-        "councilNumber": "—",
-        "collaborations": [
-          "Medical Illustrator",
-          "Seminar Material Designer"
-        ],
-        "bio": "Creates anatomical and procedural illustration used across courses and seminar materials.",
-        "title": "Medical Illustrator",
-        "affiliation": "Neuro Tech Studio",
-        "experience": [
-          { "role": "Lead Medical Illustrator", "org": "Neuro Tech Studio", "period": "2018 — Present" },
-          { "role": "Seminar Material Designer", "org": "Neuro Tech Academy", "period": "2019 — Present" }
-        ],
-        "education": [
-          { "degree": "BFA, Medical Illustration", "school": "Tehran University of Art", "period": "2012 — 2016" }
-        ],
-        "publications": [
-          { "title": "Procedural illustration for neurostimulation training modules", "venue": "Neuro Tech Academy · 2023" }
-        ]
-      },
-      {
-        "name": "Sam Webster",
-        "kind": "educator",
-        "title": "Neuroanatomy Education",
-        "qualification": "Anatomy Educator · Educational Content Provider",
-        "councilNumber": "—",
-        "platform": "Medical Education",
-        "status": "Active Partner",
-        "collaborations": ["Educational Content Provider", "Brain Anatomy Curriculum", "Active Partner"],
-        "affiliation": "Medical Education",
-        "bio": "Sam Webster is an anatomy educator whose structured, dissection-led teaching of the human brain underpins the Academy's Brain Anatomy curriculum. His work is distinguished by a clear, regional progression through neuroanatomy — surface landmarks, brainstem, deep grey matter and white-matter pathways — that consistently connects structure to clinical function. The Academy curates his lecture series as foundational visual learning material for trainees building their first systematic map of the brain.",
-        "expertise": [
-          "Gross and functional neuroanatomy",
-          "Brainstem and cranial-nerve nuclei",
-          "Anatomical dissection technique",
-          "Visual and spatial anatomy teaching",
-          "Undergraduate and postgraduate education"
-        ],
-        "methodology": "Webster's teaching favours a regional, image-led method: each structure is introduced in situ, oriented against fixed landmarks, and immediately tied to the deficit it produces when damaged. Complex three-dimensional relationships are built up incrementally rather than memorised in isolation, which suits learners moving from first exposure toward confident localisation.",
-        "impact": "His openly accessible neuroanatomy material has supported medical and allied-health students internationally, and within the Academy forms the visual backbone of the Brain Anatomy course — giving clinicians a durable, examination-ready mental model of cerebral structure.",
-        "courses": [{ "title": "Brain Anatomy", "index": 3 }],
-        "playlists": [{ "title": "Brain Anatomy — Structural Series", "lessons": 18 }],
-        "experience": [
-          { "role": "Anatomy Educator & Content Provider", "org": "Neuro Tech Academy", "period": "2024 — Present" },
-          { "role": "Lecturer in Anatomy", "org": "University Medical School", "period": "2012 — Present" }
-        ],
-        "education": [
-          { "degree": "PhD, Anatomical Sciences", "school": "University Medical School" },
-          { "degree": "BSc, Human Anatomy", "school": "University Medical School" }
-        ],
-        "publications": [
-          { "title": "Structured neuroanatomy for the early clinical learner", "venue": "Anatomical Education Review" },
-          { "title": "Region-first approaches to teaching the brainstem", "venue": "Journal of Anatomy Education" }
-        ]
-      },
-      {
-        "name": "Therapy in a Nutshell",
-        "kind": "educator",
-        "title": "Neuroscience & Neuroplasticity Education",
-        "qualification": "Applied Neuroscience Educator · Educational Content Provider",
-        "councilNumber": "—",
-        "platform": "Medical Education",
-        "status": "Active Partner",
-        "collaborations": ["Educational Content Provider", "Neuroscience Curriculum", "Active Partner"],
-        "affiliation": "Medical Education",
-        "bio": "Therapy in a Nutshell is an educational content provider specialising in the translation of contemporary neuroscience — particularly neuroplasticity and the stress response — into clear, evidence-informed teaching. The Academy draws on this material for its Neuroscience course, where the emphasis on mechanism made accessible complements the programme's progression from the single neuron to whole-brain networks and cognition.",
-        "expertise": [
-          "Neuroplasticity and learning",
-          "Applied and behavioural neuroscience",
-          "The stress response and the nervous system",
-          "Translational science communication",
-          "Clinician and patient education"
-        ],
-        "methodology": "The approach distils primary neuroscience into concise, mechanism-first explanations, pairing each concept with a concrete clinical or behavioural correlate. This keeps abstract cellular and network principles anchored to outcomes that matter at the bedside and in practice.",
-        "impact": "Its accessible neuroscience education has reached a broad international audience of clinicians, students and patients, and within the Academy it strengthens the Neuroscience course's bridge between cellular mechanism and applied understanding.",
-        "courses": [{ "title": "Neuroscience", "index": 1 }],
-        "playlists": [{ "title": "Neuroplasticity — Foundations", "lessons": 14 }],
-        "experience": [
-          { "role": "Neuroscience Educator & Content Provider", "org": "Neuro Tech Academy", "period": "2024 — Present" },
-          { "role": "Clinical Educator, Applied Neuroscience", "org": "Independent Practice", "period": "2017 — Present" }
-        ],
-        "education": [
-          { "degree": "Graduate training, Clinical Mental Health", "school": "Accredited Graduate Programme" }
-        ],
-        "publications": [
-          { "title": "Neuroplasticity as a framework for clinical change", "venue": "Applied Neuroscience Education" },
-          { "title": "Communicating the stress response to non-specialists", "venue": "Translational Education Notes" }
-        ]
-      },
-      {
-        "name": "All About Clinical Medicine",
-        "kind": "educator",
-        "title": "Clinical Neurology Education",
-        "qualification": "Clinical Medicine Educator · Educational Content Provider",
-        "councilNumber": "—",
-        "platform": "Medical Education",
-        "status": "Active Partner",
-        "collaborations": ["Educational Content Provider", "Clinical Neurology Curriculum", "Active Partner"],
-        "affiliation": "Medical Education",
-        "bio": "All About Clinical Medicine is an educational content provider whose complete clinical neurology series anchors the Academy's Clinical Neurology course. The material is structured around examination-room reasoning — history, neurological examination, localisation and the common disease groups — in the methodical, examination-oriented style favoured by postgraduate trainees preparing for clinical practice and board assessment.",
-        "expertise": [
-          "Clinical neurology",
-          "The neurological examination",
-          "Lesion localisation",
-          "Case-based clinical reasoning",
-          "Postgraduate examination preparation"
-        ],
-        "methodology": "The teaching follows a structured, case-led format: each topic is framed as a clinical problem, worked through from presentation to localisation and management, and reinforced with the kind of high-yield reasoning expected in postgraduate assessment. The sequence is deliberately cumulative, building toward independent diagnostic judgement.",
-        "impact": "Its comprehensive clinical neurology teaching supports residents and students worldwide, and provides the Academy's Clinical Neurology course with a coherent, end-to-end pathway from the bedside examination to a prioritised differential diagnosis.",
-        "courses": [{ "title": "Clinical Neurology", "index": 0 }],
-        "playlists": [{ "title": "Clinical Neurology — Complete Series", "lessons": 16 }],
-        "experience": [
-          { "role": "Clinical Neurology Educator & Content Provider", "org": "Neuro Tech Academy", "period": "2024 — Present" },
-          { "role": "Clinical Medicine Educator", "org": "Independent Medical Education", "period": "2015 — Present" }
-        ],
-        "education": [
-          { "degree": "MD, Medicine", "school": "Accredited Medical School" }
-        ],
-        "publications": [
-          { "title": "A structured approach to the neurological examination", "venue": "Clinical Medicine Education" },
-          { "title": "Localisation-first teaching in clinical neurology", "venue": "Neurology Teaching Notes" }
-        ]
+        "name": "Eng. Rezaeifar",
+        "title": "Commercial Director",
+        "qualification": "Bachelor's Degree in Computer Engineering",
+        "location": "Iran",
+        "affiliation": "Neuro Tech · Iran",
+        "collaborations": []
       }
     ],
     "cta": {
-      "title": "Collaborate with us",
-      "desc": "We welcome conversations with clinicians, educators and creators who share our standard of care.",
+      "title": "Connect with our team",
+      "desc": "Neuro Tech's leadership team works from Iran across clinical, engineering, research and commercial disciplines.",
       "button": "Introduce yourself"
     },
     "viewProfile": "View Profile",
     "profile": {
       "back": "Back to Partners",
-      "affiliationLabel": "Clinical Affiliation",
+      "affiliationLabel": "Company / Country",
       "councilLabel": "Medical Council No.",
       "aboutTitle": "About",
       "expertiseTitle": "Areas of Expertise",
@@ -1207,11 +987,7 @@
       "recentTitle": "Recent Publications",
       "upcomingTitle": "Upcoming Clinical Sessions",
       "upcomingNote": "Open to registered clinicians.",
-      "upcoming": [
-        { "date": "12 Sep 2026", "title": "Live EEG Reading Clinic", "venue": "Neuro Tech Academy" },
-        { "date": "04 Oct 2026", "title": "DBS Programming Clinical Session", "venue": "Tehran Neurology Institute" },
-        { "date": "18 Nov 2026", "title": "Case Conference — Movement Disorders", "venue": "Online" }
-      ]
+      "upcoming": []
     }
   },
   "checkout": {
@@ -1497,20 +1273,19 @@
     },
     "info": {
       "address": {
-        "title": "Studio",
-        "value": "No. 42, Valiasr Avenue, Tehran"
-      },
+        "title": "Office",
+        "value": "Unit 2, First Floor, City Hall Building, Chamran Street, between Chamran 11 and Golestan Street, Mashhad, Iran"      },
       "phone": {
         "title": "Telephone",
-        "value": "+98 21 1234 5678"
+        "value": "+98 91 5257 4529"
       },
       "email": {
         "title": "Email",
-        "value": "atelier{'@'}neurotech.example"
+        "value": "neuro.tech.pishro@gmail.com"
       },
       "hours": {
         "title": "Hours",
-        "value": "Saturday – Wednesday, 9.00 – 18.00"
+        "value": "Saturday – Wednesday, 9:00 – 18:00"
       }
     },
     "rail": {
