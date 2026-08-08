@@ -1,5 +1,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   title: { type: String, default: '' },
@@ -43,7 +46,7 @@ const togglePlay = () => { if (!activated.value) onPlay() }
         v-if="activated && hasEmbed"
         class="absolute inset-0 w-full h-full"
         :src="iframeSrc"
-        :title="title || subtitle || 'Course video'"
+        :title="title || subtitle || t('common.courseVideo')"
         frameborder="0"
         loading="lazy"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -72,7 +75,7 @@ const togglePlay = () => { if (!activated.value) onPlay() }
         </div>
         <div v-if="live" class="shrink-0 flex items-center gap-3">
           <span class="inline-flex items-center gap-1.5 bg-red-600/90 text-white text-[10px] uppercase tracking-[0.25em] font-medium px-2.5 py-1 rounded">
-            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse-dot"></span> Live
+            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse-dot"></span> {{ t('common.live') }}
           </span>
           <span v-if="viewers" class="inline-flex items-center gap-1.5 bg-black/40 backdrop-blur-sm text-parchment-light/90 text-[10px] tracking-[0.15em] px-2.5 py-1 rounded">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg>
@@ -86,7 +89,7 @@ const togglePlay = () => { if (!activated.value) onPlay() }
         type="button"
         @click="onPlay"
         class="absolute inset-0 m-auto w-16 h-16 md:w-20 md:h-20 rounded-full bg-gold/90 hover:bg-gold text-ink flex items-center justify-center shadow-soft transition-all hover:scale-105"
-        :aria-label="hasEmbed ? 'Play video' : (playing ? 'Pause' : 'Play')"
+        :aria-label="hasEmbed ? t('common.playVideo') : (playing ? t('common.pause') : t('common.play'))"
       >
         <svg v-if="hasEmbed || !playing" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         <svg v-else width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
@@ -113,13 +116,13 @@ const togglePlay = () => { if (!activated.value) onPlay() }
         </div>
         <div class="mt-2.5 flex items-center justify-between text-parchment-light/85">
           <div class="flex items-center gap-4">
-            <button type="button" @click="onPlay" :aria-label="hasEmbed ? 'Play video' : (playing ? 'Pause' : 'Play')" class="hover:text-gold-light transition-colors">
+            <button type="button" @click="onPlay" :aria-label="hasEmbed ? t('common.playVideo') : (playing ? t('common.pause') : t('common.play'))" class="hover:text-gold-light transition-colors">
               <svg v-if="hasEmbed || !playing" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
               <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
             </button>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="hover:text-gold-light transition-colors cursor-pointer"><path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span class="text-[11px] tracking-[0.1em] font-light tabular-nums">
-              <template v-if="live"><span class="text-red-400">●</span> Live</template>
+              <template v-if="live"><span class="text-red-400">●</span> {{ t('common.live') }}</template>
               <template v-else>{{ elapsed }} / {{ duration }}</template>
             </span>
           </div>

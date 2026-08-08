@@ -58,16 +58,9 @@ useReveal()
         <p class="reveal max-w-2xl mx-auto text-center font-serif italic font-light text-2xl md:text-[2rem] text-ink-soft leading-relaxed">
           {{ t('partners.intro') }}
         </p>
-        <dl class="reveal mt-10 grid sm:grid-cols-2 border-y border-parchment-deep">
-          <div class="py-5 text-center sm:border-e sm:border-parchment-deep">
-            <dt class="text-[10px] uppercase tracking-[0.25em] text-gold-dark font-light">{{ t('partners.company.countryLabel') }}</dt>
-            <dd class="mt-1.5 text-sm text-ink font-light">{{ t('partners.company.country') }}</dd>
-          </div>
-          <div class="py-5 text-center border-t sm:border-t-0 border-parchment-deep">
-            <dt class="text-[10px] uppercase tracking-[0.25em] text-gold-dark font-light">{{ t('partners.company.contextLabel') }}</dt>
-            <dd class="mt-1.5 text-sm text-ink font-light">{{ t('partners.company.context') }}</dd>
-          </div>
-        </dl>
+        <p class="reveal mt-7 max-w-2xl mx-auto text-center text-xs text-ink-muted font-light leading-relaxed">
+          {{ t('partners.demoNotice') }}
+        </p>
       </div>
     </section>
 

@@ -136,6 +136,9 @@ useReveal()
               </span>
               <span v-for="(c, j) in person.collaborations" :key="j" class="profile-chip">{{ c }}</span>
             </div>
+            <p v-if="person.demo" class="mt-4 text-center sm:text-start text-[11px] text-ink-muted font-light leading-relaxed">
+              {{ t('partners.profile.demoNotice') }}
+            </p>
           </div>
         </header>
 

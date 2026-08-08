@@ -16,6 +16,9 @@
  * and progress stay in sync.
  */
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   /** [{ title, id }] in playlist order. `id` is an internal resource id. */
@@ -243,7 +246,7 @@ watch(() => props.modelValue, (v) => {
         <button
           type="button"
           class="cplayer__shield"
-          :aria-label="isPlaying ? 'Pause' : 'Play'"
+          :aria-label="isPlaying ? t('common.pause') : t('common.play')"
           @click="togglePlay"
         ></button>
 
@@ -260,18 +263,18 @@ watch(() => props.modelValue, (v) => {
 
         <!-- Error notice — a clip is unavailable; auto-advancing. -->
         <div v-if="errored" class="cplayer__notice" role="status">
-          This lesson is temporarily unavailable — continuing to the next.
+          {{ t('academy.courseDetail.lessonUnavailable') }}
         </div>
 
         <!-- Center play (when paused) -->
-        <button v-if="!isPlaying && !loading && !errored" type="button" class="cplayer__bigplay" aria-label="Play" @click="togglePlay">
+        <button v-if="!isPlaying && !loading && !errored" type="button" class="cplayer__bigplay" :aria-label="t('common.play')" @click="togglePlay">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
         </button>
 
         <!-- Unmute nudge (autoplay starts muted) -->
         <button v-if="muted && ready" type="button" class="cplayer__unmute" @click="toggleMute">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Tap to unmute
+          {{ t('common.tapToUnmute') }}
         </button>
 
         <!-- Controls -->
@@ -281,17 +284,17 @@ watch(() => props.modelValue, (v) => {
           </div>
           <div class="cplayer__row">
             <div class="cplayer__group">
-              <button type="button" class="cplayer__btn" :disabled="!canPrev" aria-label="Previous lesson" @click="prev">
+              <button type="button" class="cplayer__btn" :disabled="!canPrev" :aria-label="t('common.previousLesson')" @click="prev">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg>
               </button>
-              <button type="button" class="cplayer__btn" :aria-label="isPlaying ? 'Pause' : 'Play'" @click="togglePlay">
+              <button type="button" class="cplayer__btn" :aria-label="isPlaying ? t('common.pause') : t('common.play')" @click="togglePlay">
                 <svg v-if="!isPlaying" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                 <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
               </button>
-              <button type="button" class="cplayer__btn" :disabled="!canNext" aria-label="Next lesson" @click="next">
+              <button type="button" class="cplayer__btn" :disabled="!canNext" :aria-label="t('common.nextLesson')" @click="next">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5l11 7L4 19z"/></svg>
               </button>
-              <button type="button" class="cplayer__btn" :aria-label="muted ? 'Unmute' : 'Mute'" @click="toggleMute">
+              <button type="button" class="cplayer__btn" :aria-label="muted ? t('common.unmute') : t('common.mute')" @click="toggleMute">
                 <svg v-if="!muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7M19 5a9 9 0 0 1 0 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M11 5 6 9H2v6h4l5 4zM22 9l-6 6M16 9l6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
@@ -300,14 +303,14 @@ watch(() => props.modelValue, (v) => {
 
             <div class="cplayer__group">
               <div class="cplayer__speed">
-                <button type="button" class="cplayer__btn cplayer__btn--text" aria-label="Playback speed" @click="speedOpen = !speedOpen">
+                <button type="button" class="cplayer__btn cplayer__btn--text" :aria-label="t('common.playbackSpeed')" @click="speedOpen = !speedOpen">
                   {{ rate }}×
                 </button>
                 <div v-if="speedOpen" class="cplayer__menu">
                   <button v-for="r in RATES" :key="r" type="button" class="cplayer__menu-item" :class="{ 'is-active': r === rate }" @click="setRate(r)">{{ r }}×</button>
                 </div>
               </div>
-              <button type="button" class="cplayer__btn" :aria-label="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'" @click="toggleFullscreen">
+              <button type="button" class="cplayer__btn" :aria-label="isFullscreen ? t('common.exitFullscreen') : t('common.fullscreen')" @click="toggleFullscreen">
                 <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M3 16v3a2 2 0 0 0 2 2h3" stroke-linecap="round"/></svg>
                 <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M16 21v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" stroke-linecap="round"/></svg>
               </button>
@@ -321,8 +324,8 @@ watch(() => props.modelValue, (v) => {
     <aside class="cplayer__playlist">
       <div class="cplayer__playlist-inner">
       <header class="cplayer__playlist-head">
-        <span class="cplayer__playlist-title">Course Content</span>
-        <span class="cplayer__playlist-count">{{ lessons.length }} lessons</span>
+        <span class="cplayer__playlist-title">{{ t('academy.courseDetail.courseContent') }}</span>
+        <span class="cplayer__playlist-count">{{ lessons.length }} {{ t('partners.profile.lessonsLabel') }}</span>
       </header>
       <ol class="cplayer__list">
         <li v-for="(l, i) in lessons" :key="i">
@@ -338,7 +341,7 @@ watch(() => props.modelValue, (v) => {
               <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </span>
             <span class="cplayer__lesson-text">
-              <span class="cplayer__lesson-num">Lesson {{ String(i + 1).padStart(2, '0') }}</span>
+              <span class="cplayer__lesson-num">{{ t('academy.courseDetail.lesson') }} {{ String(i + 1).padStart(2, '0') }}</span>
               <span class="cplayer__lesson-name">{{ l.title }}</span>
             </span>
           </button>

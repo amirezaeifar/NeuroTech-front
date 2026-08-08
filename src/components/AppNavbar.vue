@@ -59,7 +59,7 @@ const pickLocale = (code) => { setLocale(code); langOpen.value = false }
       class="shrink-0"
     >
       <span class="flex items-center gap-3 select-none">
-        <img :src="brandLogoUrl" alt="" aria-hidden="true" class="brand-logo-img h-11 w-auto" />
+        <img :src="brandLogoUrl" alt="" aria-hidden="true" class="brand-logo-img h-12 w-auto" />
         <!-- Two-line wordmark — typographically identical to the footer BrandLogo
              (Cormorant "Neuro Tech" over Inter "NEUROLOGY · CRAFTED" + hairline). -->
         <span class="brand-wordmark hidden xl:flex">
@@ -90,7 +90,7 @@ const pickLocale = (code) => { setLocale(code); langOpen.value = false }
         type="button"
         @click="toggleTheme"
         class="text-ink-muted hover:text-gold-dark transition-colors p-1"
-        :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+        :aria-label="isDark ? t('common.lightMode') : t('common.darkMode')"
       >
         <svg v-if="!isDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
           <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" stroke-linecap="round" stroke-linejoin="round"/>
@@ -148,7 +148,7 @@ const pickLocale = (code) => { setLocale(code); langOpen.value = false }
         type="button"
         class="lg:hidden text-ink p-1"
         @click="mobileOpen = !mobileOpen"
-        :aria-label="mobileOpen ? 'Close menu' : 'Open menu'"
+        :aria-label="mobileOpen ? t('common.closeMenu') : t('common.openMenu')"
       >
         <svg v-if="!mobileOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
           <path d="M3 7h18M3 17h18" stroke-linecap="round" />

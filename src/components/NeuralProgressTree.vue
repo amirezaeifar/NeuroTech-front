@@ -35,8 +35,11 @@
  */
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useMotion, useReducedMotion } from '@vueuse/motion'
 import { userProgress } from '../data/userProgress.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   /** userProgress payload (see src/data/userProgress.js). */
@@ -234,9 +237,8 @@ const allNodes = computed(() => [...arbor.value.courseNodes, ...arbor.value.modu
 /* ── Hover tooltip + click navigation ──────────────────────────────────────── */
 const router = useRouter()
 
-const STATUS_LABEL = { completed: 'Completed', 'in-progress': 'In progress', locked: 'Locked' }
-const statusLabel = (s) => STATUS_LABEL[s] || s
-const typeLabel = (n) => (n.type === 'course' ? 'Course' : 'Module')
+const statusLabel = (s) => t(`pathway.status.${s}`)
+const typeLabel = (n) => t(n.type === 'course' ? 'pathway.courseType' : 'pathway.moduleType')
 
 const hovered = ref(null)
 // Pointer position + container width, in the overlay's local coordinates.
@@ -356,13 +358,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="rootEl" :class="['npt', { 'npt--sticky': sticky }]" :style="{ '--npt-top': stickyTop + 'px' }" aria-label="Learning pathway — neural progress">
+  <div ref="rootEl" :class="['npt', { 'npt--sticky': sticky }]" :style="{ '--npt-top': stickyTop + 'px' }" :aria-label="t('pathway.progressLabel')">
     <svg
       class="npt__svg"
       :viewBox="`0 0 ${VB_W} ${VB_H}`"
       preserveAspectRatio="xMidYMid meet"
       role="img"
-      aria-label="Organic neuron visualising course and module progress"
+      :aria-label="t('pathway.neuronLabel')"
     >
       <defs>
         <!-- Intense white bloom: stacked blurs merged back over the source. -->

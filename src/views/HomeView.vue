@@ -85,7 +85,7 @@ useReveal()
       <div class="marquee">
         <div class="marquee-track">
           <span v-for="(p, i) in [...partnerRow, ...partnerRow]" :key="i"
-                class="font-serif italic font-normal text-ink-soft text-2xl">
+                class="partner-name-latin italic font-normal text-ink-soft text-2xl" dir="ltr">
             {{ p }}
           </span>
         </div>
@@ -109,3 +109,11 @@ useReveal()
     </section>
   </div>
 </template>
+
+<style scoped>
+.partner-name-latin {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+</style>

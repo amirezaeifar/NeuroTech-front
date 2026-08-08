@@ -9,8 +9,25 @@
  */
 import NeuralProgressTree from '../components/NeuralProgressTree.vue'
 import { userProgress } from '../data/userProgress.js'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const statusLabel = { completed: 'Completed', 'in-progress': 'In progress', locked: 'Locked' }
+const { t, tm, locale } = useI18n()
+const localizedProgress = computed(() => {
+  const courses = tm('pathway.courses')
+  return {
+    ...userProgress,
+    courses: userProgress.courses.map((course, courseIndex) => ({
+      ...course,
+      title: courses?.[courseIndex]?.title || course.title,
+      modules: course.modules.map((module, moduleIndex) => ({
+        ...module,
+        title: courses?.[courseIndex]?.modules?.[moduleIndex] || module.title,
+      })),
+    })),
+  }
+})
+const statusLabel = (status) => t(`pathway.status.${status}`)
 </script>
 
 <template>
@@ -20,43 +37,41 @@ const statusLabel = { completed: 'Completed', 'in-progress': 'In progress', lock
 
     <div class="wrap" data-progress-track>
       <header class="lib-head">
-        <p class="lib-head__eyebrow">Neuro·Tech Academy</p>
-        <h1 class="lib-head__title">Browse the Library</h1>
+        <p class="lib-head__eyebrow">{{ t('pathway.eyebrow') }}</p>
+        <h1 class="lib-head__title">{{ t('pathway.title') }}</h1>
       </header>
 
       <div class="grid">
         <!-- ── Left sidebar: the Neural Pathway Progress Tree (self-sticky) ── -->
         <div class="rail">
-          <NeuralProgressTree :data="userProgress" :sticky-top="28" />
+          <NeuralProgressTree :key="locale" :data="localizedProgress" :sticky-top="28" />
         </div>
 
         <!-- ── Right: the scrollable course list that drives the fill ── -->
         <div class="content">
           <article
-            v-for="course in userProgress.courses"
+            v-for="course in localizedProgress.courses"
             :key="course.id"
             class="course"
           >
             <div class="course__bar">
               <span class="course__code">{{ course.code }}</span>
-              <span class="course__status" :data-s="course.status">{{ statusLabel[course.status] }}</span>
+              <span class="course__status" :data-s="course.status">{{ statusLabel(course.status) }}</span>
             </div>
             <h2 class="course__title">{{ course.title }}</h2>
             <p class="course__lede">
-              A structured pathway through {{ course.modules.length }} modules. Scroll on — the
-              neural tree to the left fills with gold as you descend, and pulses at the module
-              you're currently working through.
+              {{ t('pathway.courseLede', { count: course.modules.length }) }}
             </p>
             <ul class="mods">
               <li v-for="m in course.modules" :key="m.id" class="mod" :data-s="m.status">
                 <span class="mod__dot"></span>
                 <span class="mod__title">{{ m.title }}</span>
-                <span class="mod__status">{{ statusLabel[m.status] }}</span>
+                <span class="mod__status">{{ statusLabel(m.status) }}</span>
               </li>
             </ul>
           </article>
 
-          <div class="tail">End of library · the pathway is fully charted ✦</div>
+          <div class="tail">{{ t('pathway.tail') }}</div>
         </div>
       </div>
     </div>

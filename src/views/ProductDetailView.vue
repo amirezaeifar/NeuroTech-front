@@ -37,10 +37,10 @@ const pad2 = (n) => String(n + 1).padStart(2, '0')
 // Four "views" of the device — same SVG art, different viewBox crops to simulate
 // front / interface / signal / rear perspectives. No extra assets required.
 const GALLERY_SLIDES = [
-  { label: 'Front View',       viewBox: '0 0 48 36' },
-  { label: 'Interface Panel',  viewBox: '8 5 32 26' },
-  { label: 'Signal Output',    viewBox: '-2 2 44 32' },
-  { label: 'Module Detail',    viewBox: '4 0 40 36' },
+  { labelKey: 'galleryFront',     viewBox: '0 0 48 36' },
+  { labelKey: 'galleryInterface', viewBox: '8 5 32 26' },
+  { labelKey: 'gallerySignal',    viewBox: '-2 2 44 32' },
+  { labelKey: 'galleryModule',    viewBox: '4 0 40 36' },
 ]
 const activeSlide = ref(0)
 const isFullscreen = ref(false)
@@ -121,7 +121,7 @@ useReveal()
               <button
                 class="pdx-fs-btn"
                 type="button"
-                aria-label="View fullscreen"
+                :aria-label="t('common.viewFullscreen')"
                 @click="isFullscreen = true"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
@@ -157,7 +157,7 @@ useReveal()
                     </g>
                   </svg>
                   <!-- Slide label chip -->
-                  <span class="pdx-slide-label">{{ slide.label }}</span>
+                  <span class="pdx-slide-label">{{ t(`products.detail.${slide.labelKey}`) }}</span>
                 </div>
               </div>
 
@@ -167,7 +167,7 @@ useReveal()
             </figure>
 
             <!-- Thumbnail strip -->
-            <div class="pdx-thumbs" role="tablist" aria-label="Gallery views">
+            <div class="pdx-thumbs" role="tablist" :aria-label="t('products.detail.galleryViews')">
               <button
                 v-for="(slide, k) in GALLERY_SLIDES"
                 :key="k"
@@ -404,7 +404,7 @@ useReveal()
         <!-- Navigation row — centered below the card track so users navigate
              after reading the visible reviews, not before. -->
         <div class="pdx-carousel-nav reveal">
-          <button type="button" class="pdx-carousel-btn" @click="prevReview" aria-label="Previous review">
+                <button type="button" class="pdx-carousel-btn" @click="prevReview" :aria-label="t('products.detail.previousReview')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
               <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -420,7 +420,7 @@ useReveal()
               @click="() => { reviewDir = k > reviewOffset ? 'next' : 'prev'; reviewOffset = k }"
             ></button>
           </div>
-          <button type="button" class="pdx-carousel-btn" @click="nextReview" aria-label="Next review">
+                <button type="button" class="pdx-carousel-btn" @click="nextReview" :aria-label="t('products.detail.nextReview')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
               <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -448,7 +448,7 @@ useReveal()
         aria-modal="true"
         @click.self="isFullscreen = false"
       >
-        <button type="button" class="pdx-fs-close" @click="isFullscreen = false" aria-label="Close fullscreen">
+      <button type="button" class="pdx-fs-close" @click="isFullscreen = false" :aria-label="t('products.detail.closeFullscreen')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
             <path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"/>
           </svg>

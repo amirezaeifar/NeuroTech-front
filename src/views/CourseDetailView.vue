@@ -557,7 +557,7 @@ useReveal()
             :class="{ 'is-disabled': !canPrev }"
             :disabled="!canPrev"
             @click="slidePrev"
-            :aria-label="t('academy.courseDetail.relatedTitle') + ' — previous'"
+            :aria-label="t('academy.courseDetail.relatedTitle') + ' — ' + t('common.previous')"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path :d="chevronToStart" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
@@ -613,7 +613,7 @@ useReveal()
             :class="{ 'is-disabled': !canNext }"
             :disabled="!canNext"
             @click="slideNext"
-            :aria-label="t('academy.courseDetail.relatedTitle') + ' — next'"
+            :aria-label="t('academy.courseDetail.relatedTitle') + ' — ' + t('common.next')"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path :d="chevronToEnd" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>

@@ -5,13 +5,16 @@ import { useI18n } from 'vue-i18n'
 import LuxeCard from '../components/LuxeCard.vue'
 import SectionEyebrow from '../components/SectionEyebrow.vue'
 import { useReveal } from '../composables/useReveal.js'
-import { documentById } from '../data/tradeReports.js'
+import { documents as englishDocuments } from '../data/tradeReports.js'
 
-const { t } = useI18n()
+const { t, tm, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
-const doc = computed(() => documentById(route.params.id))
+const localizedDocuments = computed(() =>
+  locale.value === 'fa' ? tm('globalTrade.documentation.documents') : englishDocuments,
+)
+const doc = computed(() => localizedDocuments.value.find((item) => item.id === route.params.id))
 
 useReveal()
 </script>

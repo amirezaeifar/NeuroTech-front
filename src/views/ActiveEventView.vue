@@ -363,14 +363,14 @@ useReveal()
                   <rect x="124" y="78" width="60" height="28" rx="2"/>
                 </g>
                 <g fill="rgb(var(--c-ink-soft))" font-size="7" font-family="inherit" letter-spacing="0.5">
-                  <text x="100" y="28" text-anchor="middle" fill="rgb(var(--c-gold-dark))">STAGE</text>
-                  <text x="66" y="78" text-anchor="middle">SEATING</text>
-                  <text x="154" y="60" text-anchor="middle">HALL B</text>
-                  <text x="154" y="94" text-anchor="middle">STATIONS</text>
+                  <text x="100" y="28" text-anchor="middle" fill="rgb(var(--c-gold-dark))">{{ t('events.active.mapStage') }}</text>
+                  <text x="66" y="78" text-anchor="middle">{{ t('events.active.mapSeating') }}</text>
+                  <text x="154" y="60" text-anchor="middle">{{ t('events.active.mapHall') }}</text>
+                  <text x="154" y="94" text-anchor="middle">{{ t('events.active.mapStations') }}</text>
                 </g>
                 <g fill="rgb(var(--c-gold-dark))">
                   <circle cx="100" cy="110" r="2.5"/>
-                  <text x="100" y="118" text-anchor="middle" font-size="6" fill="rgb(var(--c-ink-muted))">ENTRANCE</text>
+                  <text x="100" y="118" text-anchor="middle" font-size="6" fill="rgb(var(--c-ink-muted))">{{ t('events.active.mapEntrance') }}</text>
                 </g>
               </svg>
             </div>

@@ -2,7 +2,27 @@
   "brand": "Neuro Tech",
   "tagline": "Neurology, crafted",
   "common": {
-    "scrollTop": "Back to top"
+    "scrollTop": "Back to top",
+    "lightMode": "Switch to light mode",
+    "darkMode": "Switch to dark mode",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "play": "Play",
+    "pause": "Pause",
+    "playVideo": "Play video",
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "tapToUnmute": "Tap to unmute",
+    "previous": "Previous",
+    "next": "Next",
+    "previousLesson": "Previous lesson",
+    "nextLesson": "Next lesson",
+    "playbackSpeed": "Playback speed",
+    "fullscreen": "Fullscreen",
+    "viewFullscreen": "View fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "courseVideo": "Course video",
+    "live": "Live"
   },
   "nav": {
     "home": "Home",
@@ -113,6 +133,35 @@
       "button": "Write to us"
     }
   },
+  "pathway": {
+    "eyebrow": "Neuro·Tech Academy",
+    "title": "Browse the Library",
+    "status": {
+      "completed": "Completed",
+      "in-progress": "In progress",
+      "locked": "Locked"
+    },
+    "courseLede": "A structured pathway through {count} modules. Scroll on — the neural tree fills with gold as you descend and pulses at the module you're currently working through.",
+    "tail": "End of library · the pathway is fully charted ✦",
+    "progressLabel": "Learning pathway — neural progress",
+    "neuronLabel": "Organic neuron visualising course and module progress",
+    "courseType": "Course",
+    "moduleType": "Module",
+    "courses": [
+      {
+        "title": "Foundations of Clinical Neuroanatomy",
+        "modules": ["The Neuron & the Synapse", "Cortical Organisation", "Ascending Sensory Pathways"]
+      },
+      {
+        "title": "Acute Ischaemic Stroke Protocols",
+        "modules": ["The Ischaemic Cascade", "The Thrombolysis Window", "Endovascular Triage"]
+      },
+      {
+        "title": "Psychiatric Emergencies",
+        "modules": ["De-escalating Acute Agitation", "Structured Suicide-Risk Assessment"]
+      }
+    ]
+  },
   "products": {
     "hero": {
       "eyebrow": "Maison Catalogue",
@@ -135,6 +184,14 @@
       "notFound": "This product could not be found.",
       "back": "Back to the Collection",
       "skuLabel": "Reference",
+      "galleryViews": "Gallery views",
+      "galleryFront": "Front View",
+      "galleryInterface": "Interface Panel",
+      "gallerySignal": "Signal Output",
+      "galleryModule": "Module Detail",
+      "previousReview": "Previous review",
+      "nextReview": "Next review",
+      "closeFullscreen": "Close fullscreen",
       "availability": "Available to order",
       "leadTime": "Typical lead time 4–6 weeks",
       "priceLabel": "Pricing",
@@ -381,6 +438,7 @@
       "progressTitle": "Your Progress",
       "progressLabel": "lessons completed",
       "videosTitle": "Course Videos",
+      "courseContent": "Course Content",
       "play": "Play",
       "locked": "Locked",
       "lockedNotice": "This video is part of the Premium tier.",
@@ -391,6 +449,7 @@
       "outcomesTitle": "Learning Outcomes",
       "featuredLabel": "Featured lesson",
       "demoVideoNotice": "Demo lecture — to be replaced with the academy's proprietary course content.",
+      "lessonUnavailable": "This lesson is temporarily unavailable — continuing to the next.",
       "simulateHint": "Demo — takes you to a mock checkout; lessons unlock when you return.",
       "unlockedNotice": "Subscription active. All lessons are now unlocked — select any lesson to begin.",
       "dismiss": "Dismiss"
@@ -684,6 +743,11 @@
       "venueAddress": "Conference Centre, Level 2 — Olympic Blvd, Tehran",
       "venueMapLabel": "Hall Map",
       "venueAgendaLabel": "Event Agenda",
+      "mapStage": "Stage",
+      "mapSeating": "Seating",
+      "mapHall": "Hall B",
+      "mapStations": "Stations",
+      "mapEntrance": "Entrance",
       "onsiteStats": {
         "attendees": "Attendees",
         "sessions": "Sessions",
@@ -909,13 +973,8 @@
       "eyebrow": "In Confidence With",
       "title": "Partners"
     },
-    "intro": "The leadership team guiding Neuro Tech's work in neurotechnology from Iran.",
-    "company": {
-      "countryLabel": "Country",
-      "country": "Iran",
-      "contextLabel": "Team Context",
-      "context": "Iran-based neurotechnology team"
-    },
+    "intro": "The leadership team guiding Neuro Tech's work in neurotechnology.",
+    "demoNotice": "",
     "labels": {
       "description": "Background",
       "location": "Location",
@@ -928,33 +987,70 @@
         "name": "Dr. Raee",
         "title": "Chief Executive Officer",
         "qualification": "Doctorate in Neurology",
-        "location": "Iran",
-        "affiliation": "Neuro Tech · Iran",
-        "collaborations": []
+        "location": "Mashhad, Iran",
+        "affiliation": "Neuro Tech · Mashhad",
+        "demo": true,
+        "bio": "A neurologist specializing in clinical research, responsible medical-device adoption, and applied neurotechnology programs in Mashhad.",
+        "collaborations": ["Clinical Research", "Medical Device Consulting", "Neurotechnology"],
+        "experience": [
+          { "role": "Chief Executive Officer", "org": "Neuro Tech · Mashhad", "period": "Present" },
+          { "role": "Clinical Researcher", "org": "Mashhad Neurology Research Center", "period": "2019–Present" }
+        ],
+        "education": [
+          { "degree": "Neurology Specialty", "school": "Mashhad University of Medical Sciences" },
+          { "degree": "Doctor of Medicine", "school": "Mashhad University of Medical Sciences" }
+        ]
       },
       {
         "name": "Eng. Zirouhi",
         "title": "Vice President",
         "qualification": "Bachelor's Degree in Electronic Engineering",
-        "location": "Iran",
-        "affiliation": "Neuro Tech · Iran",
-        "collaborations": []
+        "location": "Mashhad, Iran",
+        "affiliation": "Neuro Tech · Mashhad",
+        "demo": true,
+        "bio": "An electronics engineer focused on medical-device integration, prototype evaluation, and technical coordination for neurotechnology projects.",
+        "collaborations": ["Medical Device Engineering", "R&D Engineering", "Technical Consulting"],
+        "experience": [
+          { "role": "Vice President", "org": "Neuro Tech · Mashhad", "period": "Present" },
+          { "role": "R&D Engineer", "org": "Mashhad Biomedical Innovation Center", "period": "2020–Present" }
+        ],
+        "education": [
+          { "degree": "Bachelor's Degree in Electronic Engineering", "school": "Ferdowsi University of Mashhad" }
+        ]
       },
       {
         "name": "Eng. Shafiei",
         "title": "Technical Director",
         "qualification": "Bachelor's Degree in Computer Engineering",
-        "location": "Iran",
-        "affiliation": "Neuro Tech · Iran",
-        "collaborations": []
+        "location": "Mashhad, Iran",
+        "affiliation": "Neuro Tech · Mashhad",
+        "demo": true,
+        "bio": "A computer engineer working on healthcare software, clinical-data workflows, and the technical integration of neurology systems.",
+        "collaborations": ["Healthcare Software", "AI Research", "Systems Integration"],
+        "experience": [
+          { "role": "Technical Director", "org": "Neuro Tech · Mashhad", "period": "Present" },
+          { "role": "Software Engineer", "org": "Isfahan Healthcare Technology Lab", "period": "2021–Present" }
+        ],
+        "education": [
+          { "degree": "Bachelor's Degree in Computer Engineering", "school": "Islamic Azad University, Mashhad Branch" }
+        ]
       },
       {
         "name": "Eng. Rezaeifar",
         "title": "Commercial Director",
         "qualification": "Bachelor's Degree in Computer Engineering",
-        "location": "Iran",
-        "affiliation": "Neuro Tech · Iran",
-        "collaborations": []
+        "location": "Mashhad, Iran",
+        "affiliation": "Neuro Tech · Mashhad",
+        "demo": true,
+        "bio": "A technology specialist focused on medical-device market research, product coordination, and practical commercial planning for healthcare teams.",
+        "collaborations": ["Product Development", "Healthcare Technology", "Medical Device Consulting"],
+        "experience": [
+          { "role": "Commercial Director", "org": "Neuro Tech · Islamic Azad University, Mashhad Branch", "period": "Present" },
+          { "role": "Healthcare Technology Specialist", "org": "Biomedical Systems Center, Islamic Azad University, Mashhad Branch", "period": "2020–Present" }
+        ],
+        "education": [
+          { "degree": "Bachelor's Degree in Computer Engineering", "school": "Islamic Azad University, Mashhad Branch" }
+        ]
       }
     ],
     "cta": {
@@ -965,7 +1061,7 @@
     "viewProfile": "View Profile",
     "profile": {
       "back": "Back to Partners",
-      "affiliationLabel": "Company / Country",
+      "affiliationLabel": "Organisation",
       "councilLabel": "Medical Council No.",
       "aboutTitle": "About",
       "expertiseTitle": "Areas of Expertise",
@@ -987,6 +1083,7 @@
       "recentTitle": "Recent Publications",
       "upcomingTitle": "Upcoming Clinical Sessions",
       "upcomingNote": "Open to registered clinicians.",
+      "demoNotice": "This profile includes placeholder/demo information and is not a verified biography.",
       "upcoming": []
     }
   },

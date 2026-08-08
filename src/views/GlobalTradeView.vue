@@ -1,22 +1,37 @@
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SectionEyebrow from '../components/SectionEyebrow.vue'
 import { useReveal } from '../composables/useReveal.js'
 import {
-  documents,
-  marketReport,
-  documentationOverview,
-  documentationDisclaimer,
+  documents as englishDocuments,
+  marketReport as englishMarketReport,
+  documentationOverview as englishDocumentationOverview,
+  documentationDisclaimer as englishDocumentationDisclaimer,
 } from '../data/tradeReports.js'
 
-const { t, tm } = useI18n()
+const { t, tm, locale } = useI18n()
 const regions = tm('globalTrade.regions')
 const become = tm('globalTrade.become.items')
 const importItems = tm('globalTrade.importExport.import.items')
 const exportItems = tm('globalTrade.importExport.export.items')
 
+const isPersian = computed(() => locale.value === 'fa')
+const documents = computed(() =>
+  isPersian.value ? tm('globalTrade.documentation.documents') : englishDocuments,
+)
+const documentationOverview = computed(() =>
+  isPersian.value ? t('globalTrade.documentation.overview') : englishDocumentationOverview,
+)
+const documentationDisclaimer = computed(() =>
+  isPersian.value ? t('globalTrade.documentation.disclaimer') : englishDocumentationDisclaimer,
+)
+const marketReport = computed(() =>
+  isPersian.value ? tm('globalTrade.marketReport.report') : englishMarketReport,
+)
+
 // The outcome statement of each reference document doubles as its card preview.
-const docOutcome = (d) => (d.groups.find((g) => g.label === 'Outcome') || {}).text || ''
+const docOutcome = (d) => (d.groups[d.groups.length - 1] || {}).text || ''
 
 useReveal()
 </script>
