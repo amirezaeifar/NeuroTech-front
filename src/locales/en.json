@@ -64,7 +64,9 @@
     "resendCode": "Resend code",
     "verifyCta": "Verify & Continue",
     "codeSent": "We sent a 6-digit code to {phone}.",
-    "codeHint": "Demo code: any 6 digits will be accepted.",
+    "codeHint": "The code expires in five minutes.",
+    "verificationEmailSent": "Your account was created. Check your email to verify it before signing in.",
+    "emailVerified": "Your email is verified. You can now sign in.",
     "changeNumber": "Change number",
     "orDivider": "or",
     "continueWith": "or continue with",
@@ -327,6 +329,7 @@
     ]
   },
   "academy": {
+    "loading": "Loading courses…",
     "hero": {
       "eyebrow": "Neuro Tech Academy",
       "title": "Learn from those who practise"
@@ -442,6 +445,8 @@
       "play": "Play",
       "locked": "Locked",
       "lockedNotice": "This video is part of the Premium tier.",
+      "enrollNotice": "Enroll in this free course to start learning and save your progress.",
+      "enrollCta": "Enroll for Free",
       "subscribeCta": "Subscribe to Unlock",
       "relatedTitle": "Browse the Library",
       "relatedSubtitle": "More courses from the Academy collection.",
@@ -450,7 +455,7 @@
       "featuredLabel": "Featured lesson",
       "demoVideoNotice": "Demo lecture — to be replaced with the academy's proprietary course content.",
       "lessonUnavailable": "This lesson is temporarily unavailable — continuing to the next.",
-      "simulateHint": "Demo — takes you to a mock checkout; lessons unlock when you return.",
+      "simulateHint": "Development payment gateway — access is granted only after a successful callback.",
       "unlockedNotice": "Subscription active. All lessons are now unlocked — select any lesson to begin.",
       "dismiss": "Dismiss"
     },
@@ -1088,6 +1093,7 @@
     }
   },
   "checkout": {
+    "irr": "IRR",
     "hero": {
       "eyebrow": "Secure Enrolment",
       "title": "Checkout"
@@ -1136,6 +1142,166 @@
       "title": "Teacher Dashboard"
     },
     "intro": "Review pending discussion before it publishes, and keep the site's living content current.",
+    "eyebrow": "Academy operations",
+    "consoleTag": "Management console",
+    "menu": "Menu",
+    "backToSite": "Back to site",
+    "roles": {
+      "admin": "Administrator",
+      "specialist": "Specialist",
+      "user": "Learner"
+    },
+    "sections": {
+      "dashboard": { "label": "Overview", "blurb": "Academy health and shortcuts" },
+      "courses": { "label": "Courses", "blurb": "Catalogue and curriculum" },
+      "moderation": { "label": "Moderation", "blurb": "Pending course discussions" },
+      "users": { "label": "Users", "blurb": "Member directory" },
+      "content": { "label": "Site content", "blurb": "Public website copy" },
+      "settings": { "label": "Settings", "blurb": "Platform controls" }
+    },
+    "dashboard": {
+      "welcome": "Welcome back",
+      "subtitleAdmin": "Review the academy, catalogue and platform access from one place.",
+      "subtitleSpecialist": "Manage courses and moderate learner discussions.",
+      "accessAdmin": "Full administrative access",
+      "accessSpecialist": "Specialist content access",
+      "quick": "Quick actions",
+      "stats": {
+        "courses": "Courses",
+        "published": "Published",
+        "pending": "Pending comments",
+        "documents": "Resources",
+        "premium": "Premium courses",
+        "members": "Members"
+      }
+    },
+    "courses": {
+      "title": "Course catalogue",
+      "subtitle": "Manage bilingual metadata, curriculum, pricing, resources and publication state.",
+      "add": "Add course",
+      "search": "Search courses",
+      "edit": "Edit",
+      "remove": "Archive",
+      "confirm": "Confirm archive",
+      "editing": "Editing course",
+      "save": "Save",
+      "saved": "Course saved",
+      "close": "Close",
+      "empty": "No courses match this filter.",
+      "moveUp": "Move course up",
+      "moveDown": "Move course down",
+      "cols": {
+        "course": "Course",
+        "category": "Field",
+        "tier": "Tier",
+        "price": "Price",
+        "published": "Published",
+        "actions": "Actions"
+      },
+      "tabs": {
+        "metadata": "Metadata & pricing",
+        "curriculum": "Curriculum",
+        "media": "Media",
+        "documents": "Resources",
+        "imagery": "Imagery"
+      },
+      "fields": {
+        "title": "English title",
+        "instructor": "English instructor",
+        "desc": "English description",
+        "descHint": "Describe the course and its clinical value.",
+        "category": "Display category",
+        "field": "Field",
+        "level": "Level",
+        "duration": "English duration label",
+        "persianMetadata": "Persian metadata",
+        "titleFa": "Persian title",
+        "instructorFa": "Persian instructor",
+        "descFa": "Persian description",
+        "durationFa": "Persian duration label",
+        "tier": "Access tier",
+        "price": "Price",
+        "priceUsd": "USD price",
+        "priceIrr": "IRR amount",
+        "published": "Published",
+        "videoUrl": "Course-level media URL",
+        "videoUrlHint": "Use an HTTPS URL or a storage-relative path.",
+        "videoPreview": "Preview",
+        "documentsHint": "Add downloadable or external learning resources.",
+        "addDocument": "Add resource",
+        "docName": "Name",
+        "docType": "Type",
+        "docUrl": "URL or storage path",
+        "noDocuments": "No resources added.",
+        "imagerySlug": "Stable course slug",
+        "imageryHint": "The slug is immutable after creation and selects the matching local artwork when available.",
+        "coverLight": "Light cover",
+        "coverDark": "Dark cover",
+        "headerLight": "Light header",
+        "headerDark": "Dark header"
+      },
+      "curriculum": {
+        "sections": "Sections and lessons",
+        "hint": "Publishing requires bilingual titles, at least one lesson per section and bilingual outcomes.",
+        "addSection": "Add section",
+        "section": "Section",
+        "titleEn": "English section title",
+        "titleFa": "Persian section title",
+        "lessons": "Lessons",
+        "addLesson": "Add lesson",
+        "lessonTitleEn": "English lesson title",
+        "lessonTitleFa": "Persian lesson title",
+        "provider": "Video provider",
+        "reference": "Video reference",
+        "durationSeconds": "Duration (seconds)",
+        "freePreview": "Free preview",
+        "outcomes": "Learning outcomes",
+        "addOutcome": "Add outcome",
+        "outcomeEn": "English outcome",
+        "outcomeFa": "Persian outcome"
+      },
+      "docTypes": {
+        "pdf": "PDF",
+        "slides": "Slides",
+        "protocol": "Protocol",
+        "dataset": "Dataset",
+        "link": "Link"
+      }
+    },
+    "users": {
+      "title": "Members",
+      "subtitle": "Review platform members and their access roles.",
+      "search": "Search members",
+      "directory": "Member directory",
+      "empty": "No members found.",
+      "inviteEmail": "Invitee email",
+      "inviteRole": "Invited role",
+      "sendInvite": "Send invitation",
+      "invited": "Invitation sent. The link expires in seven days.",
+      "active": "Active",
+      "inactive": "Inactive",
+      "cols": { "member": "Member", "role": "Role", "joined": "Joined", "active": "Active" }
+    },
+    "settings": {
+      "title": "Platform settings",
+      "subtitle": "Administrative platform controls.",
+      "identity": "Identity",
+      "platform": "Platform policies",
+      "save": "Save settings",
+      "saved": "Settings saved",
+      "fields": {
+        "siteName": "Site name",
+        "supportEmail": "Support email",
+        "registrations": "Open registration",
+        "registrationsHint": "Allow public learner registration.",
+        "premiumCheckout": "Premium checkout",
+        "premiumCheckoutHint": "Allow creation of premium course orders.",
+        "autoApprove": "Auto-approve comments",
+        "autoApproveHint": "Bypass the moderation queue.",
+        "maintenance": "Maintenance mode",
+        "maintenanceHint": "Temporarily restrict public access."
+      }
+    },
     "nav": {
       "moderation": "Comment moderation",
       "content": "Site content"
@@ -1143,6 +1309,7 @@
     "moderation": {
       "title": "Pending comments",
       "subtitle": "New discussion waits here until a teacher approves or rejects it.",
+      "log": "Recent decisions",
       "approve": "Approve",
       "reject": "Reject",
       "empty": "No comments awaiting review.",

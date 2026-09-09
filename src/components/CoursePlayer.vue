@@ -10,7 +10,7 @@
  *
  * Features: autoplay (muted) on open, continuous auto-next, a playlist sidebar,
  * seekable progress bar, prev/next, playback-speed control, fullscreen, and
- * resume-from-where-you-left-off via localStorage.
+ * resume-from-where-you-left-off from the server-provided progress snapshot.
  *
  * Two-way bound to the parent's current-lesson number (1-based) so the syllabus
  * and progress stay in sync.
@@ -23,22 +23,22 @@ const { t } = useI18n()
 const props = defineProps({
   /** [{ title, id }] in playlist order. `id` is an internal resource id. */
   lessons: { type: Array, required: true },
-  /** Stable key for resume memory, e.g. "course-3". */
-  courseKey: { type: String, required: true },
   /** Secondary line (course · instructor). */
   subtitle: { type: String, default: '' },
   /** 1-based current lesson number (v-model). */
   modelValue: { type: Number, default: 1 },
+  /** { lesson: zero-based index, positionSeconds: number } loaded from the backend. */
+  initialResume: { type: Object, default: null },
 })
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'progress'])
 
 const RATES = [1, 1.25, 1.5]
-const STORE_KEY = computed(() => `coursePlayer:${props.courseKey}`)
 
 const root = ref(null)
 const ytHost = ref(null)
 let player = null
 let poll = null
+let lastProgressSecond = -1
 
 const currentIndex = ref(Math.max(0, (props.modelValue || 1) - 1))
 const isPlaying = ref(false)
@@ -84,22 +84,6 @@ function loadEngine() {
   return enginePromise
 }
 
-// ── Resume memory ─────────────────────────────────────────────────────────────
-function readResume() {
-  try {
-    const raw = localStorage.getItem(STORE_KEY.value)
-    return raw ? JSON.parse(raw) : null
-  } catch { return null }
-}
-function saveResume() {
-  try {
-    localStorage.setItem(STORE_KEY.value, JSON.stringify({
-      lesson: currentIndex.value,
-      t: Math.floor(currentTime.value),
-    }))
-  } catch { /* storage unavailable — non-fatal */ }
-}
-
 // ── Playback control ──────────────────────────────────────────────────────────
 function startPoll() {
   stopPoll()
@@ -107,7 +91,11 @@ function startPoll() {
     if (!player || !player.getCurrentTime) return
     currentTime.value = player.getCurrentTime() || 0
     duration.value = player.getDuration() || 0
-    saveResume()
+    const second = Math.floor(currentTime.value)
+    if (second > 0 && second % 10 === 0 && second !== lastProgressSecond) {
+      lastProgressSecond = second
+      emit('progress', { lesson: currentLesson.value, positionSeconds: second, completed: false })
+    }
   }, 500)
 }
 function stopPoll() { if (poll) { clearInterval(poll); poll = null } }
@@ -170,12 +158,12 @@ const onFsChange = () => { isFullscreen.value = !!document.fullscreenElement }
 
 // ── Engine lifecycle ──────────────────────────────────────────────────────────
 onMounted(async () => {
-  const resume = readResume()
+  const resume = props.initialResume
   if (resume && Number.isInteger(resume.lesson) && resume.lesson < props.lessons.length) {
     currentIndex.value = resume.lesson
     emit('update:modelValue', resume.lesson + 1)
   }
-  const startSeconds = resume?.t || 0
+  const startSeconds = resume?.positionSeconds || 0
 
   document.addEventListener('fullscreenchange', onFsChange)
 
@@ -204,7 +192,15 @@ onMounted(async () => {
         if (e.data === 1) { isPlaying.value = true; loading.value = false; errored.value = false }
         else if (e.data === 2) isPlaying.value = false
         else if (e.data === 3) loading.value = true
-        else if (e.data === 0) { isPlaying.value = false; next() }
+        else if (e.data === 0) {
+          isPlaying.value = false
+          emit('progress', {
+            lesson: currentLesson.value,
+            positionSeconds: Math.floor(duration.value || currentTime.value),
+            completed: true,
+          })
+          next()
+        }
       },
       onError: () => {
         // A clip failed to load (removed / not embeddable). Surface it briefly
@@ -219,7 +215,6 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   stopPoll()
-  saveResume()
   document.removeEventListener('fullscreenchange', onFsChange)
   if (player && player.destroy) player.destroy()
   player = null

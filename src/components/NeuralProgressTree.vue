@@ -162,6 +162,7 @@ const arbor = computed(() => {
     courseNodes.push({
       id: course.id, x: cn.x, y: cn.y, status: course.status,
       title: course.title, code: course.code, type: 'course', courseIndex: ci,
+      courseSlug: course.slug,
     })
 
     // Module nodes distributed along the branch; each sprouts a dendrite tuft.
@@ -171,7 +172,7 @@ const arbor = computed(() => {
       const mp = pointAt(branch.pts, mf)
       moduleNodes.push({
         id: m.id, x: mp.x, y: mp.y, status: m.status,
-        title: m.title, type: 'module', courseIndex: ci,
+        title: m.title, type: 'module', courseIndex: ci, courseSlug: course.slug,
       })
       // dendrite tufts off the module — two splayed tufts, each branching
       // deeply into fine sub-dendrites for a dense, natural cluster.
@@ -272,7 +273,7 @@ const tipStyle = computed(() => {
   }
 })
 
-const defaultRoute = (node) => `/academy/course/${node.courseIndex}`
+const defaultRoute = (node) => node.courseSlug ? `/academy/course/${node.courseSlug}` : null
 function onNodeClick(node) {
   const to = (props.resolveRoute || defaultRoute)(node)
   if (to) router.push(to)

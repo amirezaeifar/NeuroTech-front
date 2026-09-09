@@ -1,17 +1,17 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LuxeCard from '../components/LuxeCard.vue'
 import SpecimenPlate from '../components/SpecimenPlate.vue'
 import NeuralProgressTree from '../components/NeuralProgressTree.vue'
 import { courseCode } from '../utils/catalog.js'
-import { courseMediaAt } from '../data/courseMedia.js'
 import { resolveCourseCover } from '../data/courseBackgrounds.js'
 import { brandLogoUrl } from '../data/brandAssets.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useReveal } from '../composables/useReveal.js'
+import { academyApi } from '../api/academy.js'
 
-const { t, tm } = useI18n()
+const { t, locale } = useI18n()
 const { isDark } = useTheme()
 
 const statusFilters = [
@@ -39,12 +39,34 @@ const scrollToCourses = (tier) => {
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-const courses = computed(() => tm('academy.courses'))
-const courseIndex = (course) => courses.value.indexOf(course)
-const courseCover = (course) => {
-  const slug = courseMediaAt(courseIndex(course))?.slug
-  return resolveCourseCover(slug, isDark.value)
+const courses = ref([])
+const loadingCourses = ref(false)
+const coursesError = ref('')
+
+const loadCourses = async () => {
+  loadingCourses.value = true
+  coursesError.value = ''
+  try {
+    const response = await academyApi.list({ locale: locale.value, page: 1, page_size: 50 })
+    courses.value = response.data.map((course) => ({
+      ...course,
+      desc: course.description,
+      instructor: course.instructor_name,
+      duration: course.duration_label,
+    }))
+  } catch (problem) {
+    coursesError.value = problem.message
+    courses.value = []
+  } finally {
+    loadingCourses.value = false
+  }
 }
+
+onMounted(loadCourses)
+watch(locale, loadCourses)
+
+const courseIndex = (course) => courses.value.findIndex((item) => item.slug === course.slug)
+const courseCover = (course) => resolveCourseCover(course.slug, isDark.value)
 const filtered = computed(() => courses.value.filter((c) =>
   (activeStatus.value === 'all' || c.tier === activeStatus.value) &&
   (activeField.value === 'all' || c.field === activeField.value)
@@ -198,14 +220,16 @@ useReveal()
 
         <!-- The editorial plate stack -->
         <div class="mt-12 md:mt-16">
+          <p v-if="loadingCourses" class="text-sm text-ink-muted font-light">{{ t('academy.loading') }}</p>
+          <p v-else-if="coursesError" class="text-sm text-red-700 font-light" role="alert">{{ coursesError }}</p>
           <SpecimenPlate
             v-for="(c, i) in filtered"
-            :key="courseIndex(c)"
-            :section-id="`plate-${courseIndex(c)}`"
+            :key="c.slug"
+            :section-id="`plate-${c.slug}`"
             :code="courseCode(courses, courseIndex(c))"
             :course="c"
             :cover="courseCover(c)"
-            :to="`/academy/course/${courseIndex(c)}`"
+            :to="`/academy/course/${c.slug}`"
             :field-label="t(`academy.fields.${c.field}`)"
             :tier-label="t(`academy.filters.${c.tier}`)"
             :flip="i % 2 === 1"

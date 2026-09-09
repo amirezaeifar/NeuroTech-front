@@ -18,6 +18,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useReveal } from '../composables/useReveal.js'
+import { courseMediaAt } from '../data/courseMedia.js'
 
 const { t, tm } = useI18n()
 const route = useRoute()
@@ -60,6 +61,10 @@ const expertise = computed(() => (Array.isArray(person.value?.expertise) ? perso
 const methodology = computed(() => person.value?.methodology || '')
 const impact = computed(() => person.value?.impact || '')
 const coursesTaught = computed(() => (Array.isArray(person.value?.courses) ? person.value.courses : []))
+const courseRoute = (course) => {
+  const slug = course.slug || courseMediaAt(Number(course.index))?.slug
+  return slug ? `/academy/course/${slug}` : '/academy'
+}
 const playlists = computed(() => (Array.isArray(person.value?.playlists) ? person.value.playlists : []))
 const platform = computed(() => person.value?.platform || '')
 const status = computed(() => person.value?.status || '')
@@ -182,7 +187,7 @@ useReveal()
               <span class="profile-rule" aria-hidden="true"></span>
               <ul class="space-y-3">
                 <li v-for="(c, j) in coursesTaught" :key="j">
-                  <router-link :to="`/academy/course/${c.index}`" class="profile-course group">
+                  <router-link :to="courseRoute(c)" class="profile-course group">
                     <span class="shrink-0 w-8 h-8 rounded border border-gold/40 flex items-center justify-center text-gold-dark">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
                     </span>

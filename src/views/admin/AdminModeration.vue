@@ -1,26 +1,36 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { academyApi } from '../../api/academy.js'
 
-const { t, tm } = useI18n()
+const { t } = useI18n()
 
-// Moderation queue (mock, in-memory only) — carried over from the original
-// teacher dashboard, now a first-class Admin Panel section.
-const initialQueue = computed(() => tm('admin.moderation.queue'))
 const queue = ref([])
-const decided = ref([]) // { item, decision: 'approved' | 'rejected' }
-let seeded = false
-const ensureSeeded = () => {
-  if (!seeded && initialQueue.value?.length) {
-    queue.value = initialQueue.value.map((q, i) => ({ ...q, _id: i }))
-    seeded = true
+const decided = ref([])
+const error = ref('')
+const loadQueue = async () => {
+  try {
+    queue.value = (await academyApi.pendingComments()).data.map((item) => ({
+      ...item,
+      _id: item.id,
+      name: item.author,
+      course: item.course_slug,
+      time: new Date(item.created_at).toLocaleDateString(),
+    }))
+  } catch (problem) {
+    error.value = problem.message
   }
 }
-ensureSeeded()
+onMounted(loadQueue)
 
-const decide = (item, decision) => {
-  queue.value = queue.value.filter((q) => q._id !== item._id)
-  decided.value.unshift({ item, decision })
+const decide = async (item, decision) => {
+  try {
+    await academyApi.moderateComment(item.id, decision)
+    queue.value = queue.value.filter((q) => q._id !== item._id)
+    decided.value.unshift({ item, decision })
+  } catch (problem) {
+    error.value = problem.message
+  }
 }
 </script>
 
@@ -29,6 +39,7 @@ const decide = (item, decision) => {
     <p class="admin-eyebrow">{{ t('admin.sections.moderation.label') }}</p>
     <h2 class="admin-h1 mt-2">{{ t('admin.moderation.title') }}</h2>
     <p class="mt-2 text-sm text-ink-muted font-light leading-relaxed max-w-2xl">{{ t('admin.moderation.subtitle') }}</p>
+    <p v-if="error" class="mt-4 text-xs text-red-700" role="alert">{{ error }}</p>
 
     <div class="mt-8 space-y-5">
       <TransitionGroup name="fade">

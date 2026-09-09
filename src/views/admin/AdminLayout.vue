@@ -26,11 +26,11 @@ const current = computed(
 const drawerOpen = ref(false)
 const closeDrawer = () => { drawerOpen.value = false }
 
-const onLogout = () => { logout(); router.push('/') }
+const onLogout = async () => { await logout(); router.push('/') }
 
 // A friendly display name from the stored identity (email/phone).
 const displayName = computed(() => {
-  const id = user.value?.identity || 'member'
+  const id = user.value?.display_name || user.value?.email || user.value?.phone || 'member'
   return id.includes('@') ? id.split('@')[0] : id
 })
 const roleLabel = computed(() => t(`admin.roles.${role.value}`))

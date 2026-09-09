@@ -6,7 +6,7 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'Home', component: () => import('../views/HomeView.vue') },
     { path: '/academy', name: 'Academy', component: () => import('../views/AcademyView.vue') },
-    { path: '/pathway', name: 'Pathway', component: () => import('../views/PathwayView.vue') },
+    { path: '/pathway', name: 'Pathway', component: () => import('../views/PathwayView.vue'), meta: { requiresAuth: true } },
     { path: '/academy/course/:id', name: 'CourseDetail', component: () => import('../views/CourseDetailView.vue') },
     { path: '/events', name: 'Events', component: () => import('../views/EventsView.vue') },
     { path: '/events/archive/:id', name: 'PastEventDetail', component: () => import('../views/PastEventDetailView.vue') },
@@ -22,7 +22,17 @@ const router = createRouter({
     { path: '/partners/:id', name: 'PartnerProfile', component: () => import('../views/PartnerProfileView.vue') },
     { path: '/about', name: 'About', component: () => import('../views/AboutView.vue') },
     { path: '/contact', name: 'Contact', component: () => import('../views/ContactView.vue') },
-    { path: '/admin', name: 'Admin', component: () => import('../views/AdminPanel.vue') },
+    {
+      path: '/admin',
+      component: () => import('../views/admin/AdminLayout.vue'),
+      meta: { requiresAuth: true, roles: ['admin', 'specialist'] },
+      children: [
+        { path: '', name: 'AdminDashboard', component: () => import('../views/admin/AdminDashboard.vue') },
+        { path: 'courses', name: 'AdminCourses', component: () => import('../views/admin/AdminCourses.vue') },
+        { path: 'moderation', name: 'AdminModeration', component: () => import('../views/admin/AdminModeration.vue') },
+        { path: 'users', name: 'AdminUsers', component: () => import('../views/admin/AdminUsers.vue'), meta: { requiresAuth: true, roles: ['admin'] } },
+      ],
+    },
   ],
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition
@@ -38,12 +48,14 @@ const router = createRouter({
 // Auth guard — protected routes (e.g. Checkout) bounce unauthenticated visitors
 // to the login page, preserving the intended destination so they land back there
 // after signing in.
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   if (to.meta.requiresAuth) {
-    const { isAuthenticated } = useAuth()
+    const { ensureSession, isAuthenticated, role } = useAuth()
+    await ensureSession()
     if (!isAuthenticated.value) {
       return { name: 'Login', query: { redirect: to.fullPath } }
     }
+    if (to.meta.roles && !to.meta.roles.includes(role.value)) return { name: 'Home' }
   }
   return true
 })

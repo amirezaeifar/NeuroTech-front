@@ -1,20 +1,35 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { academyApi } from '../../api/academy.js'
+import { authApi } from '../../api/auth.js'
 import { useAuth } from '../../composables/useAuth.js'
 import { useCourseAdmin } from '../../composables/useCourseAdmin.js'
 import { sectionsForRole } from '../../data/adminSections.js'
 
-const { t, tm } = useI18n()
+const { t } = useI18n()
 const { user, role, isAdmin } = useAuth()
 const { courses } = useCourseAdmin()
 
 const displayName = computed(() => {
-  const id = user.value?.identity || 'member'
+  const id = user.value?.display_name || user.value?.email || user.value?.phone || 'member'
   return id.includes('@') ? id.split('@')[0] : id
 })
 
-const pending = computed(() => (tm('admin.moderation.queue') || []).length)
+const pending = ref(0)
+const members = ref(null)
+onMounted(async () => {
+  const [commentsResult, usersResult] = await Promise.allSettled([
+    academyApi.pendingComments(),
+    isAdmin.value ? authApi.adminUsers() : Promise.resolve(null),
+  ])
+  if (commentsResult.status === 'fulfilled') {
+    pending.value = commentsResult.value.data.length
+  }
+  if (usersResult.status === 'fulfilled' && usersResult.value) {
+    members.value = usersResult.value.data.length
+  }
+})
 const published = computed(() => courses.value.filter((c) => c.published).length)
 const premium = computed(() => courses.value.filter((c) => c.tier === 'premium').length)
 const documents = computed(() => courses.value.reduce((n, c) => n + c.documents.length, 0))
@@ -27,7 +42,9 @@ const stats = computed(() =>
     { key: 'pending', value: pending.value, icon: 'chat' },
     { key: 'documents', value: documents.value, icon: 'doc' },
     { key: 'premium', value: premium.value, icon: 'star', adminOnly: true },
-    { key: 'members', value: 1284, icon: 'users', adminOnly: true },
+    ...(members.value === null
+      ? []
+      : [{ key: 'members', value: members.value, icon: 'users', adminOnly: true }]),
   ].filter((s) => !s.adminOnly || isAdmin.value),
 )
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import BrandLogo from '../components/BrandLogo.vue'
@@ -8,7 +8,7 @@ import { useAuth } from '../composables/useAuth.js'
 const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const { login } = useAuth()
+const { loginPassword, registerPassword, verifyEmail, acceptInvitation, requestOtp, verifyOtp } = useAuth()
 
 // Writing direction — drives the back-chevron glyph and the slide-transition
 // direction natively, without scaleX mirroring or unreliable :global() rules.
@@ -31,34 +31,97 @@ const form = reactive({ name: '', email: '', password: '', phone: '', code: '' }
 // SMS passwordless flow: request a code, then verify it.
 const codeSent = ref(false)
 const submitting = ref(false)
+const challengeId = ref(null)
+const errorMessage = ref('')
+const successMessage = ref('')
 
 const isLogin = computed(() => mode.value === 'login')
+const invitationToken = computed(() =>
+  typeof route.query.invitation === 'string' ? route.query.invitation : '')
 const title = computed(() => (isLogin.value ? t('auth.loginTitle') : t('auth.registerTitle')))
 const subtitle = computed(() => (isLogin.value ? t('auth.loginSubtitle') : t('auth.registerSubtitle')))
 
-const setMode = (m) => { mode.value = m }
-const setMethod = (m) => { method.value = m; codeSent.value = false }
+const clearFeedback = () => { errorMessage.value = ''; successMessage.value = '' }
+const setMode = (m) => { mode.value = m; codeSent.value = false; clearFeedback() }
+const setMethod = (m) => { method.value = m; codeSent.value = false; clearFeedback() }
+const redirectAfterLogin = () => {
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
+  router.replace(redirect)
+}
 
-const finish = (identity, usedMethod) => {
+const submitPassword = async () => {
+  clearFeedback()
   submitting.value = true
-  // Simulate a network round-trip, then sign in and honour ?redirect=.
-  window.setTimeout(() => {
-    login(identity, usedMethod)
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
-    router.replace(redirect)
-  }, 700)
+  try {
+    if (isLogin.value) {
+      await loginPassword(form.email, form.password)
+      redirectAfterLogin()
+    } else if (invitationToken.value) {
+      await acceptInvitation(invitationToken.value, form.name, form.password)
+      redirectAfterLogin()
+    } else {
+      await registerPassword(form.name, form.email, form.password)
+      successMessage.value = t('auth.verificationEmailSent')
+    }
+  } catch (problem) {
+    errorMessage.value = problem.message
+  } finally {
+    submitting.value = false
+  }
 }
 
-const submitPassword = () => finish(form.email, 'password')
+onMounted(async () => {
+  if (invitationToken.value) {
+    mode.value = 'register'
+    method.value = 'password'
+  }
+  if (typeof route.query.verify_email !== 'string') return
+  submitting.value = true
+  try {
+    await verifyEmail(route.query.verify_email)
+    mode.value = 'login'
+    successMessage.value = t('auth.emailVerified')
+    await router.replace({ query: {} })
+  } catch (problem) {
+    errorMessage.value = problem.message
+  } finally {
+    submitting.value = false
+  }
+})
 
-const sendCode = () => {
+const sendCode = async () => {
   if (!form.phone.trim()) return
-  codeSent.value = true
+  clearFeedback()
+  submitting.value = true
+  try {
+    const response = await requestOtp(form.phone, mode.value)
+    challengeId.value = response.data.challenge_id
+    codeSent.value = true
+  } catch (problem) {
+    errorMessage.value = problem.message
+  } finally {
+    submitting.value = false
+  }
 }
 
-const verifyCode = () => {
+const verifyCode = async () => {
   if (form.code.replace(/\D/g, '').length < 6) return
-  finish(form.phone, 'sms')
+  clearFeedback()
+  submitting.value = true
+  try {
+    await verifyOtp({
+      phone: form.phone,
+      code: form.code,
+      challengeId: challengeId.value,
+      displayName: form.name,
+      mode: mode.value,
+    })
+    redirectAfterLogin()
+  } catch (problem) {
+    errorMessage.value = problem.message
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -108,6 +171,8 @@ const verifyCode = () => {
       </div>
 
       <div class="auth-rise" style="--d: 400ms">
+        <p v-if="errorMessage" class="auth-feedback auth-feedback--error" role="alert">{{ errorMessage }}</p>
+        <p v-if="successMessage" class="auth-feedback auth-feedback--success" role="status">{{ successMessage }}</p>
         <Transition :name="modeSwapName" mode="out-in">
         <!-- ── Password flow ── -->
         <form v-if="method === 'password'" key="password" class="auth-form" @submit.prevent="submitPassword">
@@ -118,7 +183,7 @@ const verifyCode = () => {
             </div>
           </Transition>
 
-          <div class="auth-field">
+          <div v-if="isLogin || !invitationToken" class="auth-field">
             <input id="email" v-model="form.email" type="email" required class="auth-input" placeholder=" " autocomplete="email" />
             <label for="email" class="auth-flabel">{{ t('auth.fields.email') }}</label>
           </div>
@@ -170,7 +235,7 @@ const verifyCode = () => {
                 <label for="code" class="auth-flabel">{{ t('auth.fields.code') }}</label>
               </div>
               <div class="auth-meta">
-                <button type="button" class="auth-mini" @click="codeSent = false">{{ t('auth.changeNumber') }}</button>
+                <button type="button" class="auth-mini" @click="codeSent = false; challengeId = null">{{ t('auth.changeNumber') }}</button>
                 <button type="button" class="auth-link" @click="sendCode">{{ t('auth.resendCode') }}</button>
               </div>
               <p class="auth-hint auth-hint--italic mt-2">{{ t('auth.codeHint') }}</p>
@@ -194,7 +259,7 @@ const verifyCode = () => {
       </div>
 
       <div class="auth-social auth-rise" style="--d: 480ms">
-        <button type="button" class="auth-social-btn" @click="finish('google.user', 'google')">
+        <button type="button" class="auth-social-btn" disabled>
           <svg class="auth-social-icon" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M21.35 11.1H12v3.2h5.35a4.57 4.57 0 0 1-1.98 3l3.2 2.48c1.87-1.73 2.95-4.28 2.95-7.32 0-.7-.06-1.37-.17-2.04z"/>
             <path fill="currentColor" d="M12 22c2.7 0 4.96-.9 6.62-2.42l-3.2-2.48c-.9.6-2.05.96-3.42.96-2.63 0-4.86-1.78-5.66-4.17l-3.3 2.55A9.99 9.99 0 0 0 12 22z"/>
@@ -204,7 +269,7 @@ const verifyCode = () => {
           <span>{{ t('auth.continueGoogle') }}</span>
         </button>
 
-        <button type="button" class="auth-social-btn" @click="finish('apple.user', 'apple')">
+        <button type="button" class="auth-social-btn" disabled>
           <svg class="auth-social-icon" width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="currentColor" d="M16.37 12.78c.03 3.02 2.65 4.02 2.68 4.04-.02.07-.42 1.43-1.38 2.84-.83 1.21-1.69 2.42-3.05 2.45-1.33.02-1.76-.79-3.28-.79-1.52 0-2 .76-3.26.81-1.31.05-2.31-1.31-3.15-2.52-1.71-2.47-3.02-6.99-1.26-10.04.87-1.51 2.43-2.47 4.12-2.5 1.29-.02 2.5.86 3.28.86.79 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.27-2.15 3.79zM13.9 4.6c.69-.84 1.16-2 1.03-3.16-.99.04-2.2.66-2.91 1.49-.64.74-1.2 1.92-1.05 3.05 1.11.09 2.24-.56 2.93-1.38z"/>
           </svg>
@@ -494,6 +559,9 @@ const verifyCode = () => {
 
 .auth-hint { font-size: 0.75rem; font-weight: 300; line-height: 1.6; color: rgba(242, 237, 228, 0.55); }
 .auth-hint--italic { font-style: italic; font-size: 0.7rem; color: rgba(242, 237, 228, 0.4); }
+.auth-feedback { margin-top: 1rem; padding: 0.7rem 0.8rem; border-radius: 8px; font-size: 0.75rem; line-height: 1.5; }
+.auth-feedback--error { color: #ffd0d0; background: rgba(185, 55, 55, 0.16); border: 1px solid rgba(255, 130, 130, 0.25); }
+.auth-feedback--success { color: #d5f4df; background: rgba(55, 160, 95, 0.14); border: 1px solid rgba(110, 215, 145, 0.22); }
 
 /* ── Buttons ── */
 .auth-submit {
@@ -633,6 +701,7 @@ const verifyCode = () => {
   background: rgba(242, 237, 228, 0.09);
   border-color: rgba(242, 237, 228, 0.4);
 }
+.auth-social-btn:disabled { opacity: 0.42; cursor: not-allowed; }
 .auth-social-icon {
   flex-shrink: 0;
   color: rgba(242, 237, 228, 0.85);

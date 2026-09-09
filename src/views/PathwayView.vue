@@ -8,25 +8,21 @@
  * [data-progress-track], which the tree measures to drive its scroll fill.
  */
 import NeuralProgressTree from '../components/NeuralProgressTree.vue'
-import { userProgress } from '../data/userProgress.js'
-import { computed } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { academyApi } from '../api/academy.js'
 
-const { t, tm, locale } = useI18n()
-const localizedProgress = computed(() => {
-  const courses = tm('pathway.courses')
-  return {
-    ...userProgress,
-    courses: userProgress.courses.map((course, courseIndex) => ({
-      ...course,
-      title: courses?.[courseIndex]?.title || course.title,
-      modules: course.modules.map((module, moduleIndex) => ({
-        ...module,
-        title: courses?.[courseIndex]?.modules?.[moduleIndex] || module.title,
-      })),
-    })),
-  }
-})
+const { t, locale } = useI18n()
+const localizedProgress = ref({ user: '', currentNodeId: null, courses: [] })
+const loadPathway = async () => {
+  localizedProgress.value = (await academyApi.pathway(locale.value)).data
+}
+const resolveNodeRoute = (node) => {
+  const slug = localizedProgress.value.courses[node.courseIndex]?.slug
+  return slug ? `/academy/course/${slug}` : null
+}
+onMounted(loadPathway)
+watch(locale, loadPathway)
 const statusLabel = (status) => t(`pathway.status.${status}`)
 </script>
 
@@ -44,7 +40,7 @@ const statusLabel = (status) => t(`pathway.status.${status}`)
       <div class="grid">
         <!-- ── Left sidebar: the Neural Pathway Progress Tree (self-sticky) ── -->
         <div class="rail">
-          <NeuralProgressTree :key="locale" :data="localizedProgress" :sticky-top="28" />
+          <NeuralProgressTree :key="locale" :data="localizedProgress" :sticky-top="28" :resolve-route="resolveNodeRoute" />
         </div>
 
         <!-- ── Right: the scrollable course list that drives the fill ── -->

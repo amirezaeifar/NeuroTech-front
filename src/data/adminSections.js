@@ -39,24 +39,10 @@ export const ADMIN_SECTIONS = [
     roles: [ROLES.ADMIN, ROLES.SPECIALIST],
   },
   {
-    key: 'content',
-    name: 'AdminContent',
-    path: 'content',
-    icon: 'layers',
-    roles: [ROLES.ADMIN, ROLES.SPECIALIST],
-  },
-  {
     key: 'users',
     name: 'AdminUsers',
     path: 'users',
     icon: 'users',
-    roles: [ROLES.ADMIN],
-  },
-  {
-    key: 'settings',
-    name: 'AdminSettings',
-    path: 'settings',
-    icon: 'cog',
     roles: [ROLES.ADMIN],
   },
 ]

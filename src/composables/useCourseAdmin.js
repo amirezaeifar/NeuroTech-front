@@ -1,201 +1,310 @@
 import { ref } from 'vue'
+import { academyApi } from '../api/academy.js'
 import { courseMedia } from '../data/courseMedia.js'
 
-/**
- * Course Management store (Admin Panel, spec §9).
- *
- * A mock, in-memory editable mirror of every Academy course. It seeds once from
- * the stable course identities in `courseMedia` (whose order matches
- * `academy.courses[]`) so the admin table lines up with the public catalogue,
- * then lets the admin edit metadata, pricing, media URLs, downloadable resources
- * and imagery — all client-side, no backend. Edits persist for the session via
- * the same shared-singleton pattern the rest of the app uses.
- *
- * The imagery `slug` is the course's stable identity: the light/dark thumbnail
- * and header background are resolved from it automatically (see
- * courseBackgrounds.js), so re-assigning a slug re-skins the course everywhere.
- */
-
 let uid = 0
-const nextId = () => `d${++uid}`
+const nextId = () => `draft-${++uid}`
+const courses = ref([])
+const loading = ref(false)
+const error = ref('')
+let initialized = false
 
-const doc = (name, type, url) => ({ id: nextId(), name, type, url })
+const imagerySlugs = courseMedia.map((item) => item.slug)
+const docTypes = ['pdf', 'slides', 'protocol', 'dataset', 'link']
 
-// Per-slug seed for the fields that don't live in courseMedia. Mirrors the
-// English academy copy closely enough to be recognisable in the table without
-// coupling the admin store to i18n reactivity.
-const SEED = {
-  'clinical-neurology': {
-    title: 'Introduction to Clinical Neurology',
-    instructor: 'Prof. Ali Shalash',
-    level: 'Intermediate',
-    duration: '7 lessons · 4h 30m',
-    tier: 'free',
-    field: 'clinicalNeurology',
-    category: 'Clinical',
-    price: 0,
-    videoUrl: '/course-media/Clinical/Cranial Nerves Examination-1.mp4',
-    documents: [
-      doc('Neurological Exam Checklist', 'pdf', '/resources/neuro-exam-checklist.pdf'),
-      doc('Localisation Reference Chart', 'pdf', '/resources/localisation-chart.pdf'),
-    ],
-  },
-  neuroscience: {
-    title: 'Foundations of Neuroscience',
-    instructor: 'Dr. Sara Nourani',
-    level: 'Beginner',
-    duration: '9 lessons · 5h 10m',
-    tier: 'premium',
-    field: 'neuroscience',
-    category: 'Basic Science',
-    price: 129,
-    videoUrl: '',
-    documents: [doc('Action Potential Study Notes', 'pdf', '/resources/action-potential.pdf')],
-  },
-  neuroimaging: {
-    title: 'Principles of Neuroimaging',
-    instructor: 'Dr. Reza Kamali',
-    level: 'Advanced',
-    duration: '8 lessons · 6h 00m',
-    tier: 'premium',
-    field: 'neuroimaging',
-    category: 'Radiology',
-    price: 149,
-    videoUrl: '',
-    documents: [
-      doc('MRI Sequence Cheat Sheet', 'pdf', '/resources/mri-sequences.pdf'),
-      doc('Stroke Imaging Protocol', 'slides', '/resources/stroke-protocol.pptx'),
-    ],
-  },
-  'brain-anatomy': {
-    title: 'Neuroanatomy of the Brain',
-    instructor: 'Prof. Mona Ebrahimi',
-    level: 'Intermediate',
-    duration: '6 lessons · 3h 45m',
-    tier: 'free',
-    field: 'brainAnatomy',
-    category: 'Anatomy',
-    price: 0,
-    videoUrl: '/course-media/Anatomy/Nervous system anatomy introduction-1.mp4',
-    documents: [doc('Brain Atlas Plates', 'pdf', '/resources/brain-atlas.pdf')],
-  },
-  'neurocritical-care': {
-    title: 'Neurocritical Care Essentials',
-    instructor: 'Dr. Kaveh Rostami',
-    level: 'Advanced',
-    duration: '10 lessons · 7h 20m',
-    tier: 'premium',
-    field: 'neurocriticalCare',
-    category: 'Critical Care',
-    price: 179,
-    videoUrl: '',
-    documents: [doc('ICP Management Protocol', 'pdf', '/resources/icp-protocol.pdf')],
-  },
-  neurosurgery: {
-    title: 'Operative Neurosurgery Foundations',
-    instructor: 'Prof. Dariush Alavi',
-    level: 'Advanced',
-    duration: '12 lessons · 9h 00m',
-    tier: 'premium',
-    field: 'neurosurgery',
-    category: 'Surgery',
-    price: 199,
-    videoUrl: '',
-    documents: [doc('Operative Corridors Guide', 'slides', '/resources/operative-corridors.pptx')],
-  },
+const mapCourse = (course) => {
+  const english = course.translations?.find((item) => item.locale === 'en') || {}
+  const persian = course.translations?.find((item) => item.locale === 'fa') || {}
+  const usd = course.prices?.find((item) => item.currency === 'USD')
+  const irr = course.prices?.find((item) => item.currency === 'IRR')
+  return {
+    id: course.id,
+    slug: course.slug,
+    title: english.title || course.title,
+    instructor: english.instructor_name || course.instructor_name || '',
+    level: course.level,
+    duration: english.duration_label || course.duration_label || '',
+    desc: english.description || course.description || '',
+    faTitle: persian.title || '',
+    faInstructor: persian.instructor_name || '',
+    faDuration: persian.duration_label || '',
+    faDesc: persian.description || '',
+    tier: course.tier,
+    field: course.field,
+    category: course.field,
+    price: usd ? usd.amount_minor / 100 : 0,
+    irrPrice: irr ? irr.amount_minor : 0,
+    published: Boolean(course.published),
+    videoUrl: course.content?.media?.find((item) => item.kind === 'video')?.external_url
+      || course.content?.media?.find((item) => item.kind === 'video')?.storage_path
+      || '',
+    documents: (course.content?.resources || []).map((item) => ({
+      id: nextId(),
+      name: item.name,
+      type: item.kind,
+      url: item.external_url || item.storage_path || '',
+    })),
+    content: course.content || { sections: [], outcomes: [], media: [], resources: [] },
+    translations: course.translations || [],
+    prices: course.prices || [],
+    _published: Boolean(course.published),
+  }
 }
 
-const build = () =>
-  courseMedia.map((m) => {
-    const s = SEED[m.slug] || {}
-    return {
-      id: m.slug,
-      slug: m.slug,
-      title: s.title || m.slug,
-      instructor: s.instructor || '',
-      level: s.level || 'Intermediate',
-      duration: s.duration || '',
-      desc: '',
-      tier: s.tier || 'free',
-      field: s.field || 'clinicalNeurology',
-      category: s.category || 'Clinical',
-      price: s.price ?? 0,
-      published: true,
-      progressReset: false,
-      videoUrl: s.videoUrl || '',
-      documents: (s.documents || []).map((d) => ({ ...d })),
-    }
-  })
+const loadCourses = async (force = false) => {
+  if (initialized && !force) return
+  loading.value = true
+  error.value = ''
+  try {
+    courses.value = (await academyApi.adminList()).data.map(mapCourse)
+    initialized = true
+  } catch (problem) {
+    error.value = problem.message
+  } finally {
+    loading.value = false
+  }
+}
 
-// Shared singleton — the table and the editor mutate the same reactive list.
-const courses = ref(build())
+const mutationPayload = (draft) => {
+  const english = {
+    locale: 'en',
+    title: draft.title,
+    description: draft.desc || draft.title,
+    instructor_name: draft.instructor,
+    duration_label: draft.duration,
+  }
+  const persian = {
+    locale: 'fa',
+    title: draft.faTitle,
+    description: draft.faDesc || draft.faTitle,
+    instructor_name: draft.faInstructor,
+    duration_label: draft.faDuration,
+  }
+  const translations = [english, persian]
+  const prices = draft.tier === 'premium'
+    ? [
+        { currency: 'IRR', amount_minor: Math.round(Number(draft.irrPrice || 0)) },
+        { currency: 'USD', amount_minor: Math.round(Number(draft.price || 0) * 100) },
+      ]
+    : []
+  return {
+    tier: draft.tier,
+    field: draft.field,
+    level: String(draft.level).toLowerCase(),
+    translations,
+    prices,
+  }
+}
 
-// Every slug that ships a light/dark asset pair (see src/assets/*). Offered in
-// the imagery picker so re-skinning a course is a constrained, valid choice.
-const IMAGERY_SLUGS = courseMedia.map((m) => m.slug)
+const sourceFields = (url) => String(url).startsWith('http://') || String(url).startsWith('https://')
+  ? { external_url: url, storage_path: null }
+  : { storage_path: url, external_url: null }
 
-const DOC_TYPES = ['pdf', 'slides', 'protocol', 'dataset', 'link']
+const contentPayload = (draft) => {
+  const retainedMedia = (draft.content?.media || [])
+    .filter((item) => item.kind !== 'video')
+    .map(({ kind, position, locale, mime_type, storage_path, external_url }) => ({
+      kind,
+      position,
+      locale,
+      mime_type,
+      storage_path,
+      external_url,
+    }))
+  const existingVideo = (draft.content?.media || []).find((item) => item.kind === 'video')
+  const videoPosition = existingVideo?.position
+    || Math.max(0, ...retainedMedia.map((item) => item.position)) + 1
+  return {
+    sections: (draft.content?.sections || []).map((section) => ({
+      position: section.position,
+      translations: section.translations.map(({ locale, title }) => ({ locale, title })),
+      lessons: section.lessons.map((lesson) => ({
+        position: lesson.position,
+        duration_seconds: lesson.duration_seconds,
+        video_provider: lesson.video_provider,
+        video_reference: lesson.video_reference,
+        free_preview: Boolean(lesson.free_preview),
+        translations: lesson.translations.map(({ locale, title }) => ({ locale, title })),
+      })),
+    })),
+    outcomes: (draft.content?.outcomes || []).map(({ locale, position, text }) => ({
+      locale,
+      position,
+      text,
+    })),
+    resources: draft.documents
+      .filter((document) => document.name.trim() && document.url.trim())
+      .map((document) => ({
+        name: document.name,
+        kind: document.type,
+        ...sourceFields(document.url),
+      })),
+    media: draft.videoUrl.trim()
+      ? [
+          ...retainedMedia,
+          {
+            kind: 'video',
+            position: videoPosition,
+            locale: null,
+            mime_type: null,
+            ...sourceFields(draft.videoUrl),
+          },
+        ]
+      : retainedMedia,
+  }
+}
 
 export function useCourseAdmin() {
-  const findById = (id) => courses.value.find((c) => c.id === id) || null
+  loadCourses()
 
-  /** Persist edits from a working copy back onto the live course. */
-  const saveCourse = (draft) => {
-    const idx = courses.value.findIndex((c) => c.id === draft.id)
-    if (idx === -1) return
-    courses.value[idx] = { ...draft, documents: draft.documents.map((d) => ({ ...d })) }
+  const findById = (id) => courses.value.find((course) => course.id === id) || null
+  const saveCourse = async (draft) => {
+    error.value = ''
+    let unpublishedForMutation = false
+    try {
+      const isNew = String(draft.id).startsWith('draft-')
+      const payload = mutationPayload(draft)
+      const content = contentPayload(draft)
+      const contentChanged = isNew || JSON.stringify(content) !== draft._contentSnapshot
+      if (!isNew && draft._published && (!draft.published || contentChanged)) {
+        await academyApi.adminUnpublish(draft.id)
+        unpublishedForMutation = true
+      }
+      const response = isNew
+        ? await academyApi.adminCreate({ ...payload, slug: draft.slug })
+        : await academyApi.adminUpdate(draft.id, payload)
+      const id = response.data.id
+      if (contentChanged) await academyApi.adminReplaceContent(id, content)
+      if (draft.published && (!draft._published || contentChanged)) {
+        await academyApi.adminPublish(id)
+      }
+      await loadCourses(true)
+      return findById(id)
+    } catch (problem) {
+      if (unpublishedForMutation) {
+        await academyApi.adminPublish(draft.id).catch(() => {})
+      }
+      error.value = problem.message
+      throw problem
+    }
   }
 
-  const togglePublished = (id) => {
-    const c = findById(id)
-    if (c) c.published = !c.published
+  const togglePublished = async (id) => {
+    const course = findById(id)
+    if (!course) return
+    try {
+      if (course.published) await academyApi.adminUnpublish(id)
+      else await academyApi.adminPublish(id)
+      await loadCourses(true)
+    } catch (problem) {
+      error.value = problem.message
+    }
   }
 
   const addCourse = () => {
-    const slug = IMAGERY_SLUGS[0]
-    const c = {
-      id: `new-${nextId()}`,
-      slug,
-      title: 'Untitled Course',
+    const draft = {
+      id: nextId(),
+      slug: `untitled-course-${Date.now()}`,
+      title: '',
       instructor: '',
-      level: 'Intermediate',
+      level: 'beginner',
       duration: '',
       desc: '',
+      faTitle: '',
+      faInstructor: '',
+      faDuration: '',
+      faDesc: '',
       tier: 'free',
       field: 'clinicalNeurology',
       category: 'Clinical',
       price: 0,
+      irrPrice: 0,
       published: false,
-      progressReset: false,
+      _published: false,
       videoUrl: '',
       documents: [],
+      translations: [],
+      prices: [],
+      content: { sections: [], outcomes: [], media: [], resources: [] },
     }
-    courses.value.unshift(c)
-    return c
+    courses.value.unshift(draft)
+    return draft
   }
 
-  const removeCourse = (id) => {
-    courses.value = courses.value.filter((c) => c.id !== id)
+  const removeCourse = async (id) => {
+    if (String(id).startsWith('draft-')) {
+      courses.value = courses.value.filter((course) => course.id !== id)
+      return
+    }
+    await academyApi.adminArchive(id)
+    await loadCourses(true)
   }
 
-  /** A deep-enough clone for the editor to mutate without touching the table. */
-  const draftFrom = (course) => ({
-    ...course,
-    documents: course.documents.map((d) => ({ ...d })),
+  const reorderCourse = async (id, direction) => {
+    const persisted = courses.value.filter((course) => !String(course.id).startsWith('draft-'))
+    const index = persisted.findIndex((course) => course.id === id)
+    const target = index + direction
+    if (index < 0 || target < 0 || target >= persisted.length) return
+    ;[persisted[index], persisted[target]] = [persisted[target], persisted[index]]
+    try {
+      await academyApi.adminReorder(persisted.map((course) => course.id))
+      await loadCourses(true)
+    } catch (problem) {
+      error.value = problem.message
+      await loadCourses(true)
+    }
+  }
+
+  const draftFrom = (course) => {
+    const draft = {
+      ...course,
+      documents: course.documents.map((document) => ({ ...document })),
+      translations: course.translations.map((translation) => ({ ...translation })),
+      prices: course.prices.map((price) => ({ ...price })),
+      content: structuredClone(course.content),
+    }
+    draft._contentSnapshot = JSON.stringify(contentPayload(draft))
+    return draft
+  }
+
+  const newDocument = () => ({ id: nextId(), name: '', type: 'pdf', url: '' })
+  const newLesson = (position) => ({
+    id: nextId(),
+    position,
+    duration_seconds: 0,
+    video_provider: 'youtube',
+    video_reference: '',
+    free_preview: false,
+    translations: [
+      { locale: 'en', title: '' },
+      { locale: 'fa', title: '' },
+    ],
   })
-
-  const newDocument = () => doc('New resource', 'pdf', '')
+  const newSection = (position) => ({
+    id: nextId(),
+    position,
+    translations: [
+      { locale: 'en', title: '' },
+      { locale: 'fa', title: '' },
+    ],
+    lessons: [],
+  })
 
   return {
     courses,
-    imagerySlugs: IMAGERY_SLUGS,
-    docTypes: DOC_TYPES,
-    findById,
+    loading,
+    error,
+    imagerySlugs,
+    docTypes,
+    loadCourses,
     saveCourse,
     togglePublished,
     addCourse,
     removeCourse,
+    reorderCourse,
     draftFrom,
     newDocument,
+    newLesson,
+    newSection,
   }
 }

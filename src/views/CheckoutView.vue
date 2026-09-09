@@ -1,9 +1,12 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { academyApi } from '../api/academy.js'
+import { commerceApi } from '../api/commerce.js'
+import { resolveApiUrl } from '../api/client.js'
 
-const { t, tm } = useI18n()
+const { t, tm, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
@@ -11,14 +14,31 @@ const router = useRouter()
 // src/router/index.js — unauthenticated visitors are redirected to /login with a
 // ?redirect back here, so by the time this view renders the user is signed in.
 
-const courses = computed(() => tm('academy.courses'))
-const courseIndex = computed(() => {
-  const raw = route.query.course
-  return raw !== undefined && raw !== null && courses.value[Number(raw)] ? Number(raw) : null
-})
-const course = computed(() => (courseIndex.value !== null ? courses.value[courseIndex.value] : null))
+const courseSlug = computed(() => typeof route.query.course === 'string' ? route.query.course : null)
+const course = ref(null)
+const checkoutError = ref('')
+const loadCourse = async () => {
+  if (!courseSlug.value) return
+  try {
+    course.value = (await academyApi.detail(courseSlug.value, locale.value)).data
+  } catch (problem) {
+    checkoutError.value = problem.message
+  }
+}
+onMounted(loadCourse)
+watch([courseSlug, locale], loadCourse)
 const itemName = computed(() => course.value?.title || t('academy.tiers.premium.name') + ' — ' + t('brand'))
 const included = computed(() => tm('checkout.included'))
+const currency = computed(() => locale.value === 'fa' ? 'IRR' : 'USD')
+const selectedPrice = computed(() => course.value?.prices?.find((price) => price.currency === currency.value))
+const displayPrice = computed(() => {
+  const price = selectedPrice.value
+  if (!price) return '—'
+  if (price.currency === 'USD') {
+    return new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'USD' }).format(price.amount_minor / 100)
+  }
+  return `${new Intl.NumberFormat('fa-IR').format(price.amount_minor)} ${t('checkout.irr')}`
+})
 
 const stage = ref('form')      // form | processing | success
 const step = ref('cart')        // cart | payment
@@ -29,16 +49,23 @@ const paymentMethod = ref('card')
 const goToPayment = () => { step.value = 'payment' }
 const goToCart = () => { step.value = 'cart' }
 
-const submit = () => {
+const submit = async () => {
+  if (!courseSlug.value) return
+  checkoutError.value = ''
   stage.value = 'processing'
-  window.setTimeout(() => { stage.value = 'success' }, 1400)
+  try {
+    const response = await commerceApi.createOrder(courseSlug.value, currency.value)
+    window.location.assign(resolveApiUrl(response.data.payment_url))
+  } catch (problem) {
+    checkoutError.value = problem.message
+    stage.value = 'form'
+  }
 }
 
-// Return to the course with the purchase confirmed — ?purchased=true unlocks the
-// player and lesson list on the course page (mocks a post-payment redirect).
+// Return navigation is only UX; the course page always asks the backend for entitlement.
 const goBack = () => {
-  if (courseIndex.value !== null) {
-    router.push({ path: `/academy/course/${courseIndex.value}`, query: { purchased: 'true' } })
+  if (courseSlug.value) {
+    router.push({ path: `/academy/course/${courseSlug.value}` })
   } else {
     router.push('/academy')
   }
@@ -123,7 +150,7 @@ const rise = (delay = 0) => ({
                       <span class="mt-3 inline-block text-[10px] uppercase tracking-[0.2em] text-gold border border-gold/50 px-2.5 py-1 font-light">{{ t('academy.filters.premium') }}</span>
                     </div>
                     <div class="shrink-0 text-end">
-                      <p class="font-serif text-lg text-ink">{{ t('checkout.mockPrice') }}</p>
+                      <p class="font-serif text-lg text-ink">{{ displayPrice }}</p>
                     </div>
                   </div>
 
@@ -153,6 +180,7 @@ const rise = (delay = 0) => ({
                 <div class="bg-parchment border border-parchment-deep/70 rounded-xl p-7 md:p-8 lux-card">
                   <h2 class="font-serif font-light text-xl text-ink mb-6">{{ t('checkout.paymentTitle') }}</h2>
                   <form class="space-y-6" @submit.prevent="submit">
+                    <p v-if="checkoutError" class="text-xs text-red-700" role="alert">{{ checkoutError }}</p>
                     <div class="space-y-3">
                       <label
                         v-for="opt in ['card', 'bank']"
@@ -205,7 +233,7 @@ const rise = (delay = 0) => ({
                   </div>
                   <div class="flex items-center justify-between gap-4">
                     <dt class="text-ink-muted font-light">{{ t('checkout.subtotalLabel') }}</dt>
-                    <dd class="text-ink font-light">{{ t('checkout.mockPrice') }}</dd>
+                    <dd class="text-ink font-light">{{ displayPrice }}</dd>
                   </div>
                   <div class="flex items-center justify-between gap-4">
                     <dt class="text-ink-muted font-light">{{ t('checkout.vatLabel') }}</dt>
@@ -213,7 +241,7 @@ const rise = (delay = 0) => ({
                   </div>
                   <div class="flex items-center justify-between gap-4 pt-4 mt-1 border-t border-parchment-deep">
                     <dt class="text-ink uppercase tracking-[0.15em] text-[11px] font-light">{{ t('checkout.totalLabel') }}</dt>
-                    <dd class="text-ink font-serif text-xl">{{ t('checkout.mockPrice') }}</dd>
+                    <dd class="text-ink font-serif text-xl">{{ displayPrice }}</dd>
                   </div>
                 </dl>
               </div>

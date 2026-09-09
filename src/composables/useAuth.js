@@ -1,42 +1,108 @@
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
+import { authApi } from '../api/auth.js'
 
-// Lightweight client-side auth state. A real backend would issue a session
-// token; here we persist a minimal user object to localStorage so the login
-// state survives reloads and the Checkout route guard can rely on it.
-const STORAGE_KEY = 'auth_user'
+export const ROLES = Object.freeze({ USER: 'user', SPECIALIST: 'specialist', ADMIN: 'admin' })
 
-const load = () => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch (_) {
-    return null
-  }
-}
+const user = ref(null)
+const initialized = ref(false)
+let initialization = null
 
-// Shared singleton state — every component sees the same user.
-const user = ref(load())
-
-const persist = () => {
-  try {
-    if (user.value) localStorage.setItem(STORAGE_KEY, JSON.stringify(user.value))
-    else localStorage.removeItem(STORAGE_KEY)
-  } catch (_) {}
+const acceptSession = (response) => {
+  user.value = response?.data?.user || null
+  return user.value
 }
 
 export function useAuth() {
-  const isAuthenticated = computed(() => !!user.value)
+  const isAuthenticated = computed(() => Boolean(user.value))
+  const role = computed(() => user.value?.role || null)
+  const isAdmin = computed(() => role.value === ROLES.ADMIN)
+  const isStaff = computed(() => [ROLES.ADMIN, ROLES.SPECIALIST].includes(role.value))
 
-  /** Mark the visitor as signed in. `identity` is an email or phone number. */
-  const login = (identity, method = 'password') => {
-    user.value = { identity: identity || 'member', method, since: Date.now() }
-    persist()
+  const ensureSession = async () => {
+    if (initialized.value) return user.value
+    if (initialization) return initialization
+
+    initialization = (async () => {
+      try {
+        return acceptSession(await authApi.me())
+      } catch (problem) {
+        if (problem.status !== 401) throw problem
+        try {
+          await authApi.refresh()
+          return acceptSession(await authApi.me())
+        } catch (_) {
+          user.value = null
+          return null
+        }
+      } finally {
+        initialized.value = true
+        initialization = null
+      }
+    })()
+    return initialization
   }
 
-  const logout = () => {
-    user.value = null
-    persist()
+  const loginPassword = async (email, password) => {
+    const response = await authApi.loginPassword({ email, password })
+    initialized.value = true
+    return acceptSession(response)
   }
 
-  return { user, isAuthenticated, login, logout }
+  const registerPassword = (displayName, email, password) => authApi.registerPassword({
+    display_name: displayName,
+    email,
+    password,
+  })
+
+  const verifyEmail = (token) => authApi.verifyEmail(token)
+
+  const acceptInvitation = async (token, displayName, password) => {
+    const response = await authApi.acceptInvitation({
+      token,
+      display_name: displayName,
+      password,
+    })
+    initialized.value = true
+    return acceptSession(response)
+  }
+
+  const requestOtp = async (phone, mode) => {
+    return mode === 'register'
+      ? authApi.requestRegistrationOtp(phone)
+      : authApi.requestLoginOtp(phone)
+  }
+
+  const verifyOtp = async ({ phone, code, challengeId, displayName, mode }) => {
+    const common = { phone, code, challenge_id: challengeId }
+    const response = mode === 'register'
+      ? await authApi.verifyRegistrationOtp({ ...common, display_name: displayName })
+      : await authApi.verifyLoginOtp(common)
+    initialized.value = true
+    return acceptSession(response)
+  }
+
+  const logout = async () => {
+    try {
+      if (user.value) await authApi.logout()
+    } finally {
+      user.value = null
+      initialized.value = true
+    }
+  }
+
+  return {
+    user,
+    role,
+    isAuthenticated,
+    isAdmin,
+    isStaff,
+    ensureSession,
+    loginPassword,
+    registerPassword,
+    verifyEmail,
+    acceptInvitation,
+    requestOtp,
+    verifyOtp,
+    logout,
+  }
 }

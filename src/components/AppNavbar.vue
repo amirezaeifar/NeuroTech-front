@@ -11,10 +11,10 @@ const { t } = useI18n()
 const router = useRouter()
 const { locale, setLocale, locales } = useLocale()
 const { isDark, toggle: toggleTheme } = useTheme()
-const { isAuthenticated, logout } = useAuth()
+const { isAuthenticated, ensureSession, logout } = useAuth()
 
-const onAuthClick = () => {
-  if (isAuthenticated.value) { logout(); router.push('/') }
+const onAuthClick = async () => {
+  if (isAuthenticated.value) { await logout(); router.push('/') }
   else { router.push('/login') }
 }
 
@@ -23,7 +23,10 @@ const mobileOpen = ref(false)
 const langOpen = ref(false)
 
 const onScroll = () => { scrolled.value = window.scrollY > 60 }
-onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
+onMounted(() => {
+  ensureSession()
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
 onUnmounted(() => window.removeEventListener('scroll', onScroll))
 
 const closeMobile = () => { mobileOpen.value = false }

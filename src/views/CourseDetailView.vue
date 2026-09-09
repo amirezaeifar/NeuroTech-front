@@ -7,16 +7,18 @@ import SectionEyebrow from '../components/SectionEyebrow.vue'
 import StratumStack from '../components/StratumStack.vue'
 import CoursePlayer from '../components/CoursePlayer.vue'
 import { courseCode, sectionLetter } from '../utils/catalog.js'
-import { courseMediaAt } from '../data/courseMedia.js'
+import { courseMedia, courseMediaAt } from '../data/courseMedia.js'
 import { resolveCourseCover, resolveCourseBackground } from '../data/courseBackgrounds.js'
-import { courseDiscussionsAt } from '../data/courseDiscussions.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useReveal } from '../composables/useReveal.js'
+import { academyApi } from '../api/academy.js'
+import { useAuth } from '../composables/useAuth.js'
 
 const { t, tm, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const { isDark } = useTheme()
+const { ensureSession, isAuthenticated } = useAuth()
 
 // Writing direction — drives native RTL chevron glyphs (no scaleX mirroring).
 const isRtl = computed(() => locale.value === 'fa')
@@ -26,12 +28,63 @@ const chevronToStart = computed(() => (isRtl.value ? 'M9 6l6 6-6 6' : 'M15 6l-6 
 const chevronToEnd = computed(() => (isRtl.value ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6'))
 
 const courses = computed(() => tm('academy.courses'))
-const courseIndex = computed(() => Number(route.params.id))
-const course = computed(() => courses.value[courseIndex.value])
+const courseIndex = computed(() => courseMedia.findIndex((item) => item.slug === route.params.id))
+const apiCourse = ref(null)
+const courseAccess = ref({ enrolled: false, entitled: false, can_access: false })
+const accessError = ref('')
+const course = computed(() => {
+  const local = courses.value[courseIndex.value] || {}
+  if (!apiCourse.value) return local
+  return {
+    ...local,
+    ...apiCourse.value,
+    desc: apiCourse.value.description,
+    instructor: apiCourse.value.instructor_name,
+    duration: apiCourse.value.duration_label,
+  }
+})
 const isFree = computed(() => course.value?.tier === 'free')
 
-// Derive lesson count from duration string.
+const loadCourse = async () => {
+  try {
+    const response = await academyApi.detail(route.params.id, locale.value)
+    apiCourse.value = response.data
+  } catch (_) {
+    apiCourse.value = null
+  }
+}
+
+const loadAccess = async () => {
+  await ensureSession()
+  if (!isAuthenticated.value) return
+  try {
+    courseAccess.value = (await academyApi.access(route.params.id, locale.value)).data
+  } catch (_) {
+    courseAccess.value = { enrolled: false, entitled: false, can_access: false }
+  }
+}
+
+const discussions = ref([])
+const loadComments = async () => {
+  try {
+    discussions.value = (await academyApi.comments(route.params.id)).data.map((comment) => ({
+      id: comment.id,
+      name: comment.author,
+      time: new Intl.DateTimeFormat(locale.value, { dateStyle: 'medium' }).format(new Date(comment.created_at)),
+      body: comment.body,
+    }))
+  } catch (_) {
+    discussions.value = []
+  }
+}
+
+onMounted(() => { loadCourse(); loadAccess(); loadComments() })
+watch([() => route.params.id, locale], () => { loadCourse(); loadAccess(); loadComments() })
+
 const lessonCount = computed(() => {
+  const serverCount = (apiCourse.value?.sections || [])
+    .reduce((total, section) => total + section.lessons.length, 0)
+  if (serverCount) return serverCount
   const match = (course.value?.duration || '').match(/(\d+)\s*lesson/i)
   return match ? Number(match[1]) : 6
 })
@@ -182,30 +235,56 @@ const longDescriptions = [
   `Neurosurgery introduces the principles, anatomy and core procedures of the specialty for surgical trainees and for the clinicians who work alongside the operating team. The early modules establish safe operative practice and the surgical anatomy of the corridors through which the brain and spine are approached.\n\nThe course then covers the cranial approaches, image-guided navigation and intra-operative monitoring that define modern surgery, before surveying the major subspecialties: tumour, vascular and functional neurosurgery, together with the fundamentals of spinal surgery and peri-operative complication management.\n\nThe emphasis throughout is on sound operative reasoning rather than technique in isolation.`,
 ]
 
-const courseDesc = computed(() => longDescriptions[courseIndex.value] || course.value?.desc || '')
+const courseDesc = computed(() => apiCourse.value?.description || longDescriptions[courseIndex.value] || course.value?.desc || '')
 
 // Replaceable video embeds, stable image identity + learning outcomes.
 const media = computed(() => courseMediaAt(courseIndex.value))
 const cover = computed(() => resolveCourseCover(media.value?.slug, isDark.value))
 // Cinematic course_background art, resolved strictly within the active theme.
 const headerBg = computed(() => resolveCourseBackground(media.value?.slug, isDark.value) || cover.value)
-const outcomes = computed(() => media.value?.outcomes || [])
-// Per-course discussion thread (see src/data/courseDiscussions.js).
-const discussions = computed(() => courseDiscussionsAt(courseIndex.value))
+const outcomes = computed(() => apiCourse.value?.outcomes?.length
+  ? apiCourse.value.outcomes
+  : media.value?.outcomes || [])
 // The course playlist fed to the in-house player: clean lesson titles paired
 // with internal resource ids (cycled, since the demo id pool is shorter than
 // the lesson list — drop the real ids into courseMedia.js for production).
 const playlist = computed(() => {
+  if (courseAccess.value.can_access && courseAccess.value.lessons?.length) {
+    return courseAccess.value.lessons.map((lesson) => ({
+      title: lesson.title,
+      id: lesson.video_reference,
+      provider: lesson.video_provider,
+      lessonId: lesson.id,
+    }))
+  }
   const ids = media.value?.videoIds || []
   const titles = videoTitleSets[courseIndex.value] || []
+  const serverLessons = (apiCourse.value?.sections || []).flatMap((section) => section.lessons)
   return Array.from({ length: lessonCount.value }, (_, i) => ({
-    title: titles[i] || `Lesson ${i + 1}`,
+    title: serverLessons[i]?.title || titles[i] || `Lesson ${i + 1}`,
     id: ids.length ? ids[i % ids.length] : '',
+    lessonId: serverLessons[i]?.id || null,
   }))
+})
+
+const serverResume = computed(() => {
+  const lessons = courseAccess.value.lessons || []
+  const candidate = lessons.find((lesson) => !lesson.completed && lesson.position_seconds > 0)
+    || lessons.find((lesson) => !lesson.completed)
+  if (!candidate) return null
+  const lesson = lessons.findIndex((item) => item.id === candidate.id)
+  return { lesson, positionSeconds: candidate.position_seconds }
 })
 
 // Get video lesson titles for a given course
 const videoLessons = computed(() => {
+  const serverLessons = (apiCourse.value?.sections || []).flatMap((section) => section.lessons)
+  if (serverLessons.length) {
+    return serverLessons.map((lesson, index) => ({
+      index: index + 1,
+      title: `${t('academy.courseDetail.lesson')} ${index + 1}: ${lesson.title}`,
+    }))
+  }
   const titles = videoTitleSets[courseIndex.value] || []
   return Array.from({ length: lessonCount.value }, (_, i) => ({
     index: i + 1,
@@ -217,7 +296,9 @@ const videoLessons = computed(() => {
 // independent of the (larger) lesson count: the syllabus lists topics, the
 // "Course Videos" list enumerates the individual lessons.
 const modules = computed(() =>
-  (moduleSets[courseIndex.value] || []).map((name, i) => ({ index: i + 1, name })))
+  apiCourse.value?.sections?.length
+    ? apiCourse.value.sections.map((section, i) => ({ index: i + 1, name: section.title }))
+    : (moduleSets[courseIndex.value] || []).map((name, i) => ({ index: i + 1, name })))
 
 // Stable catalog code for this course (e.g. "CLN-101").
 const code = computed(() => courseCode(courses.value, courseIndex.value))
@@ -239,37 +320,45 @@ const strata = computed(() => modules.value.map((m, i) => ({
   current: m.index === topicsDone.value + 1 && topicsDone.value < modules.value.length,
 })))
 
-// Mock progress
-const completed = computed(() => (isFree.value ? Math.min(2, lessonCount.value) : 0))
+const completed = computed(() => courseAccess.value.completed_lessons || 0)
 const progressPct = computed(() => Math.round((completed.value / Math.max(lessonCount.value, 1)) * 100))
 
-// Premium gating: the player stays unrendered for premium courses until the
-// user has paid. There is NO instant unlock — purchase is confirmed only by
-// returning from a completed checkout with ?purchased=true on the URL (mocking
-// a real post-payment redirect). Free courses always show the player.
-const isPurchased = computed(() => route.query.purchased === 'true')
-const showPlayer = computed(() => isFree.value || isPurchased.value)
+const showPlayer = computed(() => courseAccess.value.can_access)
 
-// "Subscribe" routes straight to the Checkout flow — it no longer unlocks the
-// player in place. The course index is carried through so Checkout can send the
-// user back here as ?purchased=true on success.
 const goToCheckout = () => {
-  router.push({ path: '/checkout', query: { course: courseIndex.value } })
+  router.push({ path: '/checkout', query: { course: route.params.id } })
+}
+
+const enrollFree = async () => {
+  accessError.value = ''
+  if (!isAuthenticated.value) {
+    router.push({ name: 'Login', query: { redirect: route.fullPath } })
+    return
+  }
+  try {
+    await academyApi.enroll(route.params.id)
+    await loadAccess()
+  } catch (problem) {
+    accessError.value = problem.message
+  }
+}
+
+const saveServerProgress = ({ lesson, positionSeconds, completed }) => {
+  if (!lesson.lessonId) return
+  academyApi.saveProgress(lesson.lessonId, {
+    position_seconds: positionSeconds,
+    completed,
+  }).catch(() => {})
 }
 
 const playing = ref(isFree.value ? 1 : null)
-// Dismissible post-purchase banner (sits below the hero). Re-shown whenever a
-// fresh purchase is confirmed.
-const showUnlocked = ref(true)
-watch(isPurchased, (v) => { if (v) showUnlocked.value = true })
-// When the user lands back with the purchase confirmed, auto-select lesson 1.
-watch(isPurchased, (v) => { if (v && playing.value === null) playing.value = 1 }, { immediate: true })
+const showUnlocked = ref(route.query.paid === '1')
 const playLesson = (n) => { if (showPlayer.value) playing.value = n }
 
 // Every other course in the catalogue feeds the "Browse the Library" carousel.
 const related = computed(() => courses.value
-  .map((c, i) => ({ ...c, i }))
-  .filter((c) => c.i !== courseIndex.value))
+  .map((c, i) => ({ ...c, i, slug: courseMediaAt(i)?.slug }))
+  .filter((c) => c.i !== courseIndex.value && c.slug))
 
 // ── Browse-the-Library carousel ──────────────────────────────────────────────
 // Shows `perView` cards (3 on desktop, 1 on mobile) and slides one card per
@@ -313,10 +402,19 @@ const thumbStyle = (i) => ({ background: thumbGradients[i % thumbGradients.lengt
 // Comments
 const draft = ref('')
 const justSubmitted = ref(false)
-const submitComment = () => {
+const submitComment = async () => {
   if (!draft.value.trim()) return
-  justSubmitted.value = true
-  draft.value = ''
+  if (!isAuthenticated.value) {
+    router.push({ name: 'Login', query: { redirect: route.fullPath } })
+    return
+  }
+  try {
+    await academyApi.addComment(route.params.id, draft.value)
+    justSubmitted.value = true
+    draft.value = ''
+  } catch (problem) {
+    accessError.value = problem.message
+  }
 }
 
 useReveal()
@@ -344,7 +442,7 @@ useReveal()
          hero and above the Description / Syllabus grid. Mirrors the "You're
          registered" alert: an X collapses it out with a fade + slide-up. -->
     <Transition name="alert-collapse">
-      <div v-if="!isFree && isPurchased && showUnlocked" class="bg-gold/10 border-b border-gold/30">
+      <div v-if="!isFree && courseAccess.can_access && showUnlocked" class="bg-gold/10 border-b border-gold/30">
         <div class="max-w-5xl mx-auto px-8 py-3 flex items-center justify-between gap-4 text-sm text-ink-soft font-light">
           <span class="flex items-center gap-3">
             <span class="shrink-0 grid place-items-center w-7 h-7 rounded-full border border-gold/50 text-gold-dark">
@@ -409,36 +507,38 @@ useReveal()
         <!-- Subscription box ↔ active player. The premium box crossfades out on
              purchase and the full-width player + playlist takes its place. -->
         <Transition name="purchase-swap" mode="out-in" :duration="{ enter: 520, leave: 260 }">
-          <!-- Premium subscription / paywall box -->
+          <!-- Server-authoritative enrollment / entitlement gate. -->
           <div
-            v-if="!isFree && !isPurchased"
+            v-if="!showPlayer"
             key="subbox"
             class="mt-8 border border-gold/40 bg-gold/5 rounded-lg px-8 py-9 text-center"
           >
             <div class="mx-auto w-12 h-12 rounded-full border border-gold/50 flex items-center justify-center text-gold-dark">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke-linecap="round"/></svg>
             </div>
-            <p class="mt-5 text-sm text-ink-soft font-light leading-relaxed max-w-sm mx-auto">{{ t('academy.courseDetail.lockedNotice') }}</p>
+            <p class="mt-5 text-sm text-ink-soft font-light leading-relaxed max-w-sm mx-auto">{{ isFree ? t('academy.courseDetail.enrollNotice') : t('academy.courseDetail.lockedNotice') }}</p>
+            <p v-if="accessError" class="mt-3 text-xs text-red-700" role="alert">{{ accessError }}</p>
             <button
               type="button"
-              @click="goToCheckout"
+              @click="isFree ? enrollFree() : goToCheckout()"
               class="mt-6 inline-flex items-center justify-center gap-2.5 text-[11px] uppercase tracking-[0.3em] font-light px-7 py-3.5 rounded-md border border-gold/60 bg-ink text-parchment-light hover:bg-gold hover:text-ink hover:border-gold transition-colors"
             >
-              {{ t('academy.courseDetail.subscribeCta') }} <span class="dir-arrow" aria-hidden="true"></span>
+              {{ isFree ? t('academy.courseDetail.enrollCta') : t('academy.courseDetail.subscribeCta') }} <span class="dir-arrow" aria-hidden="true"></span>
             </button>
-            <p class="mt-4 text-[11px] text-ink-muted font-light italic">{{ t('academy.courseDetail.simulateHint') }}</p>
+            <p v-if="!isFree" class="mt-4 text-[11px] text-ink-muted font-light italic">{{ t('academy.courseDetail.simulateHint') }}</p>
           </div>
 
           <!-- In-house LMS player + playlist (free courses, or after purchase) -->
           <CoursePlayer
             v-else-if="showPlayer"
-            key="player"
+            :key="'player-' + route.params.id"
             class="mt-8"
             :lessons="playlist"
-            :course-key="'course-' + courseIndex"
             :subtitle="course.instructor + ' · ' + course.title"
             :model-value="playing || 1"
+            :initial-resume="serverResume"
             @update:model-value="playing = $event"
+            @progress="saveServerProgress"
           />
         </Transition>
 
@@ -533,7 +633,7 @@ useReveal()
             class="w-full bg-parchment-light border border-parchment-deep px-5 py-4 text-sm font-light text-ink placeholder:text-ink-muted focus:outline-none focus:border-gold/60 transition-colors"
           ></textarea>
           <div class="mt-4 flex items-center justify-end gap-4">
-            <p v-if="justSubmitted" class="text-xs text-gold-dark font-light italic me-auto">✓ Posted</p>
+            <p v-if="justSubmitted" class="text-xs text-gold-dark font-light italic me-auto">{{ t('academy.comments.pendingNotice') }}</p>
             <button
               type="submit"
               class="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.25em] text-ink hover:text-gold-dark transition-colors border-b border-gold/50 pb-1"
@@ -567,11 +667,11 @@ useReveal()
             <div class="lib-carousel-track" :style="trackStyle">
               <div
                 v-for="rc in related"
-                :key="'related-' + rc.i"
+                :key="'related-' + rc.slug"
                 class="lib-slide"
                 :style="slideStyle"
               >
-                <router-link :to="`/academy/course/${rc.i}`" class="group block h-full">
+                <router-link :to="`/academy/course/${rc.slug}`" class="group block h-full">
             <article class="bg-parchment border border-parchment-deep/70 rounded-lg overflow-hidden h-full flex flex-col shadow-card transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-card-hover group-hover:border-gold/50">
               <!-- Thumbnail -->
               <div class="relative aspect-video w-full overflow-hidden" :style="thumbStyle(rc.i)">
