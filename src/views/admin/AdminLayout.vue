@@ -1,19 +1,17 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuth } from '../../composables/useAuth.js'
 import { useTheme } from '../../composables/useTheme.js'
 import { useLocale } from '../../composables/useLocale.js'
 import { sectionsForRole } from '../../data/adminSections.js'
-import { brandLogoUrl } from '../../data/brandAssets.js'
 
 const { t } = useI18n()
 const route = useRoute()
-const router = useRouter()
-const { user, role, logout } = useAuth()
-const { isDark, toggle: toggleTheme } = useTheme()
-const { locale, setLocale, locales } = useLocale()
+const { role } = useAuth()
+const { isDark } = useTheme()
+const { locale } = useLocale()
 
 // Only the sections this role is cleared for (spec §7 — conditional sidebar).
 const navItems = computed(() => sectionsForRole(role.value))
@@ -26,30 +24,25 @@ const current = computed(
 const drawerOpen = ref(false)
 const closeDrawer = () => { drawerOpen.value = false }
 
-const onLogout = async () => { await logout(); router.push('/') }
-
-// A friendly display name from the stored identity (email/phone).
-const displayName = computed(() => {
-  const id = user.value?.display_name || user.value?.email || user.value?.phone || 'member'
-  return id.includes('@') ? id.split('@')[0] : id
-})
-const roleLabel = computed(() => t(`admin.roles.${role.value}`))
-const initial = computed(() => (displayName.value[0] || 'U').toUpperCase())
 
 // Inline icon set — keyed by each section's `icon`. Kept here so the sidebar
 // stays a single self-contained file.
 const ICONS = {
   grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  receipt: 'M6 3h12v18l-3-2-3 2-3-2-3 2V3zM9 8h6M9 12h6M9 16h3',
   book: 'M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 0-2 2V4zM18 20H7',
   chat: 'M4 5h16v10H9l-4 4V5z',
   layers: 'M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5',
   users: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2 21a7 7 0 0 1 14 0M17 7a3 3 0 0 1 0 6M18.5 21a6 6 0 0 0-3-5.2',
+  box: 'M4 7l8-4 8 4v10l-8 4-8-4V7zM4 7l8 4 8-4M12 11v10',
+  calendar: 'M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2zM8 2v4M16 2v4M3 9h18',
+  doc: 'M7 3h7l5 5v13H7zM14 3v5h5',
   cog: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z',
 }
 </script>
 
 <template>
-  <div class="admin-shell" :class="{ 'is-dark': isDark }">
+  <div class="admin-shell" :class="{ 'is-dark': isDark, 'is-rtl': locale === 'fa' }">
     <!-- Mobile backdrop -->
     <Transition name="fade">
       <div v-if="drawerOpen" class="admin-backdrop" @click="closeDrawer" aria-hidden="true"></div>
@@ -59,11 +52,7 @@ const ICONS = {
     <aside class="admin-sidebar" :class="{ 'is-open': drawerOpen }">
       <div class="admin-sidebar-inner">
         <router-link to="/admin" class="admin-brand" @click="closeDrawer">
-          <img :src="brandLogoUrl" alt="" aria-hidden="true" class="admin-brand-logo" />
-          <span class="admin-brand-text">
-            <span class="admin-brand-name">Neuro Tech</span>
-            <span class="admin-brand-sub">{{ t('admin.consoleTag') }}</span>
-          </span>
+          <span class="console-title">{{ t('admin.consoleTag') }}</span>
         </router-link>
 
         <nav class="admin-nav">
@@ -93,55 +82,25 @@ const ICONS = {
 
     <!-- ── Main column ─────────────────────────────────────────────────────── -->
     <div class="admin-main">
-      <!-- Top header -->
-      <header class="admin-header">
+      <!-- Mobile navigation -->
+      <header class="admin-header admin-mobile-header">
         <div class="admin-header-lead">
           <button type="button" class="admin-burger" @click="drawerOpen = !drawerOpen" :aria-label="t('admin.menu')">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round" /></svg>
           </button>
           <div>
-            <p class="admin-eyebrow">{{ t('admin.eyebrow') }}</p>
+
             <h1 class="admin-header-title">{{ current ? t(`admin.sections.${current.key}.label`) : '' }}</h1>
           </div>
         </div>
 
-        <div class="admin-header-tools">
-          <!-- Language -->
-          <div class="admin-lang" style="direction: ltr;">
-            <button
-              v-for="l in locales"
-              :key="l.code"
-              type="button"
-              @click="setLocale(l.code)"
-              :class="['admin-lang-btn', locale === l.code ? 'is-active' : '']"
-            >{{ l.code.toUpperCase() }}</button>
-          </div>
-
-          <!-- Theme -->
-        <button type="button" class="admin-icon-btn" @click="toggleTheme" :aria-label="isDark ? t('common.lightMode') : t('common.darkMode')">
-            <svg v-if="!isDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" stroke-linecap="round"/></svg>
-          </button>
-
-          <!-- User profile chip -->
-          <div class="admin-user">
-            <span class="admin-user-avatar">{{ initial }}</span>
-            <span class="admin-user-meta">
-              <span class="admin-user-name">{{ displayName }}</span>
-              <span class="admin-badge admin-badge-gold admin-user-role">{{ roleLabel }}</span>
-            </span>
-            <button type="button" class="admin-icon-btn admin-logout" @click="onLogout" :aria-label="t('nav.logout')" :title="t('nav.logout')">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 12H4M11 8l-4 4 4 4M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-          </div>
-        </div>
       </header>
 
       <!-- Routed section -->
       <main class="admin-content">
         <RouterView v-slot="{ Component }">
-          <Transition name="fade" mode="out-in">
-            <component :is="Component" />
+          <Transition name="admin-page" mode="out-in">
+            <div :key="route.path" class="admin-page-view"><component :is="Component" /></div>
           </Transition>
         </RouterView>
       </main>
@@ -150,6 +109,12 @@ const ICONS = {
 </template>
 
 <style scoped>
+.console-title{font-size:.9rem;font-weight:600;line-height:1.7;letter-spacing:.02em}
+.admin-page-enter-active,.admin-page-leave-active{transition:opacity .18s ease,transform .18s ease}.admin-page-enter-from{opacity:0;transform:translateY(8px)}.admin-page-leave-to{opacity:0;transform:translateY(-4px)}
+@media(prefers-reduced-motion:reduce){.admin-page-enter-active,.admin-page-leave-active{transition:none}.admin-sidebar{transition:none!important}}
+.admin-mobile-header { display: none !important; }
+.admin-menu-settings { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+@media(max-width:900px){ .admin-mobile-header { display:flex !important; } .admin-header-tools { display:none !important; } }
 .admin-shell {
   display: flex;
   min-height: 100vh;
@@ -201,7 +166,7 @@ const ICONS = {
   margin-top: 4px;
 }
 
-.admin-nav { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; }
+.admin-nav { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; overflow-y: auto; min-height: 0; }
 .admin-nav-link {
   display: flex;
   align-items: center;
@@ -345,8 +310,9 @@ html[lang='fa'] .admin-back-site { letter-spacing: 0; }
     transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 8px 0 40px -20px rgb(2 6 12 / 0.6);
   }
-  html[dir='rtl'] .admin-sidebar { transform: translateX(100%); }
-  .admin-sidebar.is-open { transform: translateX(0); }
+  .admin-shell.is-rtl .admin-sidebar:not(.is-open) { transform: translateX(100%); }
+  .admin-sidebar:not(.is-open) { visibility: hidden; pointer-events: none; }
+  .admin-sidebar.is-open { transform: translateX(0); visibility: visible; }
   .admin-sidebar-inner { height: 100vh; }
   .admin-burger { display: inline-flex; }
   .admin-user-meta { display: none; }

@@ -19,7 +19,7 @@ const loadPathway = async () => {
 }
 const resolveNodeRoute = (node) => {
   const slug = localizedProgress.value.courses[node.courseIndex]?.slug
-  return slug ? `/academy/course/${slug}` : null
+  return slug ? { path: `/academy/course/${slug}`, query: node.step ? { step: node.step } : {} } : null
 }
 onMounted(loadPathway)
 watch(locale, loadPathway)

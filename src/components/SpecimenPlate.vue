@@ -17,6 +17,7 @@
  * (no scaleX mirroring); see `.plate__view-arrow-*` in the style block.
  */
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import FavoriteButton from './FavoriteButton.vue'
 
 const props = defineProps({
   /** DOM id the IndexSpine observes / jumps to (e.g. "plate-3"). */
@@ -25,6 +26,7 @@ const props = defineProps({
   code: { type: String, required: true },
   /** Raw course object: { title, instructor, level, duration, tier, field, desc }. */
   course: { type: Object, required: true },
+  itemId: { type: String, default: '' },
   /** Router target for the course. */
   to: { type: String, required: true },
   /** Course cover image (object-fit: cover with a subtle dark overlay). */
@@ -102,6 +104,7 @@ onBeforeUnmount(() => io?.disconnect())
     class="plate"
     :class="{ 'plate--flip': flip, 'is-shown': shown }"
   >
+    <FavoriteButton v-if="itemId" class="plate__favorite" type="course" :item-id="itemId" :light="flip" />
     <router-link :to="to" class="plate__inner group">
       <!-- Specimen panel (the single floating plane) -->
       <figure class="plate__panel lux-card">
@@ -165,6 +168,7 @@ onBeforeUnmount(() => io?.disconnect())
   transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
               transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
 }
+.plate__favorite { position: absolute; z-index: 5; inset-block-start: 2.5rem; inset-inline-end: .5rem; }
 .plate.is-shown { opacity: 1; transform: none; }
 
 /* Hairline between consecutive plates — the editorial "rule". */

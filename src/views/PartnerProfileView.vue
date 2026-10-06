@@ -14,18 +14,32 @@
  * Native RTL: layout uses logical Tailwind utilities (ms-/me-, text-start) and
  * the shared .dir-arrow glyph; no scaleX(-1) mirroring.
  */
-import { computed } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useReveal } from '../composables/useReveal.js'
-import { courseMediaAt } from '../data/courseMedia.js'
+import { partnersApi } from '../api/content.js'
+import { academyApi } from '../api/academy.js'
+import { resolveApiUrl } from '../api/client.js'
 
-const { t, tm } = useI18n()
+const { t, tm, locale } = useI18n()
 const route = useRoute()
 
-const people = computed(() => tm('partners.people'))
-const index = computed(() => Number(route.params.id))
-const person = computed(() => people.value[index.value])
+const remotePerson = ref(null)
+const academyCourses = ref([])
+const person = computed(() => remotePerson.value)
+const loadPerson = async () => {
+  remotePerson.value = null
+  const slug = /^\d+$/.test(String(route.params.id)) ? `partner-${Number(route.params.id) + 1}` : route.params.id
+  const [profileResult, coursesResult] = await Promise.allSettled([
+    partnersApi.detail(slug, locale.value),
+    academyApi.list({ locale: locale.value, page: 1, page_size: 100 }),
+  ])
+  if (profileResult.status === 'fulfilled') remotePerson.value = profileResult.value.data
+  if (coursesResult.status === 'fulfilled') academyCourses.value = coursesResult.value.data
+}
+onMounted(loadPerson)
+watch([() => route.params.id, locale], loadPerson)
 
 const initials = (name = '') => name
   .replace(/^(Dr\.|د\.|دکتر|Prof\.?|Eng\.|مهندس)\s*/i, '')
@@ -58,16 +72,21 @@ const publications = computed(() => (Array.isArray(person.value?.publications) ?
 
 // ── Educational-partner extensions (present only on content-provider profiles)
 const expertise = computed(() => (Array.isArray(person.value?.expertise) ? person.value.expertise : []))
-const methodology = computed(() => person.value?.methodology || '')
 const impact = computed(() => person.value?.impact || '')
-const coursesTaught = computed(() => (Array.isArray(person.value?.courses) ? person.value.courses : []))
-const courseRoute = (course) => {
-  const slug = course.slug || courseMediaAt(Number(course.index))?.slug
-  return slug ? `/academy/course/${slug}` : '/academy'
-}
-const playlists = computed(() => (Array.isArray(person.value?.playlists) ? person.value.playlists : []))
 const platform = computed(() => person.value?.platform || '')
-const status = computed(() => person.value?.status || '')
+const taughtCourses = computed(() => {
+  const references = [
+    ...(Array.isArray(person.value?.playlists) ? person.value.playlists : []),
+    ...(Array.isArray(person.value?.courses) ? person.value.courses : []),
+  ]
+  const matched = references.map((reference) => {
+    const slug = typeof reference === 'string' ? reference : reference?.slug
+    if (slug) return academyCourses.value.find((course) => course.slug === slug)
+    const title = reference?.title?.trim().toLocaleLowerCase()
+    return title ? academyCourses.value.find((course) => course.title?.trim().toLocaleLowerCase() === title) : null
+  }).filter(Boolean)
+  return [...new Map(matched.map((course) => [course.slug, course])).values()]
+})
 
 // Aside: a generic placeholder schedule of upcoming clinical sessions.
 const upcoming = computed(() => {
@@ -107,8 +126,9 @@ useReveal()
                  below it on the parchment card body, so contrast is correct in
                  both themes (this fixes the prior dark-on-dark light-mode bug). -->
             <div class="-mt-12 sm:-mt-14 flex justify-center sm:justify-start">
-              <div class="profile-avatar grid place-items-center shrink-0">
-                <span class="profile-initials font-serif font-light leading-none">{{ initials(person.name) }}</span>
+              <div class="profile-avatar grid place-items-center shrink-0 overflow-hidden">
+                <img v-if="person.image_url" :src="resolveApiUrl(person.image_url)" :alt="person.name" class="w-full h-full object-cover">
+                <span v-else class="profile-initials font-serif font-light leading-none">{{ initials(person.name) }}</span>
               </div>
             </div>
 
@@ -130,9 +150,6 @@ useReveal()
 
             <!-- Credential strip -->
             <div class="mt-6 flex flex-wrap justify-center sm:justify-start gap-2.5">
-              <span v-if="status" class="profile-chip profile-chip--status">
-                <span class="profile-status-dot" aria-hidden="true"></span>{{ status }}
-              </span>
               <span v-if="platform" class="profile-chip">
                 {{ t('partners.profile.platformLabel') }} · {{ platform }}
               </span>
@@ -141,9 +158,6 @@ useReveal()
               </span>
               <span v-for="(c, j) in person.collaborations" :key="j" class="profile-chip">{{ c }}</span>
             </div>
-            <p v-if="person.demo" class="mt-4 text-center sm:text-start text-[11px] text-ink-muted font-light leading-relaxed">
-              {{ t('partners.profile.demoNotice') }}
-            </p>
           </div>
         </header>
 
@@ -165,37 +179,6 @@ useReveal()
               <div class="flex flex-wrap gap-2">
                 <span v-for="(x, j) in expertise" :key="j" class="profile-tag">{{ x }}</span>
               </div>
-            </section>
-
-            <!-- Teaching Methodology -->
-            <section v-if="methodology" class="profile-section reveal">
-              <h2 class="profile-section-title">{{ t('partners.profile.methodologyTitle') }}</h2>
-              <span class="profile-rule" aria-hidden="true"></span>
-              <p class="text-[15px] text-ink-soft font-light leading-relaxed">{{ methodology }}</p>
-            </section>
-
-            <!-- Educational Impact -->
-            <section v-if="impact" class="profile-section reveal">
-              <h2 class="profile-section-title">{{ t('partners.profile.impactTitle') }}</h2>
-              <span class="profile-rule" aria-hidden="true"></span>
-              <p class="text-[15px] text-ink-soft font-light leading-relaxed">{{ impact }}</p>
-            </section>
-
-            <!-- Courses Taught — linked to the Academy course pages -->
-            <section v-if="coursesTaught.length" class="profile-section reveal">
-              <h2 class="profile-section-title">{{ t('partners.profile.coursesTaughtTitle') }}</h2>
-              <span class="profile-rule" aria-hidden="true"></span>
-              <ul class="space-y-3">
-                <li v-for="(c, j) in coursesTaught" :key="j">
-                  <router-link :to="courseRoute(c)" class="profile-course group">
-                    <span class="shrink-0 w-8 h-8 rounded border border-gold/40 flex items-center justify-center text-gold-dark">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                    </span>
-                    <span class="min-w-0 flex-1 text-[15px] text-ink font-light leading-snug group-hover:text-gold-dark transition-colors">{{ c.title }}</span>
-                    <span class="dir-arrow shrink-0 text-gold-dark" aria-hidden="true"></span>
-                  </router-link>
-                </li>
-              </ul>
             </section>
 
             <!-- Experience & Roles -->
@@ -230,6 +213,13 @@ useReveal()
               </ol>
             </section>
 
+            <!-- Achievements -->
+            <section v-if="impact" class="profile-section reveal">
+              <h2 class="profile-section-title">{{ t('partners.profile.impactTitle') }}</h2>
+              <span class="profile-rule" aria-hidden="true"></span>
+              <p class="text-[15px] text-ink-soft font-light leading-relaxed">{{ impact }}</p>
+            </section>
+
             <!-- Publications & Projects -->
             <section v-if="publications.length" class="profile-section reveal">
               <h2 class="profile-section-title">{{ t('partners.profile.publicationsTitle') }}</h2>
@@ -259,20 +249,17 @@ useReveal()
               </div>
             </section>
 
-            <!-- Associated Playlists (educational partners) — counts only, never
-                 a source URL; lessons are internal learning resources. -->
-            <section v-if="playlists.length" class="profile-section profile-invert reveal">
+            <!-- Courses taught — resolved from the live Academy catalogue. -->
+            <section v-if="taughtCourses.length" class="profile-section profile-invert reveal">
               <h2 class="profile-section-title text-base">{{ t('partners.profile.playlistsTitle') }}</h2>
               <span class="profile-rule" aria-hidden="true"></span>
               <ul class="space-y-3.5">
-                <li v-for="(pl, j) in playlists" :key="j" class="flex gap-3">
-                  <span class="shrink-0 mt-0.5 w-8 h-8 rounded border border-gold/40 flex items-center justify-center text-gold-dark">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 6h13M3 12h13M3 18h9M17 12l4 3-4 3z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  </span>
-                  <div class="min-w-0">
-                    <p class="text-[14px] text-ink font-light leading-snug">{{ pl.title }}</p>
-                    <p class="text-[11px] text-ink-muted font-light mt-0.5 tabular-nums">{{ pl.lessons }} {{ t('partners.profile.lessonsLabel') }}</p>
-                  </div>
+                <li v-for="course in taughtCourses" :key="course.slug">
+                  <router-link :to="{ name: 'CourseDetail', params: { id: course.slug } }" class="profile-course group">
+                    <span class="shrink-0 w-8 h-8 rounded border border-gold/40 flex items-center justify-center text-gold-dark"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
+                    <span class="min-w-0 flex-1"><span class="block text-[14px] text-ink font-light leading-snug group-hover:text-gold-dark transition-colors">{{ course.title }}</span><span class="block text-[11px] text-ink-muted font-light mt-0.5 tabular-nums">{{ course.lesson_count || 0 }} {{ t('partners.profile.lessonsLabel') }}</span></span>
+                    <span class="dir-arrow shrink-0 text-gold-dark" aria-hidden="true"></span>
+                  </router-link>
                 </li>
               </ul>
             </section>
@@ -374,21 +361,6 @@ useReveal()
   border-radius: 9999px;
   padding-block: 0.25rem;
   padding-inline: 0.75rem;
-}
-
-/* Active-partner status chip — a small gold "live" dot on the standard chip. */
-.profile-chip--status {
-  color: rgb(var(--c-gold-dark));
-  border-color: rgb(var(--c-gold) / 0.5);
-}
-.profile-status-dot {
-  display: inline-block;
-  width: 6px; height: 6px;
-  margin-inline-end: 0.45rem;
-  border-radius: 9999px;
-  background: rgb(var(--c-gold));
-  box-shadow: 0 0 0 3px rgb(var(--c-gold) / 0.18);
-  vertical-align: middle;
 }
 
 /* Courses-taught rows — a flat gold-hairline link that warms on hover. */

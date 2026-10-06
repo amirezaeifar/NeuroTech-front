@@ -1,26 +1,83 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useReveal } from '../composables/useReveal.js'
 import { deviceArt } from '../composables/useDeviceArt.js'
+import { resolveApiUrl } from '../api/client.js'
+import { productsApi } from '../api/products.js'
+import { useAuth } from '../composables/useAuth.js'
+import { useCart } from '../composables/useCart.js'
+import FavoriteButton from '../components/FavoriteButton.vue'
+import ProductIcon from '../components/ProductIcon.vue'
+import { documentTypeLabel } from '../data/documentTypes.js'
 
-const { t, tm } = useI18n()
+const { t, tm, locale } = useI18n()
 const route = useRoute()
+const router = useRouter()
+const { ensureSession, isAuthenticated } = useAuth()
+const { add: addToCart } = useCart()
 
 const products = computed(() => tm('products.items'))
 const index = computed(() => Number(route.params.id))
-const product = computed(() => products.value[index.value])
-const categoryLabel = (k) => t(`products.filters.${k}`)
+const apiProduct = ref(null)
+const loadProduct = async () => {
+  if (!Number.isNaN(index.value)) {
+    apiProduct.value = null
+    return
+  }
+  try {
+    const response = await productsApi.detail(route.params.id, locale.value)
+    apiProduct.value = {
+      ...response.data,
+      desc: response.data.short_description,
+      categoryTitle: response.data.category_title,
+      category: response.data.category,
+    }
+  } catch (_) {
+    apiProduct.value = null
+  }
+}
+onMounted(loadProduct)
+watch([() => route.params.id, locale], loadProduct)
+const product = computed(() => apiProduct.value || products.value[index.value])
+const categoryLabel = (k) => product.value?.categoryTitle || t(`products.filters.${k}`)
 
-const badges = computed(() => tm('products.detail.badges'))
-const keyFeatures = computed(() => tm('products.detail.keyFeatures'))
-const specs = computed(() => tm('products.detail.specs'))
-const certs = computed(() => tm('products.detail.certs'))
-const trials = computed(() => tm('products.detail.trials'))
-const ecosystem = computed(() => tm('products.detail.ecosystem'))
+const safeLink = value => /^https?:\/\//i.test(value) || /^\/(?!\/)/.test(value) ? value : undefined
+const downloadLink = value => {
+  const safe = safeLink(value)
+  if (!safe) return undefined
+  const url = new URL(safe, window.location.origin)
+  url.searchParams.set('download', '1')
+  return url.toString()
+}
+const detailValue = (key) => apiProduct.value ? (apiProduct.value.details?.[key] ?? '') : t(`products.detail.${key}`)
+const detailList = (key) => apiProduct.value ? (apiProduct.value.details?.[key] || []) : tm(`products.detail.${key}`)
+const hasText = value => typeof value === 'string' && value.trim().length > 0
+const badges = computed(() => detailList('badges').filter(hasText))
+const keyFeatures = computed(() => detailList('keyFeatures').filter(hasText))
+const specs = computed(() => detailList('specs').filter(item => hasText(item?.label) || hasText(item?.value)))
+const documents = computed(() => detailList('docs').filter(item => hasText(item?.name) || hasText(item?.url)))
+const priceLabel = computed(() => {
+  const prices = apiProduct.value?.prices || []
+  const price = prices.find(p => p.currency === (locale.value === 'fa' ? 'IRR' : 'USD')) || prices[0]
+  return price ? new Intl.NumberFormat(locale.value,{style:'currency',currency:price.currency,maximumFractionDigits:price.currency==='IRR'?0:2}).format(price.amount_minor / (price.currency==='USD'?100:1)) : ''
+})
+const selectedPrice = computed(() => {
+  const prices = apiProduct.value?.prices || []
+  return prices.find(p => p.currency === (locale.value === 'fa' ? 'IRR' : 'USD')) || prices[0]
+})
+const certs = computed(() => detailList('certs').filter(item => hasText(item?.name) || hasText(item?.note)))
+const trials = computed(() => detailList('trials').filter(item => hasText(item?.stat) || hasText(item?.note)))
+const ecosystem = computed(() => detailList('ecosystem').filter(item => hasText(item?.name) || hasText(item?.desc)))
 
-const reviews = computed(() => tm('products.detail.reviews'))
+const reviews = computed(() => detailList('reviews').filter(item => hasText(item?.author) || hasText(item?.text)))
+const hasBlueprint = computed(() => hasText(detailValue('blueprintLead')) || keyFeatures.value.length > 0)
+const hasValidation = computed(() => hasText(detailValue('validationLead')) || certs.value.length > 0 || trials.value.length > 0)
+const hasEcosystem = computed(() => hasText(detailValue('ecosystemLead')) || ecosystem.value.length > 0)
+const hasOrdering = computed(() => hasText(detailValue('availability')) || hasText(detailValue('leadTime')))
+const orderingText = computed(() => [detailValue('availability'), detailValue('leadTime')].filter(hasText).join(' · '))
 const ratingAvg = computed(() => {
   const r = reviews.value
   if (!r || !r.length) return 0
@@ -30,18 +87,51 @@ const starFills = computed(() =>
   Array.from({ length: 5 }, (_, i) => Math.max(0, Math.min(1, ratingAvg.value - i)))
 )
 
-const sku = computed(() => 'NT-' + String(index.value + 1).padStart(3, '0'))
+const sku = computed(() => apiProduct.value?.sku || 'NT-' + String(index.value + 1).padStart(3, '0'))
+const actionError = ref('')
+const copy = (en, fa) => locale.value === 'fa' ? fa : en
+const submitPrimary = async () => {
+  if (!apiProduct.value) {
+    router.push('/checkout')
+    return
+  }
+  actionError.value = ''
+  try {
+    await ensureSession()
+    if (apiProduct.value.sale_mode === 'inquiry') {
+      const contact = router.resolve({ name: 'Contact', query: { category: 'products', product: apiProduct.value.name, ref: apiProduct.value.sku } }).fullPath
+      if (!isAuthenticated.value) return router.push({ name: 'Login', query: { redirect: contact } })
+      return router.push(contact)
+    }
+    if (apiProduct.value.sale_mode === 'direct') {
+      addToCart({
+        type: 'product',
+        id: apiProduct.value.id,
+        slug: apiProduct.value.slug,
+        title: apiProduct.value.name,
+        price: selectedPrice.value?.amount_minor,
+        currency: selectedPrice.value?.currency,
+      })
+      if (isAuthenticated.value) await productsApi.setCartItem(apiProduct.value.id, 1)
+    }
+  } catch (problem) {
+    actionError.value = problem.message
+  }
+}
 const pad2 = (n) => String(n + 1).padStart(2, '0')
 
 // ── Gallery ──────────────────────────────────────────────────────────────────
 // Four "views" of the device — same SVG art, different viewBox crops to simulate
 // front / interface / signal / rear perspectives. No extra assets required.
-const GALLERY_SLIDES = [
+const SAMPLE_SLIDES = [
   { labelKey: 'galleryFront',     viewBox: '0 0 48 36' },
   { labelKey: 'galleryInterface', viewBox: '8 5 32 26' },
   { labelKey: 'gallerySignal',    viewBox: '-2 2 44 32' },
   { labelKey: 'galleryModule',    viewBox: '4 0 40 36' },
 ]
+const GALLERY_SLIDES = computed(() => apiProduct.value
+  ? (apiProduct.value.media || []).filter(item => item.file_url || item.external_url).map(item => ({ url: resolveApiUrl(item.file_url || item.external_url), label: item.alt_text || apiProduct.value.name, viewBox: '0 0 48 36', labelKey: 'galleryFront' }))
+  : SAMPLE_SLIDES)
 const activeSlide = ref(0)
 const isFullscreen = ref(false)
 
@@ -107,14 +197,15 @@ useReveal()
           <span class="text-ink-hint">/</span>
           <span class="text-gold-dark normal-case tracking-[0.1em]">{{ product.name }}</span>
         </nav>
+        <FavoriteButton v-if="apiProduct?.id" class="mt-3" type="product" :item-id="apiProduct.id" />
       </div>
 
       <!-- ── Split hero ─────────────────────────────────────────────────────── -->
       <section class="max-w-6xl mx-auto px-6 md:px-10 pt-8 md:pt-12">
-        <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+        <div class="grid gap-10 lg:gap-16 items-center" :class="GALLERY_SLIDES.length ? 'lg:grid-cols-2' : 'lg:grid-cols-1'">
 
           <!-- ── Image Gallery ───────────────────────────────────────────────── -->
-          <div class="pdx-gallery reveal">
+          <div v-if="GALLERY_SLIDES.length" class="pdx-gallery reveal">
             <!-- Main display -->
             <figure class="pdx-gallery-main">
               <!-- Fullscreen toggle -->
@@ -140,7 +231,8 @@ useReveal()
                   class="pdx-slide"
                   :class="{ 'is-active': activeSlide === k }"
                 >
-                  <svg
+                  <img v-if="slide.url" :src="slide.url" :alt="slide.label" class="w-full h-full object-contain p-6">
+                  <svg v-else
                     class="pdx-render-art"
                     :viewBox="slide.viewBox"
                     fill="none"
@@ -167,7 +259,7 @@ useReveal()
             </figure>
 
             <!-- Thumbnail strip -->
-            <div class="pdx-thumbs" role="tablist" :aria-label="t('products.detail.galleryViews')">
+            <div v-if="GALLERY_SLIDES.length > 1" class="pdx-thumbs" role="tablist" :aria-label="t('products.detail.galleryViews')">
               <button
                 v-for="(slide, k) in GALLERY_SLIDES"
                 :key="k"
@@ -178,7 +270,8 @@ useReveal()
                 :aria-selected="activeSlide === k"
                 @click="activeSlide = k"
               >
-                <svg
+                <img v-if="slide.url" :src="slide.url" :alt="slide.label" class="w-full h-full object-contain">
+                <svg v-else
                   :viewBox="slide.viewBox"
                   fill="none"
                   stroke-width="1.2"
@@ -202,49 +295,49 @@ useReveal()
           <div class="reveal">
             <p class="text-[11px] uppercase tracking-[0.38em] text-gold-dark font-light">{{ t('products.detail.brand') }}</p>
             <h1 class="mt-4 font-serif font-light text-[2.6rem] md:text-6xl text-ink leading-[1.04]">{{ product.name }}</h1>
-            <p class="mt-5 font-serif italic font-light text-xl md:text-2xl text-ink-soft leading-relaxed">{{ t('products.detail.overviewLead') }}</p>
+            <p v-if="hasText(detailValue('overviewLead'))" class="mt-5 font-serif italic font-light text-xl md:text-2xl text-ink-soft leading-relaxed">{{ detailValue('overviewLead') }}</p>
 
-            <div class="mt-8">
+            <div v-if="hasText(product.desc) || hasText(apiProduct?.description || detailValue('overviewBody'))" class="mt-8">
               <div class="flex items-center gap-3">
                 <span class="pdx-essence-rule"></span>
                 <span class="text-[10px] uppercase tracking-[0.3em] text-gold-dark font-light">{{ t('products.detail.essenceLabel') }}</span>
               </div>
-              <p class="mt-4 text-[15px] text-ink-soft font-light leading-relaxed">{{ product.desc }}</p>
-              <p class="mt-3 text-[15px] text-ink-soft font-light leading-relaxed">{{ t('products.detail.overviewBody') }}</p>
+              <p v-if="hasText(product.desc)" class="mt-4 text-[15px] text-ink-soft font-light leading-relaxed">{{ product.desc }}</p>
+              <p v-if="hasText(apiProduct?.description || detailValue('overviewBody'))" class="mt-3 text-[15px] text-ink-soft font-light leading-relaxed whitespace-pre-wrap">{{ apiProduct?.description || detailValue('overviewBody') }}</p>
             </div>
-
+            <div v-if="apiProduct?.sale_mode === 'direct'" class="mt-6 flex flex-wrap items-center gap-4"><strong class="text-2xl text-gold-dark">{{ priceLabel }}</strong><span class="text-sm">{{ copy('In stock','موجودی') }}: {{ apiProduct.stock_quantity }}</span></div>
             <!-- Badges -->
-            <div class="mt-7 flex flex-wrap gap-2.5">
+            <div v-if="badges.length" class="mt-7 flex flex-wrap gap-2.5">
               <span v-for="(b, k) in badges" :key="k" class="pdx-badge">{{ b }}</span>
             </div>
 
             <!-- CTAs — high-end clinical glassmorphism buttons -->
             <div class="mt-9 flex flex-col sm:flex-row gap-3.5">
-              <router-link to="/checkout" class="pdx-btn-primary">
-                {{ t('products.detail.purchaseCta') }} <span class="dir-arrow" aria-hidden="true"></span>
-              </router-link>
-              <!-- Download Brochure — premium placeholder; no action wired. -->
-              <a href="#" class="pdx-btn-ghost" @click.prevent>
+              <button type="button" class="pdx-btn-primary" :disabled="apiProduct?.sale_mode === 'direct' && !apiProduct.stock_quantity" @click="submitPrimary">
+                {{ apiProduct?.sale_mode === 'inquiry' ? t('products.detail.ctaPrimary') : t('products.detail.purchaseCta') }} <span class="dir-arrow" aria-hidden="true"></span>
+              </button>
+              <a v-if="downloadLink(detailValue('brochureUrl'))" :href="downloadLink(detailValue('brochureUrl'))" download class="pdx-btn-ghost">
                 {{ t('products.detail.ctaSecondary') }}
               </a>
             </div>
+            <p v-if="actionError" class="mt-3 text-sm text-red-700" role="alert">{{ actionError }}</p>
           </div>
         </div>
       </section>
 
       <!-- ── Technical Blueprint ────────────────────────────────────────────── -->
-      <section class="pdx-blueprint">
+      <section v-if="hasBlueprint" class="pdx-blueprint">
         <div class="max-w-6xl mx-auto px-6 md:px-10">
           <div class="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <p class="text-[10px] uppercase tracking-[0.34em] text-gold-dark font-light">{{ t('products.detail.featuresTitle') }}</p>
               <h2 class="pdx-h2 mt-3">{{ t('products.detail.blueprintTitle') }}</h2>
             </div>
-            <p class="font-serif italic font-light text-lg text-ink-muted max-w-sm md:text-end">{{ t('products.detail.blueprintLead') }}</p>
+            <p v-if="hasText(detailValue('blueprintLead'))" class="font-serif italic font-light text-lg text-ink-muted max-w-sm md:text-end">{{ detailValue('blueprintLead') }}</p>
           </div>
           <span class="pdx-hairline reveal" aria-hidden="true"></span>
 
-          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-px pdx-grid reveal">
+          <div v-if="keyFeatures.length" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-px pdx-grid reveal">
             <article v-for="(f, k) in keyFeatures" :key="k" class="pdx-cell">
               <div class="flex items-center justify-between">
                 <span class="pdx-cell-no">{{ pad2(k) }}</span>
@@ -259,17 +352,17 @@ useReveal()
       </section>
 
       <!-- ── Clinical Validation & Certifications ───────────────────────────── -->
-      <section class="max-w-6xl mx-auto px-6 md:px-10 pt-20 md:pt-24">
+      <section v-if="hasValidation" class="max-w-6xl mx-auto px-6 md:px-10 pt-20 md:pt-24">
         <div class="reveal">
           <p class="text-[10px] uppercase tracking-[0.34em] text-gold-dark font-light">{{ t('products.detail.validationKicker') }}</p>
           <h2 class="pdx-h2 mt-3">{{ t('products.detail.validationTitle') }}</h2>
-          <p class="mt-3 font-serif italic font-light text-lg text-ink-muted max-w-xl">{{ t('products.detail.validationLead') }}</p>
+          <p v-if="hasText(detailValue('validationLead'))" class="mt-3 font-serif italic font-light text-lg text-ink-muted max-w-xl">{{ detailValue('validationLead') }}</p>
           <span class="pdx-hairline" aria-hidden="true"></span>
         </div>
 
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 reveal">
+        <div v-if="certs.length" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 reveal">
           <article v-for="(c, k) in certs" :key="k" class="pdx-cert">
-            <span class="pdx-cert-mark">{{ c.mark }}</span>
+            <span class="pdx-cert-mark"><ProductIcon :name="c.mark" class="h-8 w-8" /></span>
             <div>
               <p class="pdx-cert-name">{{ c.name }}</p>
               <p class="pdx-cert-note">{{ c.note }}</p>
@@ -277,31 +370,30 @@ useReveal()
           </article>
         </div>
 
-        <div class="mt-6 flex items-center gap-3 reveal">
+        <div v-if="trials.length" class="mt-6 flex items-center gap-3 reveal">
           <span class="pdx-essence-rule"></span>
           <span class="text-[10px] uppercase tracking-[0.3em] text-gold-dark font-light">{{ t('products.detail.trialsLabel') }}</span>
         </div>
-        <div class="mt-5 grid sm:grid-cols-3 gap-5 reveal">
+        <div v-if="trials.length" class="mt-5 grid sm:grid-cols-3 gap-5 reveal">
           <article v-for="(tr, k) in trials" :key="k" class="pdx-trial">
             <p class="pdx-trial-stat">{{ tr.stat }}</p>
-            <p class="pdx-trial-label">{{ tr.label }}</p>
             <p class="pdx-trial-note">{{ tr.note }}</p>
           </article>
         </div>
       </section>
 
       <!-- ── Software Ecosystem ─────────────────────────────────────────────── -->
-      <section class="max-w-6xl mx-auto px-6 md:px-10 pt-20 md:pt-24">
+      <section v-if="hasEcosystem" class="max-w-6xl mx-auto px-6 md:px-10 pt-20 md:pt-24">
         <div class="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <p class="text-[10px] uppercase tracking-[0.34em] text-gold-dark font-light">{{ t('products.detail.ecosystemKicker') }}</p>
             <h2 class="pdx-h2 mt-3">{{ t('products.detail.ecosystemTitle') }}</h2>
           </div>
-          <p class="font-serif italic font-light text-lg text-ink-muted max-w-sm md:text-end">{{ t('products.detail.ecosystemLead') }}</p>
+          <p v-if="hasText(detailValue('ecosystemLead'))" class="font-serif italic font-light text-lg text-ink-muted max-w-sm md:text-end">{{ detailValue('ecosystemLead') }}</p>
         </div>
         <span class="pdx-hairline reveal" aria-hidden="true"></span>
 
-        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 reveal">
+        <div v-if="ecosystem.length" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 reveal">
           <article v-for="(e, k) in ecosystem" :key="k" class="pdx-eco">
             <svg class="pdx-eco-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path v-for="(d, m) in ecoIcon(k)" :key="m" :d="d" />
@@ -310,13 +402,11 @@ useReveal()
             <p class="pdx-eco-desc">{{ e.desc }}</p>
           </article>
         </div>
-        <p class="mt-6 text-[13px] text-ink-muted font-light reveal flex items-center gap-2.5">
-          <span class="pdx-eco-dot" aria-hidden="true"></span>{{ t('products.detail.ecosystemNote') }}
-        </p>
       </section>
 
+      <section v-if="documents.length" class="max-w-6xl mx-auto px-6 md:px-10 pt-16"><h2 class="pdx-h2">{{ t('products.detail.docsTitle') }}</h2><div class="grid sm:grid-cols-2 gap-4 mt-6"><article v-for="(document,i) in documents" :key="i" class="pdx-cert"><div><a v-if="safeLink(document.url)" :href="safeLink(document.url)" target="_blank" rel="noopener noreferrer" class="text-gold-dark underline">{{ document.name }}</a><strong v-else>{{ document.name }}</strong><p v-if="document.type" class="text-sm mt-2">{{ documentTypeLabel(document.type, locale) }}</p></div></article></div></section>
       <!-- ── Specifications ─────────────────────────────────────────────────── -->
-      <section class="max-w-6xl mx-auto px-6 md:px-10 pt-20 md:pt-24">
+      <section v-if="specs.length" class="max-w-6xl mx-auto px-6 md:px-10 pt-20 md:pt-24">
         <div class="reveal">
           <p class="text-[10px] uppercase tracking-[0.34em] text-gold-dark font-light">{{ t('products.detail.specsTitle') }}</p>
           <h2 class="pdx-h2 mt-3">{{ t('products.detail.specsTitle') }}</h2>
@@ -337,14 +427,13 @@ useReveal()
           <div class="pdx-cta-grid" aria-hidden="true"></div>
           <div class="relative">
             <p class="text-[10px] uppercase tracking-[0.34em] pdx-cta-eyebrow font-light">{{ t('products.detail.brand') }}</p>
-            <h2 class="mt-4 font-serif font-light text-3xl md:text-5xl leading-[1.08] pdx-cta-title">{{ t('products.detail.overviewLead') }}</h2>
-            <p class="mt-4 text-[14px] font-light leading-relaxed pdx-cta-note max-w-xl">{{ t('products.detail.priceNote') }}</p>
+            <h2 v-if="hasText(detailValue('overviewLead'))" class="mt-4 font-serif font-light text-3xl md:text-5xl leading-[1.08] pdx-cta-title">{{ detailValue('overviewLead') }}</h2>
             <div class="mt-9 flex flex-col sm:flex-row gap-3.5">
-              <router-link to="/checkout" class="pdx-cta-btn">
-                {{ t('products.detail.purchaseCta') }} <span class="dir-arrow" aria-hidden="true"></span>
-              </router-link>
-              <span class="pdx-cta-meta">
-                <span class="pdx-cta-dot"></span>{{ t('products.detail.availability') }} · {{ t('products.detail.leadTime') }}
+              <button type="button" class="pdx-cta-btn" @click="submitPrimary">
+                {{ apiProduct?.sale_mode === 'inquiry' ? t('products.detail.ctaPrimary') : t('products.detail.purchaseCta') }} <span class="dir-arrow" aria-hidden="true"></span>
+              </button>
+              <span v-if="hasOrdering" class="pdx-cta-meta">
+                <span class="pdx-cta-dot"></span>{{ orderingText }}
               </span>
             </div>
           </div>
@@ -352,7 +441,7 @@ useReveal()
       </section>
 
       <!-- ── Reviews & Ratings — pinned to the very bottom, just above footer ── -->
-      <section class="max-w-6xl mx-auto px-6 md:px-10 pt-16 md:pt-20 pb-24">
+      <section v-if="reviews.length" class="max-w-6xl mx-auto px-6 md:px-10 pt-16 md:pt-20 pb-24">
         <div class="reveal">
           <p class="text-[10px] uppercase tracking-[0.34em] text-gold-dark font-light">{{ t('products.detail.reviewsKicker') }}</p>
           <h2 class="pdx-h2 mt-3">{{ t('products.detail.reviewsTitle') }}</h2>
@@ -406,7 +495,7 @@ useReveal()
         <div class="pdx-carousel-nav reveal">
                 <button type="button" class="pdx-carousel-btn" @click="prevReview" :aria-label="t('products.detail.previousReview')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-              <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
           <!-- Dot indicators -->
@@ -422,7 +511,7 @@ useReveal()
           </div>
                 <button type="button" class="pdx-carousel-btn" @click="nextReview" :aria-label="t('products.detail.nextReview')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-              <path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
         </div>
@@ -442,7 +531,7 @@ useReveal()
   <Teleport to="body">
     <Transition name="pdx-fs">
       <div
-        v-if="isFullscreen && product"
+        v-if="isFullscreen && product && GALLERY_SLIDES.length"
         class="pdx-fs-overlay"
         role="dialog"
         aria-modal="true"
@@ -454,7 +543,8 @@ useReveal()
           </svg>
         </button>
         <div class="pdx-fs-stage">
-          <svg
+          <img v-if="GALLERY_SLIDES[activeSlide]?.url" :src="GALLERY_SLIDES[activeSlide].url" :alt="GALLERY_SLIDES[activeSlide].label" class="max-h-[75vh] max-w-full object-contain">
+          <svg v-else
             class="pdx-fs-art"
             :viewBox="GALLERY_SLIDES[activeSlide].viewBox"
             fill="none"
@@ -466,7 +556,7 @@ useReveal()
             <g class="pdx-frame"><path v-for="(d, k) in deviceArt(product.category).frame" :key="'f'+k" :d="d"/></g>
             <g class="pdx-signal"><path v-for="(d, k) in deviceArt(product.category).signal" :key="'s'+k" :d="d"/></g>
           </svg>
-          <div class="pdx-fs-thumbs">
+          <div v-if="GALLERY_SLIDES.length > 1" class="pdx-fs-thumbs">
             <button
               v-for="(slide, k) in GALLERY_SLIDES"
               :key="k"
@@ -475,7 +565,7 @@ useReveal()
               :class="{ 'is-active': activeSlide === k }"
               @click="activeSlide = k"
             >
-              <svg :viewBox="slide.viewBox" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="pdx-thumb-art" aria-hidden="true">
+              <img v-if="slide.url" :src="slide.url" :alt="slide.label" class="w-full h-full object-contain"><svg v-else :viewBox="slide.viewBox" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" class="pdx-thumb-art" aria-hidden="true">
                 <g class="pdx-frame"><path v-for="(d, m) in deviceArt(product.category).frame" :key="'f'+m" :d="d"/></g>
                 <g class="pdx-signal"><path v-for="(d, m) in deviceArt(product.category).signal" :key="'s'+m" :d="d"/></g>
               </svg>

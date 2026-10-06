@@ -1,26 +1,55 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LuxeCard from '../components/LuxeCard.vue'
 import SectionEyebrow from '../components/SectionEyebrow.vue'
 import { useReveal } from '../composables/useReveal.js'
+import { eventsApi } from '../api/events.js'
 
-const { t, tm } = useI18n()
+const { t, locale } = useI18n()
 
 const tabs = [
   { key: 'online', label: 'events.tabs.online' },
   { key: 'onsite', label: 'events.tabs.onsite' },
 ]
 const active = ref('online')
+const apiItems = ref([])
+const loading = ref(true)
+const loadError = ref('')
+const formatDate = (value) => new Intl.DateTimeFormat(locale.value, {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+}).format(new Date(value))
+const loadEvents = async () => {
+  loading.value = true
+  loadError.value = ''
+  try {
+    const response = await eventsApi.list({ locale: locale.value })
+    apiItems.value = response.data.map((item) => ({
+      ...item,
+      i: item.slug,
+      phase: item.status === 'live' ? 'ongoing' : item.status,
+      tag: item.kind,
+      host: item.host_label,
+      date: formatDate(item.starts_at),
+    }))
+  } catch (problem) {
+    apiItems.value = []
+    loadError.value = problem.message
+  } finally {
+    loading.value = false
+  }
+}
+onMounted(loadEvents)
+watch(locale, loadEvents)
 
-const withIdx = (arr) => (Array.isArray(arr) ? arr : []).map((it, i) => ({ ...it, i }))
-const onlineItems = computed(() => withIdx(tm('events.online.items')))
-const onsiteItems = computed(() => withIdx(tm('events.onsite.items')))
-const archiveItems = computed(() => tm('events.archive.items'))
+const onlineItems = computed(() => apiItems.value.filter((item) => item.kind === 'online' && ['upcoming', 'live'].includes(item.status)))
+const onsiteItems = computed(() => apiItems.value.filter((item) => item.kind === 'onsite' && ['upcoming', 'live'].includes(item.status)))
+const archiveItems = computed(() => apiItems.value.filter((item) => item.status === 'completed'))
 
 const currentItems = computed(() => (active.value === 'online' ? onlineItems.value : onsiteItems.value))
 const ongoing = computed(() => currentItems.value.filter((x) => x.phase === 'ongoing'))
-const upcoming = computed(() => currentItems.value.filter((x) => (x.phase || 'upcoming') !== 'ongoing'))
+const upcoming = computed(() => currentItems.value.filter((x) => x.phase === 'upcoming'))
 
 const reserveLabel = computed(() => (active.value === 'online' ? t('events.online.watch') : t('events.onsite.register')))
 const joinLabel = computed(() => (active.value === 'online' ? t('events.online.join') : t('events.onsite.join')))
@@ -48,6 +77,8 @@ useReveal()
         <p class="reveal max-w-2xl mx-auto text-center font-serif italic font-light text-2xl text-ink-soft leading-relaxed">
           {{ t('events.intro') }}
         </p>
+        <p v-if="loadError" class="mt-8 text-center text-sm text-red-700" role="alert">{{ loadError }}</p>
+        <p v-else-if="loading" class="mt-8 text-center text-sm text-ink-muted">{{ locale === 'fa' ? 'در حال دریافت رویدادها…' : 'Loading events…' }}</p>
 
         <!-- Prominent category toggle -->
         <div class="mt-12 flex justify-center">
@@ -96,11 +127,8 @@ useReveal()
               <p class="mt-1.5 text-xs text-ink-muted font-light">{{ personOf(item) }}</p>
               <p class="mt-1 text-xs text-ink-hint font-light uppercase tracking-[0.15em]">{{ item.date }}</p>
 
-              <!-- Both online and on-site sessions stream into the same Live
-                   Event hub. On-site sessions additionally surface the admin
-                   broadcast ("Events messages") panel inside that hub. -->
               <router-link
-                :to="`/events/active/${active}/${item.i}`"
+                :to="`/events/live/${item.slug}`"
                 class="mt-6 inline-flex items-center justify-center gap-2.5 w-full text-[11px] uppercase tracking-[0.3em] font-light px-6 py-3.5 rounded-md bg-ink text-parchment-light hover:bg-gold-dark transition-colors"
               >
                 {{ joinLabel }} <span class="dir-arrow" aria-hidden="true"></span>
@@ -130,7 +158,7 @@ useReveal()
               </div>
               <div class="flex flex-col items-start md:items-end gap-2 shrink-0">
                 <span class="text-[11px] uppercase tracking-[0.2em] text-ink-muted font-light">{{ item.status }}</span>
-                <router-link :to="`/events/reserve/${active}/${item.i}`" class="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.25em] text-ink hover:text-gold-dark transition-colors border-b border-gold/50 pb-1">
+                <router-link :to="`/events/reserve/${active}/${item.slug}`" class="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.25em] text-ink hover:text-gold-dark transition-colors border-b border-gold/50 pb-1">
                   {{ reserveLabel }} <span class="dir-arrow" aria-hidden="true"></span>
                 </router-link>
               </div>
@@ -147,7 +175,7 @@ useReveal()
             <router-link
               v-for="(item, i) in archiveItems"
               :key="'past-' + item.title + i"
-              :to="`/events/archive/${i}`"
+              :to="`/events/archive/${item.slug}`"
               class="reveal group block"
               :style="{ transitionDelay: `${(i % 6) * 60}ms` }"
             >

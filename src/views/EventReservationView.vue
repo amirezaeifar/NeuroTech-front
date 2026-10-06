@@ -1,42 +1,58 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import LuxeCard from '../components/LuxeCard.vue'
 import SectionEyebrow from '../components/SectionEyebrow.vue'
 import { useAuth } from '../composables/useAuth.js'
 import { useReveal } from '../composables/useReveal.js'
+import { eventsApi } from '../api/events.js'
 
-const { t, tm } = useI18n()
+const { t, tm, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const { isAuthenticated } = useAuth()
+const { isAuthenticated, ensureSession } = useAuth()
 
-const eventType = computed(() => (route.params.type === 'onsite' ? 'onsite' : 'online'))
-const eventItems = computed(() => tm(`events.${eventType.value}.items`))
-const itemIndex = computed(() => Number(route.params.id))
-const item = computed(() => eventItems.value[itemIndex.value])
-const venueOrHost = computed(() => item.value?.host || item.value?.venue || '')
-
-// ── Mock capacity (a real backend would supply these per session) ──
-const capacity = 100
-const filled = 75
-const remaining = computed(() => Math.max(capacity - filled, 0))
-const fillPct = computed(() => Math.round((filled / capacity) * 100))
-
-// ── Confirm-reservation flow with an auth guard ──
-// Logged in  → show the "Reservation Confirmed" modal.
-// Logged out → bounce to /login, remembering this page so the user lands back
-//              here after signing in and can confirm.
-const showConfirm = ref(false)
-const confirmReservation = () => {
-  if (isAuthenticated.value) {
-    showConfirm.value = true
-  } else {
-    router.push({ name: 'Login', query: { redirect: route.fullPath } })
-  }
+const apiEvent = ref(null), myReservation = ref(null), reserving = ref(false)
+const showConfirm = ref(false), reservationError = ref('')
+const eventType = computed(() => apiEvent.value?.kind || (route.params.type === 'onsite' ? 'onsite' : 'online'))
+let timer, sequence = 0, stopped = false
+const loadEvent = async () => {
+  const request = ++sequence
+  try {
+    const { data } = await eventsApi.detail(route.params.id, locale.value)
+    if (request !== sequence || stopped) return
+    apiEvent.value = { ...data, tag: data.kind, host: data.host_label, date: new Intl.DateTimeFormat(locale.value, { dateStyle: 'medium', timeStyle: 'short', timeZone: data.timezone }).format(new Date(data.starts_at)) }
+    if (isAuthenticated.value) {
+      const response = await eventsApi.reservation(data.slug)
+      if (request === sequence && !stopped) myReservation.value = response.data
+    } else myReservation.value = null
+  } catch (problem) { if (!stopped && request === sequence) reservationError.value = problem.message }
 }
-
+onMounted(async () => { try { await ensureSession() } catch (problem) { reservationError.value = problem.message }; if (stopped) return; await loadEvent(); if (!stopped) timer = window.setInterval(() => { if (!document.hidden) loadEvent() }, 10000) })
+onUnmounted(() => { stopped = true; sequence++; clearInterval(timer) })
+watch([() => route.params.id, locale], loadEvent)
+const item = computed(() => apiEvent.value)
+const venueOrHost = computed(() => eventType.value === 'onsite' ? item.value?.venue : item.value?.host)
+const capacity = computed(() => apiEvent.value?.capacity ?? '∞')
+const filled = computed(() => apiEvent.value?.reserved ?? 0)
+const remaining = computed(() => apiEvent.value?.remaining ?? '∞')
+const fillPct = computed(() => typeof capacity.value === 'number' ? Math.min(100, Math.round(filled.value / capacity.value * 100)) : 0)
+const isReserved = computed(() => myReservation.value?.status === 'confirmed')
+const awaitingEmail = computed(() => myReservation.value?.status === 'pending_email')
+const closed = computed(() => !['upcoming', 'live'].includes(item.value?.status) || new Date(item.value?.ends_at).getTime() <= Date.now())
+const confirmReservation = async () => {
+  if (reserving.value) return
+  reserving.value = true; reservationError.value = ''
+  try {
+    await ensureSession()
+    if (!isAuthenticated.value) { router.push({ name: 'Login', query: { redirect: route.fullPath } }); return }
+    if (!apiEvent.value) return
+    if (isReserved.value) showConfirm.value = true
+    else { myReservation.value = (await eventsApi.reserve(apiEvent.value.slug)).data; showConfirm.value = true; if (isReserved.value) await loadEvent() }
+  } catch (problem) { reservationError.value = problem.message }
+  finally { reserving.value = false }
+}
 useReveal()
 </script>
 
@@ -94,7 +110,7 @@ useReveal()
         <div class="lg:col-span-2">
           <SectionEyebrow :text="t('events.reservation.descriptionTitle')" />
           <div class="reveal mt-6 space-y-4 text-[15px] text-ink-soft font-light leading-loose">
-            <p v-for="(para, i) in t('events.reservation.eventDesc').split('\n\n').filter(Boolean)" :key="i">{{ para }}</p>
+            <p v-for="(para, i) in (apiEvent?.description || t('events.reservation.eventDesc')).split('\n\n').filter(Boolean)" :key="i">{{ para }}</p>
           </div>
 
           <!-- Confirm Reservation — right-aligned, flush with the content's
@@ -102,11 +118,12 @@ useReveal()
           <div class="reveal mt-10 flex flex-col items-end">
             <button
               type="button"
-              @click="confirmReservation"
+              @click="confirmReservation" :disabled="reserving || (!isReserved && (remaining === 0 || closed))"
               class="ml-auto inline-flex items-center justify-center gap-2.5 text-[11px] uppercase tracking-[0.3em] font-light px-8 py-4 rounded-md bg-ink text-parchment-light border border-ink hover:bg-gold hover:text-ink hover:border-gold transition-colors"
             >
-              {{ t('events.reservation.submit') }} <span class="dir-arrow" aria-hidden="true"></span>
+              {{ isReserved ? t('events.reservation.modalTitle') : awaitingEmail ? (locale === 'fa' ? 'ارسال دوباره ایمیل' : 'Resend email') : t('events.reservation.submit') }} <span class="dir-arrow" aria-hidden="true"></span>
             </button>
+            <p v-if="reservationError" class="mt-3 text-xs text-red-700" role="alert">{{ reservationError }}</p>
             <p v-if="!isAuthenticated" class="mt-3 text-[11px] text-ink-muted font-light italic text-end">{{ t('events.reservation.signInHint') }}</p>
           </div>
         </div>
@@ -120,11 +137,12 @@ useReveal()
           <div class="mx-auto w-14 h-14 rounded-full border border-gold/60 bg-gold/10 flex items-center justify-center text-gold-dark">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12l5 5L19 8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
-          <h2 class="mt-6 font-serif font-light text-2xl text-ink">{{ t('events.reservation.modalTitle') }}</h2>
-          <p class="mt-3 text-sm text-ink-soft font-light leading-relaxed">{{ t('events.reservation.modalBody', { title: item.title }) }}</p>
+          <h2 class="mt-6 font-serif font-light text-2xl text-ink">{{ isReserved ? t('events.reservation.modalTitle') : (locale === 'fa' ? 'ایمیل تأیید ارسال شد' : 'Confirmation email sent') }}</h2>
+          <p class="mt-3 text-sm text-ink-soft font-light leading-relaxed">{{ isReserved ? t('events.reservation.modalBody', { title: item.title }) : (locale === 'fa' ? 'برای ثبت رزرو و ورود به لایو، روی لینک ارسالی به ایمیل تأییدشده خود کلیک کنید.' : 'Click the link sent to your verified email to confirm your reservation and enter the live event.') }}</p>
           <div class="mt-8 flex items-center justify-center gap-6 flex-wrap">
             <button type="button" class="text-[11px] uppercase tracking-[0.25em] text-ink hover:text-gold-dark transition-colors border-b border-gold/50 pb-1" @click="showConfirm = false">{{ t('events.reservation.modalClose') }}</button>
             <router-link to="/events" class="text-[11px] uppercase tracking-[0.25em] text-ink-muted hover:text-ink transition-colors border-b border-transparent hover:border-gold/40 pb-1">{{ t('events.reservation.backCta') }}</router-link>
+            <router-link v-if="isReserved && apiEvent?.status === 'live'" :to="`/events/live/${apiEvent.slug}`" class="text-[11px] uppercase tracking-[0.25em] text-gold-dark border-b border-gold pb-1">{{ locale === 'fa' ? 'ورود به لایو' : 'Enter live room' }}</router-link>
           </div>
         </div>
       </div>
@@ -132,6 +150,7 @@ useReveal()
   </div>
 
   <div v-else class="py-32 text-center">
+    <p v-if="reservationError" role="alert" class="mb-5 text-sm text-red-700">{{ reservationError }}</p>
     <button class="text-[11px] uppercase tracking-[0.25em] text-gold-dark border-b border-gold/50 pb-1" @click="router.push('/events')">
       {{ t('events.reservation.backCta') }}
     </button>
@@ -173,3 +192,4 @@ useReveal()
   .modal-fade-enter-active .reserve-modal-card { transition: none; }
 }
 </style>
+

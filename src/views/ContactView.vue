@@ -1,12 +1,33 @@
 <script setup>
-import { reactive, ref, computed } from 'vue'
+import { reactive, ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import SectionEyebrow from '../components/SectionEyebrow.vue'
+import { ticketsApi } from '../api/tickets.js'
 import { useReveal } from '../composables/useReveal.js'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const route = useRoute()
+const sending = ref(false), sendError = ref(''), trackingToken = ref('')
 
-const form = reactive({ name: '', email: '', phone: '', subject: '', message: '' })
+const form = reactive({ name: '', email: '', phone: '', category: 'general', subject: '', message: '' })
+const categories = [
+  ['technical', 'Technical support', 'پشتیبانی فنی'],
+  ['courses', 'Courses and learning', 'دوره‌ها و آموزش'],
+  ['orders_payments', 'Orders and payments', 'سفارش‌ها و پرداخت'],
+  ['products', 'Products and equipment', 'محصولات و تجهیزات'],
+  ['partnerships', 'Partnerships', 'همکاری و مشارکت'],
+  ['general', 'General enquiry', 'سایر درخواست‌ها'],
+]
+onMounted(() => {
+  if (categories.some((item) => item[0] === route.query.category)) form.category = route.query.category
+  if (route.query.product) {
+    form.subject = locale.value === 'fa' ? `استعلام محصول: ${route.query.product}` : `Product inquiry: ${route.query.product}`
+    form.message = locale.value === 'fa'
+      ? `برای محصول «${route.query.product}»${route.query.ref ? ` با کد ${route.query.ref}` : ''} درخواست استعلام دارم.`
+      : `I would like a quote for “${route.query.product}”${route.query.ref ? ` (${route.query.ref})` : ''}.`
+  }
+})
 const submitted = ref(false)
 
 const isFilled = (k) => !!form[k] && String(form[k]).length > 0
@@ -18,10 +39,15 @@ const active = computed(() => ({
   message: isFilled('message'),
 }))
 
-const handleSubmit = () => {
-  console.log('Contact form submission:', { ...form })
-  submitted.value = true
-  Object.assign(form, { name: '', email: '', phone: '', subject: '', message: '' })
+const handleSubmit = async () => {
+  if (sending.value) return
+  sending.value = true; sendError.value = ''
+  try {
+    const result = await ticketsApi.create({ ...form, email: form.email || null, locale: locale.value })
+    trackingToken.value = result.data.tracking_token
+    submitted.value = true
+    Object.assign(form, { name: '', email: '', phone: '', category: 'general', subject: '', message: '' })
+  } catch (error) { sendError.value = error.message } finally { sending.value = false }
 }
 
 // Icons for the contact info channels.
@@ -94,6 +120,8 @@ useReveal()
                 <p class="mt-7 font-serif italic font-light text-3xl md:text-4xl text-gold-dark">
                   {{ t('contact.form.success') }}
                 </p>
+                <router-link :to="`/tickets/${trackingToken}`" class="btn-ghost-gold mt-6">{{ locale === 'fa' ? 'مشاهده و پیگیری درخواست' : 'Track your request' }}</router-link>
+                <p class="mt-4 text-sm">{{ locale === 'fa' ? 'لینک پیگیری را نگه دارید؛ ارسال پیامک فعلاً آزمایشی است.' : 'Keep your tracking link; SMS delivery is currently simulated.' }}</p>
                 <button @click="submitted = false" class="btn-ghost-gold mt-10">
                   <span class="dir-arrow-back" aria-hidden="true"></span> {{ t('nav.contact') }}
                 </button>
@@ -105,35 +133,42 @@ useReveal()
                 <div class="h-px w-12 bg-gold/70 mt-6 mb-12"></div>
 
                 <div class="space-y-10">
+                  <div>
+                    <label for="ticket-category" class="block text-[10px] uppercase tracking-[0.3em] text-ink-muted font-light mb-3">{{ locale === 'fa' ? 'دسته‌بندی درخواست' : 'Request category' }}</label>
+                    <select id="ticket-category" v-model="form.category" class="contact-select">
+                      <option v-for="item in categories" :key="item[0]" :value="item[0]">{{ locale === 'fa' ? item[2] : item[1] }}</option>
+                    </select>
+                  </div>
                   <div class="grid md:grid-cols-2 gap-x-10 gap-y-10">
                     <div class="float-field" :class="{ 'is-active': active.name }">
-                      <input id="name" v-model="form.name" type="text" required placeholder=" " />
+                      <input maxlength="160" id="name" v-model="form.name" type="text" required placeholder=" " />
                       <label for="name">{{ t('contact.form.name') }}</label>
                     </div>
                     <div class="float-field" :class="{ 'is-active': active.email }">
-                      <input id="email" v-model="form.email" type="email" required placeholder=" " />
+                      <input maxlength="254" id="email" v-model="form.email" type="email" placeholder=" " />
                       <label for="email">{{ t('contact.form.email') }}</label>
                     </div>
                   </div>
 
                   <div class="grid md:grid-cols-2 gap-x-10 gap-y-10">
                     <div class="float-field" :class="{ 'is-active': active.phone }">
-                      <input id="phone" v-model="form.phone" type="tel" placeholder=" " />
+                      <input maxlength="24" id="phone" v-model="form.phone" type="tel" required placeholder=" " />
                       <label for="phone">{{ t('contact.form.phone') }}</label>
                     </div>
                     <div class="float-field" :class="{ 'is-active': active.subject }">
-                      <input id="subject" v-model="form.subject" type="text" required placeholder=" " />
+                      <input maxlength="240" id="subject" v-model="form.subject" type="text" required placeholder=" " />
                       <label for="subject">{{ t('contact.form.subject') }}</label>
                     </div>
                   </div>
 
                   <div class="float-field" :class="{ 'is-active': active.message }">
-                    <textarea id="message" v-model="form.message" rows="4" required placeholder=" "></textarea>
+                    <textarea maxlength="10000" id="message" v-model="form.message" rows="4" required placeholder=" "></textarea>
                     <label for="message">{{ t('contact.form.message') }}</label>
                   </div>
                 </div>
 
-                <button type="submit" class="btn-ghost-gold mt-14">
+                <p v-if="sendError" role="alert" class="mt-6 text-red-700">{{ sendError }}</p>
+                <button type="submit" :disabled="sending" class="btn-ghost-gold mt-14">
                   {{ t('contact.form.submit') }} <span class="dir-arrow" aria-hidden="true"></span>
                 </button>
               </form>
@@ -168,4 +203,5 @@ useReveal()
   min-height: 4.5rem;
   line-height: 1.6;
 }
+.contact-select{width:100%;background:transparent;border:0;border-bottom:1px solid rgb(var(--c-parchment-deep));padding:.55rem 0 .75rem;color:rgb(var(--c-ink));outline:none}.contact-select:focus{border-color:rgb(var(--c-gold))}
 </style>

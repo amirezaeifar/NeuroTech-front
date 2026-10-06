@@ -16,6 +16,14 @@ NeuroTech is a comprehensive web platform built for neurology-focused global tra
 * **Performance:** Lightning-fast HMR and optimized builds powered by Vite.
 * **Modern UI:** Styled with Tailwind CSS and DaisyUI, featuring custom fonts and a refined color palette.
 * **Modular Architecture:** Structured views for Academy, Active/Past Events, Global Trade, and an Admin Panel.
+* **Admin CMS:** Bilingual management for products, events, partners, global-trade documents, and dynamic section copy.
+
+### Admin content scope
+
+The Admin Panel manages Academy courses, products and inquiries, events,
+partner profiles, global-trade documents, comments, users, and bilingual copy
+for the dynamic site sections. Home, About, and Contact are intentionally kept
+as static frontend pages and do not appear in the content editor.
 
 ### Project Setup
 
@@ -26,6 +34,14 @@ npm install
 2. Compile and Hot-Reload for Development
 
 npm run dev
+
+Open `http://127.0.0.1:5173`. Development API requests use Vite's `/api`
+proxy to `http://127.0.0.1:5000`, keeping authentication cookies and requests
+on the browser's current origin. `VITE_API_BASE_URL` can override the proxy
+backend. Vite stops if the requested port is occupied instead of silently
+switching ports; an intentional alternate port can use `--port 5174`.
+Production continues to use `VITE_API_BASE_URL` directly and requires the
+backend's allowed origins to match the deployed frontend.
 
 3. Compile and Minify for Production
 
@@ -118,3 +134,30 @@ Handled dynamically via src/composables/useLocale.js.
 4. Styling & Typography
 Use Tailwind CSS utility classes exclusively.
 Use font-persian (YekanBakh) for Persian/Arabic contexts and font-sans (Inter) / font-serif (Cormorant Garamond) for Latin scripts.
+
+
+## Admin workspace refresh (2026-09-10)
+
+The dashboard keeps the site's palette and presents live collection counts and
+a guest support queue. Duplicate desktop header controls are removed; language,
+theme and logout remain in the sidebar. `/admin/trade` and `/admin/content` are
+retired. General page copy and Global Trade use bundled static content.
+
+Course editing supports separate bilingual summaries, full descriptions,
+curriculum, lessons, outcomes, prices, playlist IDs, uploaded resources and four
+cover/header variants. Product and partner editors use repeatable fields instead
+of JSON. Uploaded product images are used in cards, gallery and fullscreen views.
+Partner cards and resumes load the same API records; import original profiles via
+the backend's `seed-partners` command before using this version.
+
+The contact form submits to `/api/v1/tickets` without requiring an account. Phone
+is mandatory and email optional. Guests keep the private `/#/tickets/{token}` link;
+administrators handle requests at `/#/admin/tickets`. SMS delivery is simulated.
+
+Browser regression checks are in `tests/admin.browser.cjs`. Start the backend's
+isolated `tests/browser_fixture.py` with a temporary `qa-cookies.json` output path,
+start Vite on port 5174 against API port 5001, then run the browser script with that
+output directory as its argument. Set `PLAYWRIGHT_MODULE` to an installed Playwright
+module path and `CHROME_PATH` if using an existing Chrome executable. Tests cover
+course and product creation/uploads, partner synchronization, guest ticket replies,
+Persian layout and mobile navigation. Test credentials must remain temporary.

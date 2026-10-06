@@ -10,6 +10,7 @@ import {
   documentationDisclaimer as englishDocumentationDisclaimer,
 } from '../data/tradeReports.js'
 
+
 const { t, tm, locale } = useI18n()
 const regions = tm('globalTrade.regions')
 const become = tm('globalTrade.become.items')
@@ -17,9 +18,7 @@ const importItems = tm('globalTrade.importExport.import.items')
 const exportItems = tm('globalTrade.importExport.export.items')
 
 const isPersian = computed(() => locale.value === 'fa')
-const documents = computed(() =>
-  isPersian.value ? tm('globalTrade.documentation.documents') : englishDocuments,
-)
+const documents = computed(() => isPersian.value ? tm('globalTrade.documentation.documents') : englishDocuments)
 const documentationOverview = computed(() =>
   isPersian.value ? t('globalTrade.documentation.overview') : englishDocumentationOverview,
 )
@@ -159,7 +158,7 @@ useReveal()
           <router-link
             v-for="(d, i) in documents"
             :key="d.id"
-            :to="`/global-trade/document/${d.id}`"
+            :to="`/global-trade/document/${d.slug || d.id}`"
             class="reveal group block"
             :style="{ transitionDelay: `${(i % 3) * 70}ms` }"
           >

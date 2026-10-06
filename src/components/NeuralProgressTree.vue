@@ -173,6 +173,7 @@ const arbor = computed(() => {
       moduleNodes.push({
         id: m.id, x: mp.x, y: mp.y, status: m.status,
         title: m.title, type: 'module', courseIndex: ci, courseSlug: course.slug,
+        step: m.step, lessonId: m.lesson_id,
       })
       // dendrite tufts off the module — two splayed tufts, each branching
       // deeply into fine sub-dendrites for a dense, natural cluster.
@@ -227,6 +228,8 @@ const currentNode = computed(() => {
     null
   )
 })
+const currentNodeColor = computed(() =>
+  currentNode.value?.type === 'course' ? '#9FD0FF' : '#FFFFFF')
 
 const nodeGlow = (status) =>
   status === 'completed' ? 0.95 : status === 'in-progress' ? 0.9 : 0.32
@@ -491,8 +494,8 @@ onBeforeUnmount(() => {
 
       <!-- ░░ THE PULSE — last watched video ░░ -->
       <g v-if="currentNode" filter="url(#npt-core)" :transform="`translate(${currentNode.x} ${currentNode.y})`">
-        <circle ref="pulseEl" class="npt-pulse" r="4" fill="none" stroke-width="1.2" />
-        <circle class="npt__pulse-core" r="2.8" />
+        <circle ref="pulseEl" class="npt-pulse" r="4" fill="none" stroke-width="1.2" :style="{ stroke: currentNodeColor }" />
+        <circle class="npt__pulse-core" r="2.8" :style="{ fill: currentNodeColor }" />
       </g>
 
       <!-- ░░ HIT AREAS — invisible, pointer-enabled (hover + click) ░░

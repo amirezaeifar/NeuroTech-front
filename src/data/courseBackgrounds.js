@@ -100,7 +100,7 @@ function resolve(folder, slug, isDark) {
  * under the active theme. `isDark` is the current `isDark` boolean.
  */
 export function resolveCourseCover(slug, isDark = false) {
-  return resolve(covers, slug, isDark)
+  return resolve(covers, slug, isDark) || resolve(backgrounds, slug, isDark)
 }
 
 /**

@@ -15,5 +15,10 @@ export const authApi = {
   logout: () => apiRequest('/auth/logout', { method: 'POST' }),
   logoutAll: () => apiRequest('/auth/logout-all', { method: 'POST' }),
   adminUsers: () => apiRequest('/admin/users'),
+  updateUser: (userId, body) => apiRequest(`/admin/users/${userId}`, { method: 'PATCH', body }),
   invite: (body) => apiRequest('/admin/invitations', { method: 'POST', body }),
+  updateRole: (userId, role) => apiRequest(`/admin/users/${userId}/role`, {
+    method: 'PATCH',
+    body: { role },
+  }),
 }

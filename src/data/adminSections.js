@@ -1,53 +1,42 @@
-/**
- * Admin Panel navigation model — the single source of truth shared by BOTH the
- * router (to attach per-route role gates) and the AdminLayout sidebar (to render
- * the links a given role is allowed to see). Keeping one list means a section can
- * never appear in the sidebar without a matching guarded route, or vice-versa.
- *
- *   key    stable id + i18n key stem (admin.sections.<key>.{label,blurb})
- *   name   the vue-router route name
- *   path   child path under /admin ('' = the index/dashboard)
- *   icon   which glyph AdminLayout draws (see its ICONS map)
- *   roles  access levels allowed to reach the section
- *
- * `admin` sees every section; `specialist` is scoped to the educational /
- * clinical content sections and is intentionally denied Users and Settings
- * (core system/user management) — the "partial access" tier from the spec.
- */
 import { ROLES } from '../composables/useAuth.js'
+
+const PRINCIPAL = ROLES.SUPER_ADMIN
+const ADMINISTRATORS = [ROLES.ADMIN, PRINCIPAL]
+const CONTENT_STAFF = [ROLES.CONTENT_MANAGER, ...ADMINISTRATORS]
 
 export const ADMIN_SECTIONS = [
   {
-    key: 'dashboard',
-    name: 'AdminDashboard',
-    path: '',
-    icon: 'grid',
-    roles: [ROLES.ADMIN, ROLES.SPECIALIST],
+    key: 'dashboard', name: 'AdminDashboard', path: '', icon: 'grid',
+    roles: [ROLES.SPECIALIST, ROLES.CONTENT_MANAGER, ...ADMINISTRATORS],
+  },
+  { key: 'orders', name: 'AdminOrders', path: 'orders', icon: 'receipt', roles: ADMINISTRATORS },
+  { key: 'tickets', name: 'AdminTickets', path: 'tickets', icon: 'chat', roles: ADMINISTRATORS },
+  {
+    key: 'courses', name: 'AdminCourses', path: 'courses', icon: 'book',
+    roles: [ROLES.SPECIALIST, ROLES.CONTENT_MANAGER, ...ADMINISTRATORS],
+  },
+  { key: 'products', name: 'AdminProducts', path: 'products', icon: 'box', roles: CONTENT_STAFF },
+  { key: 'events', name: 'AdminEvents', path: 'events', icon: 'calendar', roles: CONTENT_STAFF },
+  { key: 'partners', name: 'AdminPartners', path: 'partners', icon: 'users', roles: CONTENT_STAFF },
+  { key: 'blog', name: 'AdminBlog', path: 'articles', icon: 'doc', roles: CONTENT_STAFF },
+  {
+    key: 'approvals', name: 'AdminApprovals', path: 'approvals', icon: 'layers',
+    roles: [PRINCIPAL],
   },
   {
-    key: 'courses',
-    name: 'AdminCourses',
-    path: 'courses',
-    icon: 'book',
-    roles: [ROLES.ADMIN, ROLES.SPECIALIST],
+    key: 'moderation', name: 'AdminModeration', path: 'moderation', icon: 'chat',
+    roles: [ROLES.SPECIALIST, PRINCIPAL],
   },
-  {
-    key: 'moderation',
-    name: 'AdminModeration',
-    path: 'moderation',
-    icon: 'chat',
-    roles: [ROLES.ADMIN, ROLES.SPECIALIST],
-  },
-  {
-    key: 'users',
-    name: 'AdminUsers',
-    path: 'users',
-    icon: 'users',
-    roles: [ROLES.ADMIN],
-  },
+  { key: 'users', name: 'AdminUsers', path: 'users', icon: 'users', roles: ADMINISTRATORS },
 ]
 
-/** Sections a given role may see, in sidebar order. */
+export const PANEL_ROLES = [
+  ROLES.SPECIALIST,
+  ROLES.CONTENT_MANAGER,
+  ROLES.ADMIN,
+  ROLES.SUPER_ADMIN,
+]
+
 export function sectionsForRole(role) {
-  return ADMIN_SECTIONS.filter((s) => s.roles.includes(role))
+  return ADMIN_SECTIONS.filter((section) => section.roles.includes(role))
 }

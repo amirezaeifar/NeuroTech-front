@@ -3,11 +3,21 @@ import { computed, ref, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useReveal } from '../composables/useReveal.js'
+import { partnersApi } from '../api/content.js'
+import { resolveApiUrl } from '../api/client.js'
 
-const { t, tm } = useI18n()
+const { t, tm, locale } = useI18n()
 const route = useRoute()
 
-const people = computed(() => tm('partners.people'))
+const people = ref([])
+const peopleError = ref('')
+const loadPeople = async () => {
+  try {
+    const result = await partnersApi.list(locale.value)
+    people.value = result.data
+    peopleError.value = ''
+  } catch (error) { peopleError.value = error.message }
+}
 
 const initials = (name) => name
   .replace(/^(Dr\.|د\.|دکتر|Dr|Prof\.?)\s*/i, '')
@@ -31,7 +41,8 @@ const focusProfile = async (raw) => {
   highlightIndex.value = idx
   window.setTimeout(() => { if (highlightIndex.value === idx) highlightIndex.value = null }, 2800)
 }
-onMounted(() => { if (route.query.focus != null) focusProfile(route.query.focus) })
+onMounted(() => { loadPeople(); if (route.query.focus != null) focusProfile(route.query.focus) })
+watch(locale, loadPeople)
 watch(() => route.query.focus, (v) => { if (v != null) focusProfile(v) })
 
 useReveal()
@@ -39,6 +50,7 @@ useReveal()
 
 <template>
   <div class="partners-page">
+    <p v-if="peopleError" role="alert" class="pt-24 px-8">{{ peopleError }}</p>
     <!-- ───────────────────────── Hero — flat deep-charcoal band ───────────────────────── -->
     <section class="partners-hero py-28 md:py-40">
       <div class="max-w-5xl mx-auto px-8 text-center">
@@ -78,7 +90,7 @@ useReveal()
           <router-link
             v-for="(p, i) in people" :key="p.name + i"
             :id="`partner-${i}`"
-            :to="`/partners/${i}`"
+            :to="`/partners/${p.slug || i}`"
             :aria-label="t('partners.viewProfile') + ' — ' + p.name"
             class="reveal partner-card group relative flex flex-col scroll-mt-28 overflow-hidden rounded-xl border border-parchment-deep bg-parchment"
             :class="{ 'is-focused': highlightIndex === i }"
@@ -90,8 +102,9 @@ useReveal()
             <div class="relative flex flex-col flex-1 p-6 md:p-7 text-center sm:text-start">
               <!-- Header: flat avatar + name / lead role -->
               <header class="flex flex-col sm:flex-row items-center gap-4">
-                <div class="partner-avatar grid place-items-center shrink-0">
-                  <span class="partner-initials font-serif font-light leading-none">{{ initials(p.name) }}</span>
+                <div class="partner-avatar grid place-items-center shrink-0 overflow-hidden">
+                  <img v-if="p.image_url" :src="resolveApiUrl(p.image_url)" :alt="p.name" class="w-full h-full object-cover">
+                  <span v-else class="partner-initials font-serif font-light leading-none">{{ initials(p.name) }}</span>
                 </div>
                 <div class="min-w-0">
                   <h3 class="partner-name font-serif font-light text-[1.4rem] leading-tight transition-colors">{{ p.name }}</h3>

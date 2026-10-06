@@ -5,8 +5,11 @@ import { useI18n } from 'vue-i18n'
 import LuxeCard from '../components/LuxeCard.vue'
 import SectionEyebrow from '../components/SectionEyebrow.vue'
 import { useReveal } from '../composables/useReveal.js'
+import { eventsApi } from '../api/events.js'
+import { resolveApiUrl } from '../api/client.js'
+import EventStream from '../components/EventStream.vue'
 
-const { t, tm, locale } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
@@ -18,14 +21,27 @@ const isRtl = computed(() => locale.value === 'fa')
 const chevronToStart = computed(() => (isRtl.value ? 'M9 6l6 6-6 6' : 'M15 6l-6 6 6 6'))
 const chevronToEnd = computed(() => (isRtl.value ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6'))
 
-const archiveItems = computed(() => tm('events.archive.items'))
-const itemIndex = computed(() => Number(route.params.id))
-const item = computed(() => archiveItems.value[itemIndex.value])
-
-// Rich content sections (mock — shared across archived events).
-const agenda = computed(() => tm('events.pastDetail.agenda'))
-const faq = computed(() => tm('events.pastDetail.faq'))
-const documents = computed(() => tm('events.pastDetail.documents'))
+const apiEvent = ref(null)
+let loadSequence = 0
+const loadEvent = async () => {
+  const sequence = ++loadSequence
+  try {
+    const { data } = await eventsApi.detail(route.params.id, locale.value)
+    if (sequence !== loadSequence) return
+    apiEvent.value = { ...data, date: new Intl.DateTimeFormat(locale.value, { dateStyle: 'medium', timeZone: data.timezone }).format(new Date(data.starts_at)) }
+    activeImg.value = 0
+    lightboxOpen.value = false
+  } catch { if (sequence === loadSequence) apiEvent.value = null }
+}
+onMounted(loadEvent)
+watch([() => route.params.id, locale], loadEvent)
+const item = computed(() => apiEvent.value)
+const content = computed(() => item.value?.content || {})
+const agenda = computed(() => content.value.agenda || [])
+const faq = computed(() => content.value.faq || [])
+const assetUrl = (url) => url?.startsWith('/api/') ? resolveApiUrl(url) : url
+const documents = computed(() => (content.value.documents || []).map(d => ({ ...d, url: assetUrl(d.url) })))
+const videos = computed(() => content.value.videos || [])
 const docIcon = (type) => (type === 'XLSX'
   ? 'M7 3h10l4 4v14H7z M9 12l4 4 M13 12l-4 4'
   : 'M7 3h7l4 4v14H7z M14 3v4h4 M9 13h6 M9 16h4')
@@ -34,22 +50,13 @@ const docIcon = (type) => (type === 'XLSX'
 const openFaq = ref(0)
 const toggleFaq = (i) => { openFaq.value = openFaq.value === i ? -1 : i }
 
-// ── Mock gallery — toned plates standing in for event photography. A real
-//    backend would supply image URLs; the gallery UX (slide + lightbox) is the
-//    deliverable here. ──────────────────────────────────────────────────────
-const gallery = [
-  { bg: 'linear-gradient(135deg, #c79a35 0%, #6e5418 55%, #221a0e 100%)', caption: 'Opening keynote' },
-  { bg: 'linear-gradient(135deg, #3c3c46 0%, #1d1d24 55%, #0c0c10 100%)', caption: 'Hands-on workshop' },
-  { bg: 'linear-gradient(135deg, #8a6a1a 0%, #3f3014 55%, #181109 100%)', caption: 'Panel discussion' },
-  { bg: 'linear-gradient(135deg, #4a4640 0%, #272320 55%, #121010 100%)', caption: 'Case review' },
-  { bg: 'linear-gradient(135deg, #b9912f 0%, #5c471a 55%, #1f180d 100%)', caption: 'Exhibition floor' },
-  { bg: 'linear-gradient(135deg, #2f3a3c 0%, #1a2122 55%, #0b0f10 100%)', caption: 'Closing reception' },
-]
+const gallery = computed(() => (content.value.gallery || []).map(g => ({ ...g, url: assetUrl(g.url), caption: g.name })))
+const coverImage = computed(() => assetUrl(item.value?.cover_url))
 
 const activeImg = ref(0)
-const count = computed(() => gallery.length)
-const next = () => { activeImg.value = (activeImg.value + 1) % count.value }
-const prev = () => { activeImg.value = (activeImg.value - 1 + count.value) % count.value }
+const count = computed(() => gallery.value.length)
+const next = () => { activeImg.value = (activeImg.value + 1) % (count.value || 1) }
+const prev = () => { activeImg.value = (activeImg.value - 1 + count.value) % (count.value || 1) }
 const goTo = (i) => { activeImg.value = i }
 const pad = (n) => String(n).padStart(2, '0')
 const trackStyle = computed(() => ({ transform: `translateX(-${activeImg.value * 100}%)` }))
@@ -87,6 +94,7 @@ useReveal()
         <p class="mt-8 text-[11px] uppercase tracking-[0.35em] text-gold/80 font-light">{{ t('events.pastDetail.eyebrow') }} · {{ t('events.sections.completedEvent') }}</p>
         <h1 class="mt-3 font-serif font-light text-parchment-light text-4xl md:text-5xl tracking-wide leading-snug">{{ item.title }}</h1>
         <p class="mt-4 text-sm text-parchment-light/70 uppercase tracking-[0.2em] font-light">{{ item.date }}</p>
+        <img v-if="coverImage" :src="coverImage" :alt="item.title" class="mt-8 max-h-96 w-full rounded-xl object-cover" />
       </div>
     </section>
 
@@ -98,15 +106,15 @@ useReveal()
         <div class="mt-14">
           <SectionEyebrow :text="t('events.pastDetail.descriptionTitle')" />
           <div class="reveal mt-7 max-w-2xl">
-            <p class="text-[15px] text-ink-soft font-light leading-loose">{{ t('events.pastDetail.overview') }}</p>
+            <p class="text-[15px] text-ink-soft font-light leading-loose whitespace-pre-line">{{ item.description }}</p>
           </div>
         </div>
 
         <!-- ── Interactive gallery ── -->
-        <div class="mt-20">
+        <div v-if="gallery.length" class="mt-20">
           <SectionEyebrow :text="t('events.pastDetail.galleryTitle')" />
 
-          <div class="gal mt-7 reveal">
+          <div v-if="gallery.length" class="gal mt-7 reveal">
             <!-- Main viewport -->
             <div class="gal-stage">
               <div class="gal-track" :style="trackStyle">
@@ -115,12 +123,12 @@ useReveal()
                   :key="i"
                   type="button"
                   class="gal-slide"
-                  :style="{ background: g.bg }"
+                  
                   @click="openLightbox"
                   :aria-label="t('events.pastDetail.viewFull')"
                 >
-                  <span class="gal-plate-no">{{ pad(i + 1) }}</span>
-                  <span class="gal-caption">{{ g.caption }}</span>
+                  <img :src="g.url" :alt="g.caption" class="absolute inset-0 h-full w-full object-cover" loading="lazy"><span class="gal-plate-no relative">{{ pad(i + 1) }}</span>
+                  <span class="gal-caption relative bg-black/40 px-3 py-1 rounded">{{ g.caption }}</span>
                 </button>
               </div>
 
@@ -147,18 +155,19 @@ useReveal()
                 type="button"
                 class="gal-thumb"
                 :class="{ 'is-active': i === activeImg }"
-                :style="{ background: g.bg }"
+                
                 @click="goTo(i)"
                 :aria-label="`${t('events.pastDetail.galleryTitle')} ${pad(i + 1)}`"
               >
-                <span>{{ pad(i + 1) }}</span>
+                <img :src="g.url" :alt="g.caption" class="absolute inset-0 h-full w-full object-cover" loading="lazy"><span class="relative">{{ pad(i + 1) }}</span>
               </button>
             </div>
           </div>
         </div>
 
+        <div v-for="video in videos" :key="video.url" class="mt-8"><h3 class="font-serif text-xl text-ink mb-3">{{ video.name }}</h3><div class="aspect-video rounded-xl overflow-hidden bg-black"><EventStream :url="video.url" :title="video.name" /></div></div>
         <!-- ── Syllabus & Agenda ── -->
-        <div class="mt-20">
+        <div v-if="agenda.length" class="mt-20">
           <SectionEyebrow :text="t('events.pastDetail.agendaTitle')" />
           <ol class="mt-9 relative">
             <li v-for="(a, i) in agenda" :key="i" class="reveal relative flex gap-5 pb-8 last:pb-0" :style="{ transitionDelay: `${i * 50}ms` }">
@@ -175,7 +184,7 @@ useReveal()
         </div>
 
         <!-- ── Key Q&A (accordion) ── -->
-        <div class="mt-20">
+        <div v-if="faq.length" class="mt-20">
           <SectionEyebrow :text="t('events.pastDetail.faqTitle')" />
           <div class="mt-9 space-y-3">
             <div
@@ -205,13 +214,13 @@ useReveal()
         </div>
 
         <!-- ── Documents & Resources ── -->
-        <div class="mt-20">
+        <div v-if="documents.length" class="mt-20">
           <SectionEyebrow :text="t('events.pastDetail.resourcesTitle')" />
           <div class="mt-9 grid sm:grid-cols-2 gap-4">
             <a
               v-for="(d, i) in documents" :key="i"
-              href="#"
-              @click.prevent
+              :href="d.url + (d.url.includes('?' ) ? '&' : '?') + 'download=1'" target="_blank" rel="noopener noreferrer"
+              
               class="reveal group flex items-center gap-4 rounded-xl border border-parchment-deep/70 bg-parchment px-5 py-4 lux-card hover:border-gold/50"
               :style="{ transitionDelay: `${i * 50}ms` }"
             >
@@ -231,16 +240,16 @@ useReveal()
         </div>
 
         <!-- Closing note -->
-        <LuxeCard class="reveal mt-20">
+        <LuxeCard v-if="content.closing_note" class="reveal mt-20">
           <span class="text-[10px] uppercase tracking-[0.3em] text-gold-dark font-light">{{ t('events.pastDetail.infoLabel') }}</span>
-          <p class="mt-2.5 text-sm text-ink-soft font-light leading-relaxed">{{ t('events.pastDetail.infoBody') }}</p>
+          <p class="mt-2.5 text-sm text-ink-soft font-light leading-relaxed">{{ content.closing_note }}</p>
         </LuxeCard>
       </div>
     </section>
 
     <!-- ── Lightbox overlay ── -->
     <Transition name="lb-fade">
-      <div v-if="lightboxOpen" class="lb" role="dialog" aria-modal="true" @click.self="closeLightbox">
+      <div v-if="lightboxOpen && gallery[activeImg]" class="lb" role="dialog" aria-modal="true" @click.self="closeLightbox">
         <button type="button" class="lb-close" @click="closeLightbox" :aria-label="t('events.pastDetail.closeImage')">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 6l12 12M6 18L18 6" stroke-linecap="round"/></svg>
         </button>
@@ -249,7 +258,7 @@ useReveal()
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path :d="chevronToStart" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
 
-        <figure class="lb-stage" :style="{ background: gallery[activeImg].bg }">
+        <figure class="lb-stage relative"><img :src="gallery[activeImg].url" :alt="gallery[activeImg].caption" class="absolute inset-0 h-full w-full object-contain">
           <span class="lb-plate-no">{{ pad(activeImg + 1) }}</span>
           <figcaption class="lb-caption">{{ gallery[activeImg].caption }}</figcaption>
         </figure>
@@ -380,7 +389,7 @@ useReveal()
   margin-top: 0.85rem;
   flex-wrap: wrap;
 }
-.gal-thumb {
+.gal-thumb { position: relative; overflow: hidden;
   position: relative;
   width: 4.5rem;
   height: 3rem;
@@ -498,3 +507,4 @@ useReveal()
   .lb-fade-enter-active .lb-stage { transition: none; }
 }
 </style>
+

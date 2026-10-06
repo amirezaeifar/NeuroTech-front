@@ -1,12 +1,11 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AdminToggle from '../../components/admin/AdminToggle.vue'
+import { governanceApi } from '../../api/governance.js'
 
 const { t } = useI18n()
 
-// Core system settings (mock) — the admin-only tier a specialist can never
-// reach (enforced by meta.roles on this route).
 const settings = ref({
   siteName: 'Neuro Tech',
   supportEmail: 'neuro.tech.pishro@gmail.com',
@@ -17,10 +16,53 @@ const settings = ref({
 })
 
 const saved = ref(false)
-const save = () => {
-  saved.value = true
-  setTimeout(() => { saved.value = false }, 3200)
+const loading = ref(true)
+const saving = ref(false)
+const error = ref('')
+
+const load = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const { data } = await governanceApi.settings()
+    settings.value = {
+      siteName: data.site_name,
+      supportEmail: data.support_email,
+      maintenance: data.maintenance,
+      registrations: data.registrations,
+      autoApproveComments: data.auto_approve_comments,
+      premiumCheckout: data.premium_checkout,
+    }
+  } catch (problem) {
+    error.value = problem.message
+  } finally {
+    loading.value = false
+  }
 }
+
+const save = async () => {
+  saving.value = true
+  saved.value = false
+  error.value = ''
+  try {
+    await governanceApi.saveSettings({
+      site_name: settings.value.siteName,
+      support_email: settings.value.supportEmail,
+      maintenance: settings.value.maintenance,
+      registrations: settings.value.registrations,
+      auto_approve_comments: settings.value.autoApproveComments,
+      premium_checkout: settings.value.premiumCheckout,
+    })
+    saved.value = true
+    setTimeout(() => { saved.value = false }, 3200)
+  } catch (problem) {
+    error.value = problem.message
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(load)
 </script>
 
 <template>
@@ -29,7 +71,9 @@ const save = () => {
     <h2 class="admin-h1 mt-2">{{ t('admin.settings.title') }}</h2>
     <p class="mt-2 text-sm text-ink-muted font-light leading-relaxed max-w-2xl">{{ t('admin.settings.subtitle') }}</p>
 
-    <form class="mt-8 space-y-6" @submit.prevent="save">
+    <p v-if="loading" class="mt-8 text-sm text-ink-muted">{{ t('academy.loading') }}</p>
+    <form v-else class="mt-8 space-y-6" @submit.prevent="save">
+      <p v-if="error" class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{{ error }}</p>
       <div class="admin-card p-7 space-y-5">
         <h3 class="admin-h2">{{ t('admin.settings.identity') }}</h3>
         <div class="grid sm:grid-cols-2 gap-5">
@@ -79,11 +123,9 @@ const save = () => {
       </div>
 
       <div class="flex items-center gap-3">
-        <button type="submit" class="admin-btn admin-btn-primary">{{ t('admin.settings.save') }}</button>
-        <Transition name="fade">
-          <span v-if="saved" class="text-xs text-ink-muted font-light italic">{{ t('admin.settings.saved') }}</span>
-        </Transition>
+        <button type="submit" :disabled="saving" class="admin-btn admin-btn-primary">{{ t('admin.settings.save') }}</button>
       </div>
+      <p v-if="saved" role="status" class="mt-3 text-xs text-ink-muted font-light italic">{{ t('admin.settings.saved') }}</p>
     </form>
   </div>
 </template>

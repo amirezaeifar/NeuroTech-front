@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createI18n } from 'vue-i18n'
 import App from './App.vue'
+import { installValidation } from './utils/validation.js'
 import router from './router'
 import en from './locales/en.json'
 import fa from './locales/fa.json'
@@ -28,4 +29,5 @@ const app = createApp(App)
 app.use(router)
 app.use(MotionPlugin)
 app.use(i18n)
+installValidation(() => i18n.global.locale.value)
 app.mount('#app')

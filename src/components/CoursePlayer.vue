@@ -29,6 +29,8 @@ const props = defineProps({
   modelValue: { type: Number, default: 1 },
   /** { lesson: zero-based index, positionSeconds: number } loaded from the backend. */
   initialResume: { type: Object, default: null },
+  /** YouTube playlist id. When present, video order comes from that playlist. */
+  playlistId: { type: String, default: '' },
 })
 const emit = defineEmits(['update:modelValue', 'progress'])
 
@@ -58,7 +60,9 @@ const currentTitle = computed(() =>
 const pct = computed(() =>
   duration.value ? `${Math.min(100, (currentTime.value / duration.value) * 100)}%` : '0%')
 const canPrev = computed(() => currentIndex.value > 0)
-const canNext = computed(() => currentIndex.value < props.lessons.length - 1)
+const canNext = computed(() =>
+  currentIndex.value < props.lessons.length - 1
+  && !props.lessons[currentIndex.value + 1]?.locked)
 
 const fmt = (s) => {
   if (!s || !isFinite(s)) return '0:00'
@@ -102,6 +106,7 @@ function stopPoll() { if (poll) { clearInterval(poll); poll = null } }
 
 function loadLesson(i, { autoplay = true, seek = 0 } = {}) {
   const clamped = Math.min(Math.max(0, i), props.lessons.length - 1)
+  if (props.lessons[clamped]?.locked) return
   currentIndex.value = clamped
   emit('update:modelValue', clamped + 1)
   currentTime.value = seek
@@ -109,6 +114,12 @@ function loadLesson(i, { autoplay = true, seek = 0 } = {}) {
   loading.value = true            // show the loading state while the clip swaps
   errored.value = false
   if (!player || !player.loadVideoById) return
+  if (props.playlistId && player.playVideoAt) {
+    player.playVideoAt(clamped)
+    if (!autoplay) player.pauseVideo()
+    if (seek) window.setTimeout(() => player?.seekTo?.(seek, true), 250)
+    return
+  }
   const id = props.lessons[clamped]?.id
   if (!id) return
   const opts = { videoId: id, startSeconds: seek }
@@ -170,12 +181,16 @@ onMounted(async () => {
   const YT = await loadEngine().catch(() => null)
   if (!YT || !ytHost.value) return
 
+  const playlistVars = props.playlistId
+    ? { listType: 'playlist', list: props.playlistId, index: currentIndex.value }
+    : {}
   player = new YT.Player(ytHost.value, {
-    videoId: props.lessons[currentIndex.value]?.id,
+    ...(props.playlistId ? {} : { videoId: props.lessons[currentIndex.value]?.id }),
     playerVars: {
       autoplay: 1, mute: 1, controls: 0, modestbranding: 1, rel: 0,
       iv_load_policy: 3, disablekb: 1, fs: 0, playsinline: 1,
       enablejsapi: 1, origin: window.location.origin,
+      ...playlistVars,
     },
     events: {
       onReady: (e) => {
@@ -328,12 +343,14 @@ watch(() => props.modelValue, (v) => {
             type="button"
             class="cplayer__lesson"
             :class="{ 'is-active': i === currentIndex }"
+            :disabled="l.locked"
             :aria-current="i === currentIndex ? 'true' : undefined"
             @click="selectLesson(i)"
           >
             <span class="cplayer__lesson-icon">
-              <svg v-if="i === currentIndex && isPlaying" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
-              <svg v-else viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg v-if="l.locked" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              <svg v-else-if="i === currentIndex && isPlaying" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+              <svg v-else-if="!l.locked" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </span>
             <span class="cplayer__lesson-text">
               <span class="cplayer__lesson-num">{{ t('academy.courseDetail.lesson') }} {{ String(i + 1).padStart(2, '0') }}</span>
@@ -601,6 +618,8 @@ watch(() => props.modelValue, (v) => {
 }
 .cplayer__lesson:hover { background: rgba(255, 255, 255, 0.05); }
 .cplayer__lesson.is-active { background: rgba(234, 192, 121, 0.12); }
+.cplayer__lesson:disabled { cursor: not-allowed; opacity: .42; }
+.cplayer__lesson:disabled:hover { background: transparent; }
 .cplayer__lesson-icon {
   flex-shrink: 0;
   display: grid; place-items: center;

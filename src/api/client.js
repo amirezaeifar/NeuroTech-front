@@ -1,10 +1,13 @@
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:5000/api/v1').replace(/\/$/, '')
+import { formatValidationProblem } from '../utils/validation.js'
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/$/, '')
 
-export const resolveApiUrl = (path) => new URL(path, `${new URL(API_BASE_URL).origin}/`).toString()
+export const resolveApiUrl = (path) => new URL(path, `${new URL(API_BASE_URL, window.location.origin).origin}/`).toString()
 
 export class ApiProblem extends Error {
   constructor(problem, response) {
     super(problem?.detail || problem?.title || `Request failed with status ${response.status}`)
+    const validation = formatValidationProblem(problem)
+    if (validation) this.message = validation
     this.name = 'ApiProblem'
     this.problem = problem || {}
     this.status = response.status
@@ -18,12 +21,32 @@ const cookieValue = (name) => {
   return item ? decodeURIComponent(item.slice(prefix.length)) : null
 }
 
+let refreshPromise = null
+
+const refreshSession = () => {
+  if (!refreshPromise) {
+    refreshPromise = apiRequest('/auth/refresh', {
+      method: 'POST',
+      refresh: true,
+      _retried: true,
+    }).finally(() => {
+      refreshPromise = null
+    })
+  }
+  return refreshPromise
+}
+
 export async function apiRequest(path, options = {}) {
+  const { rawBody: _rawBody, refresh: _refresh, _retried: _wasRetried, ...fetchOptions } = options
   const headers = new Headers(options.headers)
   const method = (options.method || 'GET').toUpperCase()
-  const body = options.body === undefined ? undefined : JSON.stringify(options.body)
+  const body = options.body === undefined
+    ? undefined
+    : options.rawBody
+      ? options.body
+      : JSON.stringify(options.body)
 
-  if (body !== undefined) headers.set('Content-Type', 'application/json')
+  if (body !== undefined && !options.rawBody) headers.set('Content-Type', 'application/json')
   headers.set('Accept', 'application/json, application/problem+json')
 
   if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
@@ -32,7 +55,7 @@ export async function apiRequest(path, options = {}) {
   }
 
   let response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
+    ...fetchOptions,
     method,
     body,
     headers,
@@ -41,7 +64,7 @@ export async function apiRequest(path, options = {}) {
 
   if (response.status === 401 && !options.refresh && !options._retried && !path.startsWith('/auth/')) {
     try {
-      await apiRequest('/auth/refresh', { method: 'POST', refresh: true, _retried: true })
+      await refreshSession()
       return apiRequest(path, { ...options, _retried: true })
     } catch (_) {
       // Preserve the original 401 so callers receive the protected resource problem.

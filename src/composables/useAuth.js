@@ -1,7 +1,13 @@
 import { computed, ref } from 'vue'
 import { authApi } from '../api/auth.js'
 
-export const ROLES = Object.freeze({ USER: 'user', SPECIALIST: 'specialist', ADMIN: 'admin' })
+export const ROLES = Object.freeze({
+  USER: 'user',
+  SPECIALIST: 'specialist',
+  CONTENT_MANAGER: 'content_manager',
+  ADMIN: 'admin',
+  SUPER_ADMIN: 'super_admin',
+})
 
 const user = ref(null)
 const initialized = ref(false)
@@ -15,8 +21,13 @@ const acceptSession = (response) => {
 export function useAuth() {
   const isAuthenticated = computed(() => Boolean(user.value))
   const role = computed(() => user.value?.role || null)
-  const isAdmin = computed(() => role.value === ROLES.ADMIN)
-  const isStaff = computed(() => [ROLES.ADMIN, ROLES.SPECIALIST].includes(role.value))
+  const isAdmin = computed(() => [ROLES.ADMIN, ROLES.SUPER_ADMIN].includes(role.value))
+  const isStaff = computed(() => [
+    ROLES.SPECIALIST,
+    ROLES.CONTENT_MANAGER,
+    ROLES.ADMIN,
+    ROLES.SUPER_ADMIN,
+  ].includes(role.value))
 
   const ensureSession = async () => {
     if (initialized.value) return user.value
@@ -72,11 +83,12 @@ export function useAuth() {
       : authApi.requestLoginOtp(phone)
   }
 
-  const verifyOtp = async ({ phone, code, challengeId, displayName, mode }) => {
+  const verifyOtp = async ({ phone, code, challengeId, displayName, email, mode }) => {
     const common = { phone, code, challenge_id: challengeId }
     const response = mode === 'register'
-      ? await authApi.verifyRegistrationOtp({ ...common, display_name: displayName })
+      ? await authApi.verifyRegistrationOtp({ ...common, display_name: displayName, email })
       : await authApi.verifyLoginOtp(common)
+    if (mode === 'register') return response
     initialized.value = true
     return acceptSession(response)
   }

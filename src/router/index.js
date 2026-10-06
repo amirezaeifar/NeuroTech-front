@@ -1,18 +1,50 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuth } from '../composables/useAuth.js'
+import { ADMIN_SECTIONS, PANEL_ROLES } from '../data/adminSections.js'
+
+const adminComponents = {
+  AdminDashboard: () => import('../views/admin/AdminDashboard.vue'),
+  AdminOrders: () => import('../views/admin/AdminOrders.vue'),
+  AdminTickets: () => import('../views/admin/AdminTickets.vue'),
+  AdminCourses: () => import('../views/admin/AdminCourses.vue'),
+  AdminProducts: () => import('../views/admin/AdminProducts.vue'),
+  AdminEvents: () => import('../views/admin/AdminEvents.vue'),
+  AdminPartners: () => import('../views/admin/AdminPartners.vue'),
+  AdminBlog: () => import('../views/admin/AdminBlog.vue'),
+  AdminApprovals: () => import('../views/admin/AdminApprovals.vue'),
+  AdminModeration: () => import('../views/admin/AdminModeration.vue'),
+  AdminUsers: () => import('../views/admin/AdminUsers.vue'),
+}
+
+const adminRoutes = ADMIN_SECTIONS.map((section) => ({
+  path: section.path,
+  name: section.name,
+  component: adminComponents[section.name],
+  meta: { roles: section.roles },
+}))
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
+    { path: '/tickets/:token', name: 'TicketTracking', component: () => import('../views/TicketTracking.vue') },
     { path: '/', name: 'Home', component: () => import('../views/HomeView.vue') },
     { path: '/academy', name: 'Academy', component: () => import('../views/AcademyView.vue') },
+    { path: '/articles', name: 'Articles', component: () => import('../views/ArticlesView.vue') },
+    { path: '/articles/:slug', name: 'ArticleDetail', component: () => import('../views/ArticleDetailView.vue') },
     { path: '/pathway', name: 'Pathway', component: () => import('../views/PathwayView.vue'), meta: { requiresAuth: true } },
     { path: '/academy/course/:id', name: 'CourseDetail', component: () => import('../views/CourseDetailView.vue') },
     { path: '/events', name: 'Events', component: () => import('../views/EventsView.vue') },
     { path: '/events/archive/:id', name: 'PastEventDetail', component: () => import('../views/PastEventDetailView.vue') },
-    { path: '/events/active/:type/:id', name: 'ActiveEvent', component: () => import('../views/ActiveEventView.vue') },
+    { path: '/events/active/:type/:id', redirect: to => ({ name: 'EventLive', params: { slug: to.params.id } }) },
+    { path: '/events/live/:slug', name: 'EventLive', component: () => import('../views/ActiveEventView.vue'), meta: { requiresAuth: true } },
     { path: '/events/reserve/:type/:id', name: 'EventReservation', component: () => import('../views/EventReservationView.vue') },
+    { path: '/events/confirm', name: 'EventReservationConfirm', component: () => import('../views/EventReservationConfirmView.vue') },
     { path: '/checkout', name: 'Checkout', component: () => import('../views/CheckoutView.vue'), meta: { requiresAuth: true } },
+    { path: '/account/courses', name: 'AccountCourses', component: () => import('../views/account/AccountCourses.vue'), meta: { requiresAuth: true } },
+    { path: '/account/orders', name: 'AccountOrders', component: () => import('../views/account/AccountOrders.vue'), meta: { requiresAuth: true } },
+    { path: '/account/payments', name: 'AccountPayments', component: () => import('../views/account/AccountPayments.vue'), meta: { requiresAuth: true } },
+    { path: '/account/favorites', name: 'AccountFavorites', component: () => import('../views/account/AccountFavorites.vue'), meta: { requiresAuth: true } },
+    { path: '/account/profile', name: 'AccountProfile', component: () => import('../views/account/AccountProfile.vue'), meta: { requiresAuth: true } },
     { path: '/login', name: 'Login', component: () => import('../views/AuthView.vue'), meta: { hideChrome: true } },
     { path: '/products', name: 'Products', component: () => import('../views/ProductsView.vue') },
     { path: '/products/:id', name: 'ProductDetail', component: () => import('../views/ProductDetailView.vue') },
@@ -25,13 +57,8 @@ const router = createRouter({
     {
       path: '/admin',
       component: () => import('../views/admin/AdminLayout.vue'),
-      meta: { requiresAuth: true, roles: ['admin', 'specialist'] },
-      children: [
-        { path: '', name: 'AdminDashboard', component: () => import('../views/admin/AdminDashboard.vue') },
-        { path: 'courses', name: 'AdminCourses', component: () => import('../views/admin/AdminCourses.vue') },
-        { path: 'moderation', name: 'AdminModeration', component: () => import('../views/admin/AdminModeration.vue') },
-        { path: 'users', name: 'AdminUsers', component: () => import('../views/admin/AdminUsers.vue'), meta: { requiresAuth: true, roles: ['admin'] } },
-      ],
+      meta: { requiresAuth: true, roles: PANEL_ROLES },
+      children: adminRoutes,
     },
   ],
   scrollBehavior(to, from, savedPosition) {

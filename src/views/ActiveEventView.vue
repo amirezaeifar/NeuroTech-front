@@ -1,126 +1,82 @@
 <script setup>
-import { ref, computed, reactive } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import VideoPlayer from '../components/VideoPlayer.vue'
 import { useReveal } from '../composables/useReveal.js'
+import { eventsApi } from '../api/events.js'
+import { resolveApiUrl } from '../api/client.js'
 
-const { t, tm } = useI18n()
-const route = useRoute()
-const router = useRouter()
-
-const eventType = computed(() => (route.params.type === 'onsite' ? 'onsite' : 'online'))
-const items = computed(() => tm(`events.${eventType.value}.items`))
-const itemIndex = computed(() => Number(route.params.id))
-const item = computed(() => items.value[itemIndex.value])
-const presenter = computed(() => item.value?.host || item.value?.venue || '')
-const isOnsite = computed(() => eventType.value === 'onsite')
-
-// ---- On-site (recorded physical event) data ----
-// An on-site event is a *physical* gathering that is recorded rather than
-// live-streamed. The hub presents the VOD recording, the day's schedule, a
-// venue guide (location, hall map, timings) and an open comments/discussion
-// thread — but no live Q&A.
-const venueSchedule = [
-  { time: '08:30', label: 'Doors open & registration' },
-  { time: '09:00', label: 'Morning sessions — Main Hall' },
-  { time: '12:30', label: 'Lunch & networking' },
-  { time: '14:00', label: 'Hands-on stations — Hall B' },
-  { time: '17:00', label: 'Closing remarks' },
-]
-
-// ---- Live mock state ----
-const viewers = ref(412)
-const questionsAsked = ref(38)
-const elapsed = ref('00:47:12')
-
+const { t, locale } = useI18n(), route = useRoute(), router = useRouter()
+const tr = (en, fa) => locale.value === 'fa' ? fa : en
+const room = ref(null), error = ref(''), loading = ref(true), busy = ref(false)
+const showRegistered = ref(true), panel = ref('chat'), draft = ref(''), clock = ref(Date.now())
+const slug = computed(() => route.params.slug || route.params.id)
+const item = computed(() => room.value?.event)
+const isLive = computed(() => item.value?.status === 'live')
+const isOnsite = computed(() => item.value?.kind === 'onsite' && !isLive.value)
+const presenter = computed(() => item.value?.host_label || item.value?.venue || '')
+const content = computed(() => item.value?.content || {})
+const viewers = computed(() => room.value?.viewer_count || 0)
+const questionsAsked = computed(() => room.value?.question_count || 0)
+const initialLoading = ref(true)
+let pollTimer, clockTimer, sequence = 0, stopped = false
+const refresh = async () => {
+  const request = ++sequence
+  try {
+    const response = await eventsApi.live(slug.value, locale.value)
+    if (stopped || request !== sequence) return
+    room.value = response.data; error.value = ''
+  } catch (problem) {
+    if (!stopped && request === sequence) {
+      error.value = problem.message
+      if ([401,403,404,409].includes(problem.status)) room.value = null
+    }
+  } finally { if (!stopped && request === sequence) { loading.value = false; initialLoading.value = false } }
+}
+const poll = async () => { if (!document.hidden || initialLoading.value) await refresh(); if (!stopped) pollTimer = setTimeout(poll, 5000) }
+onMounted(() => { poll(); clockTimer = setInterval(() => { clock.value = Date.now() }, 1000) })
+onUnmounted(() => { stopped = true; sequence++; clearTimeout(pollTimer); clearInterval(clockTimer) })
+watch([slug, locale], () => { room.value = null; loading.value = true; showRegistered.value = true; draft.value = ''; refresh() })
+const durationLabel = (seconds) => { const n = Math.max(0, Math.floor(seconds || 0)); return [Math.floor(n/3600),Math.floor(n/60)%60,n%60].map(v=>String(v).padStart(2,'0')).join(':') }
+const elapsed = computed(() => isLive.value ? durationLabel((clock.value - new Date(item.value?.live_started_at || item.value?.starts_at).getTime())/1000) : '00:00:00')
+const countries = computed(() => room.value?.countries || {})
 const stats = computed(() => [
   { label: t('events.active.stats.viewers'), value: viewers.value },
   { label: t('events.active.stats.questions'), value: questionsAsked.value },
   { label: t('events.active.stats.elapsed'), value: elapsed.value },
-  { label: t('events.active.stats.countries'), value: 14 },
+  { label: t('events.active.stats.countries'), value: Object.keys(countries.value).filter(c=>c!=='--').length },
 ])
-
-// On-site recorded event surfaces physical-event figures instead of live ones.
+const asset = url => url?.startsWith('/api/') ? resolveApiUrl(url) : url
+const download = url => url?.startsWith('/api/') ? `${resolveApiUrl(url)}?download=1` : url
+const documents = computed(() => content.value.documents || [])
+const venueSchedule = computed(() => (content.value.agenda || []).map(a => ({ time: a.time, label: a.title })))
 const onsiteStats = computed(() => [
-  { label: t('events.active.onsiteStats.attendees'), value: 248 },
-  { label: t('events.active.onsiteStats.sessions'), value: 6 },
-  { label: t('events.active.onsiteStats.duration'), value: '1:12:40' },
-  { label: t('events.active.onsiteStats.materials'), value: documents.length },
+  { label: tr('Confirmed reservations','رزروهای تأییدشده'), value: item.value?.reserved || 0 },
+  { label: t('events.active.onsiteStats.sessions'), value: agenda.value.length },
+  { label: tr('Scheduled duration','مدت برنامه'), value: durationLabel((new Date(item.value?.ends_at)-new Date(item.value?.starts_at))/1000) },
+  { label: t('events.active.onsiteStats.materials'), value: documents.value.length },
 ])
-
-// Dismissible "you're registered" banner.
-const showRegistered = ref(true)
-
-// ---- Side panel tabs ----
-const panel = ref('chat')
-
-// ---- Chat / Q&A mock ----
-const initials = (name) => name.split(/[\s.]+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase()
-
-const chat = reactive([
-  { user: 'Dr. L. Hashemi', role: 'Faculty', time: '12:02', text: 'Welcome everyone — we begin with the pre-op imaging review in two minutes.', faculty: true },
-  { user: 'M. Rezaei', role: 'Resident', time: '12:04', text: 'Great to be here. Will the lead trajectory planning be covered today?' },
-  { user: 'S. Nouri', role: 'Attendee', time: '12:06', text: 'Audio and video are crystal clear from Shiraz 👏' },
-  { user: 'Dr. A. Karimi', role: 'Presenter', time: '12:08', text: 'Yes — trajectory planning is the next segment. Keep questions coming in the Q&A tab.', faculty: true },
-  { user: 'P. Ahmadi', role: 'Attendee', time: '12:11', text: 'Could you clarify the microelectrode recording thresholds you target intra-operatively?' },
-  { user: 'F. Karbasi', role: 'Fellow', time: '12:13', text: 'Following from Tabriz — excellent case selection.' },
-])
-
-const qa = reactive([
-  { user: 'M. Rezaei', time: '12:05', text: 'What stimulation frequency do you start with for tremor-dominant presentations?', votes: 17, answered: true },
-  { user: 'P. Ahmadi', time: '12:11', text: 'How do you manage stimulation-induced dyskinesia in the first programming session?', votes: 12, answered: false },
-  { user: 'N. Saadat', time: '12:14', text: 'Any tips for distinguishing capsular side-effects from genuine benefit?', votes: 9, answered: false },
-])
-
-const draft = ref('')
-const send = () => {
-  const text = draft.value.trim()
-  if (!text) return
-  if (panel.value === 'chat') {
-    chat.push({ user: t('events.active.you'), role: 'Attendee', time: 'now', text, mine: true })
-  } else {
-    qa.unshift({ user: t('events.active.you'), time: 'now', text, votes: 0, answered: false, mine: true })
-    questionsAsked.value += 1
-  }
-  draft.value = ''
+const mediaUrl = computed(() => isLive.value ? item.value?.online_url || '' : item.value?.status === 'completed' ? content.value.videos?.[0]?.url || '' : '')
+const mediaNotice = computed(() => mediaUrl.value ? '' : isLive.value ? tr('The host has not added a stream yet.','لینک پخش هنوز ثبت نشده است.') : item.value?.status === 'completed' ? tr('The recording will appear here when available.','ویدئوی ضبط‌شده پس از انتشار اینجا نمایش داده می‌شود.') : tr('The live session has not started yet.','پخش زنده هنوز آغاز نشده است.'))
+const initials = name => String(name || '').split(/[\s.]+/).filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase()
+const timeLabel = value => value ? new Intl.DateTimeFormat(locale.value,{hour:'2-digit',minute:'2-digit',timeZone:item.value?.timezone || 'Asia/Tehran'}).format(new Date(value)) : ''
+const chat = computed(() => (room.value?.messages || []).map(m => ({...m,user:m.author,text:m.body,time:timeLabel(m.created_at)})))
+const qa = computed(() => (room.value?.questions || []).map(q => ({...q,user:q.author,text:q.body,time:timeLabel(q.created_at)})).sort((a,b)=>Number(a.answered)-Number(b.answered)||b.votes-a.votes))
+const conversationClosed = computed(() => !isLive.value || !(panel.value==='chat' ? room.value?.chat_enabled : room.value?.questions_enabled))
+const action = async fn => { if (busy.value) return; busy.value = true; try { await fn(); await refresh() } catch (problem) { error.value = problem.message } finally { busy.value = false } }
+const send = async () => {
+  const text = draft.value.trim(); if (!text || conversationClosed.value || busy.value) return
+  await action(async () => { await (panel.value==='chat' ? eventsApi.liveMessage(slug.value,text) : eventsApi.liveQuestion(slug.value,text)); draft.value = '' })
 }
-
-// ---- Agenda timeline ----
-const agenda = [
-  { time: '12:00', title: 'Welcome & case introduction', status: 'done' },
-  { time: '12:10', title: 'Pre-operative imaging & target planning', status: 'done' },
-  { time: '12:25', title: 'Live lead trajectory & microelectrode recording', status: 'live' },
-  { time: '13:05', title: 'Intra-operative test stimulation', status: 'soon' },
-  { time: '13:30', title: 'Closing & programming strategy', status: 'upcoming' },
-  { time: '13:50', title: 'Open Q&A with the faculty panel', status: 'upcoming' },
-]
-const statusLabel = (s) => ({ done: t('events.active.done'), live: t('events.active.now'), soon: t('events.active.soon'), upcoming: '' }[s] || '')
-
-// ---- Speakers ----
-// Cross-link speakers who also appear in the Partners directory. The card itself
-// is NOT clickable; only the explicit "View Profile" link routes — to that
-// speaker's dedicated profile page at /partners/<index>.
-const partners = computed(() => tm('partners.people'))
-const partnerIndex = (name) => partners.value.findIndex((p) => p.name === name)
-
-const speakers = [
-  { name: 'Dr. A. Karimi', title: 'Functional Neurosurgeon', org: 'Tehran Neurology Institute', tag: 'Presenting', live: true, talks: 142 },
-  { name: 'Dr. L. Hashemi', title: 'Clinical Neurophysiologist', org: 'Milad Medical Centre', tag: 'Moderator', live: false, talks: 87 },
-  { name: 'Eng. R. Tabrizi', title: 'Biomedical Engineer', org: 'Neuro Tech', tag: 'Device support', live: false, talks: 54 },
-]
-
-// ---- Documents ----
-const documents = [
-  { name: 'Pre-operative MRI & CT fusion plan', type: 'PDF', size: '2.4 MB' },
-  { name: 'DBS programming parameter sheet', type: 'XLSX', size: '180 KB' },
-  { name: 'Patient consent & screening summary', type: 'PDF', size: '640 KB' },
-  { name: 'Session reading pack — lead trajectory', type: 'PDF', size: '3.1 MB' },
-]
-const docIcon = (type) => (type === 'XLSX'
-  ? 'M7 3h7l4 4v14H7z M9 12l4 4 M13 12l-4 4'
-  : 'M7 3h7l4 4v14H7z M14 3v4h4 M9 13h6 M9 16h4')
-
+const agenda = computed(() => (item.value?.agenda_steps || []).map((title,index) => ({
+  title, time: content.value.agenda?.[index]?.time || String(index+1).padStart(2,'0'),
+  duration: durationLabel((item.value.step_durations?.[index] || 0) + (isLive.value && index === item.value.current_step && item.value.step_started_at ? Math.max(0, (clock.value - new Date(item.value.step_started_at).getTime()) / 1000) : 0)),
+  status: item.value.status==='completed' || (isLive.value && index < item.value.current_step) ? 'done' : isLive.value && index === item.value.current_step ? 'live' : 'upcoming',
+})))
+const statusLabel = s => ({done:t('events.active.done'),live:t('events.active.now'),soon:t('events.active.soon'),upcoming:''}[s] || '')
+const speakers = computed(() => (item.value?.speakers || []).map(sp => ({ ...sp, title:sp.role_label, org:presenter.value, tag:sp.role_label })))
+const docIcon = type => type==='XLSX' ? 'M7 3h7l4 4v14H7z M9 12l4 4 M13 12l-4 4' : 'M7 3h7l4 4v14H7z M14 3v4h4 M9 13h6 M9 16h4'
 useReveal()
 </script>
 
@@ -139,7 +95,7 @@ useReveal()
     <!-- Registered confirmation — dismissible. The X collapses it out with a
          smooth fade + slide-up <Transition> (alert-collapse). -->
     <Transition name="alert-collapse">
-      <div v-if="showRegistered && !isOnsite" class="bg-gold/10 border-b border-gold/30">
+      <div v-if="showRegistered && !isOnsite && !room.instructor" class="bg-gold/10 border-b border-gold/30">
         <div class="max-w-6xl mx-auto px-6 py-2.5 flex items-center justify-between gap-3 text-xs text-ink-soft font-light">
           <span class="flex items-center gap-2.5">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="text-gold-dark shrink-0"><path d="M5 12l5 5L19 8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -157,12 +113,12 @@ useReveal()
       </div>
     </Transition>
 
-    <div class="max-w-6xl mx-auto px-6 pt-6 grid lg:grid-cols-12 gap-6">
+    <p v-if="error" role="alert" class="max-w-6xl mx-auto px-6 pt-5 text-sm text-red-600">{{ error }}</p><div class="max-w-6xl mx-auto px-6 pt-6 grid lg:grid-cols-12 gap-6">
       <!-- ================= MAIN COLUMN ================= -->
       <div class="lg:col-span-8 space-y-6">
         <!-- Title -->
         <div>
-          <span class="text-[10px] uppercase tracking-[0.3em] text-gold-dark font-light">{{ item.tag }}</span>
+          <span class="text-[10px] uppercase tracking-[0.3em] text-gold-dark font-light">{{ item.kind }}</span>
           <h1 class="font-serif font-light text-2xl md:text-3xl text-ink mt-1.5 leading-snug">{{ item.title }}</h1>
           <p class="mt-1 text-sm text-ink-muted font-light">{{ presenter }}</p>
         </div>
@@ -173,7 +129,8 @@ useReveal()
              markers ("Key Moments") rather than a live feed. -->
         <template v-if="!isOnsite">
           <VideoPlayer
-            live
+            :live="isLive"
+            :media-url="mediaUrl" managed :poster="asset(item.cover_url)" :notice="mediaNotice" :elapsed="elapsed" duration="—"
             :viewers="viewers.toLocaleString()"
             :title="item.title"
             :subtitle="presenter"
@@ -192,7 +149,7 @@ useReveal()
             <VideoPlayer
               :title="item.title"
               :subtitle="t('events.active.recordingTitle')"
-              duration="1:12:40"
+              :media-url="mediaUrl" managed :poster="asset(item.cover_url)" :notice="mediaNotice" duration="—"
               elapsed="00:00"
             />
           </div>
@@ -205,6 +162,10 @@ useReveal()
             <p class="mt-1.5 text-[10px] uppercase tracking-[0.2em] text-ink-muted font-light">{{ s.label }}</p>
           </div>
         </div>
+        <p v-if="!isOnsite" class="text-[10px] text-ink-muted">
+          {{ tr('Country data:', 'دادهٔ کشورها:') }}
+          <a href="https://db-ip.com" target="_blank" rel="noopener noreferrer" class="underline hover:text-gold-dark">IP Geolocation by DB-IP</a>
+        </p>
 
         <!-- Agenda / schedule timeline -->
         <div class="rounded-lg border border-parchment-deep/70 bg-parchment shadow-card p-7">
@@ -225,9 +186,10 @@ useReveal()
                   <span v-if="statusLabel(a.status)" class="text-[9px] uppercase tracking-[0.2em] font-light px-2 py-0.5 rounded-full"
                         :class="a.status === 'live' ? 'bg-red-500/10 text-red-600 dark:text-red-400'
                           : a.status === 'done' ? 'text-ink-hint' : 'text-gold-dark border border-gold/40'">{{ statusLabel(a.status) }}</span>
+                  <span v-if="a.status !== 'upcoming'" class="text-[11px] tabular-nums text-ink-muted">{{ a.duration }}</span>
                 </div>
-                <p class="text-sm font-light leading-snug mt-0.5"
-                   :class="a.status === 'upcoming' ? 'text-ink-muted' : 'text-ink'">{{ a.title }}</p>
+                <button type="button" :disabled="!room.instructor || !isLive || busy" @click="action(() => eventsApi.liveStep(slug,i))" class="text-sm font-light leading-snug mt-0.5 text-start disabled:cursor-default"
+                   :class="a.status === 'upcoming' ? 'text-ink-muted' : 'text-ink'">{{ a.title }}</button>
               </div>
             </li>
           </ol>
@@ -236,14 +198,14 @@ useReveal()
         <!-- Speakers -->
         <div class="rounded-lg border border-parchment-deep/70 bg-parchment shadow-card p-7">
           <h2 class="font-serif font-light text-lg text-ink mb-5">{{ t('events.active.speakersTitle') }}</h2>
-          <!-- Cards are no longer clickable as a whole. Routing to a partner's
-               profile happens only via the explicit "View Profile" link below
-               each card (when the speaker is in the Partners directory). -->
           <div class="grid sm:grid-cols-3 gap-5">
-            <div
+            <component
+              :is="sp.profile_slug ? RouterLink : 'div'"
               v-for="sp in speakers"
               :key="sp.name"
+              :to="sp.profile_slug ? `/partners/${sp.profile_slug}` : undefined"
               class="speaker-card text-center sm:text-left"
+              :class="sp.profile_slug ? 'cursor-pointer hover:border-gold/50 focus-visible:outline-gold' : ''"
             >
               <div class="flex items-center gap-3 sm:block">
                 <div class="relative shrink-0 w-12 h-12 rounded-full bg-ink text-parchment-light flex items-center justify-center font-serif text-sm sm:mb-3">
@@ -259,16 +221,15 @@ useReveal()
               <div class="mt-2.5 flex items-center gap-2 justify-center sm:justify-start">
                 <span class="text-[9px] uppercase tracking-[0.2em] font-light px-2 py-0.5 rounded-full"
                       :class="(sp.live && !isOnsite) ? 'bg-red-500/10 text-red-600 dark:text-red-400' : 'text-gold-dark border border-gold/40'">{{ sp.tag }}</span>
-                <span class="text-[10px] text-ink-hint font-light">{{ sp.talks }} talks</span>
+                
               </div>
-              <router-link
-                v-if="partnerIndex(sp.name) >= 0"
-                :to="`/partners/${partnerIndex(sp.name)}`"
+              <span
+                v-if="sp.profile_slug"
                 class="speaker-profile-link mt-2.5 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-gold-dark font-light border-b border-gold/40 pb-0.5 hover:text-gold hover:border-gold transition-colors"
               >
                 {{ t('events.active.viewProfile') }} <span class="dir-arrow" aria-hidden="true"></span>
-              </router-link>
-            </div>
+              </span>
+            </component>
           </div>
         </div>
 
@@ -306,15 +267,15 @@ useReveal()
           <!-- Q&A list -->
           <div v-else class="flex-1 overflow-y-auto px-4 py-4 space-y-3">
             <div v-for="(q, i) in qa" :key="i" class="rounded-md border border-parchment-deep/60 bg-parchment-light p-3.5 flex gap-3">
-              <div class="shrink-0 flex flex-col items-center gap-0.5 text-ink-muted">
+              <button type="button" :disabled="busy || !isLive || !room.questions_enabled" :aria-pressed="q.voted" :aria-label="tr('Vote for this question','رأی به این پرسش')" @click="action(() => eventsApi.liveVote(slug,q.id))" class="shrink-0 flex flex-col items-center gap-0.5" :class="q.voted?'text-gold-dark':'text-ink-muted'">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span class="text-[11px] font-light tabular-nums">{{ q.votes }}</span>
-              </div>
+              </button>
               <div class="min-w-0">
                 <p class="text-sm text-ink-soft font-light leading-snug">{{ q.text }}</p>
                 <p class="mt-1.5 text-[10px] uppercase tracking-[0.15em] font-light">
                   <span class="text-ink-hint">{{ q.user }} · {{ q.time }}</span>
-                  <span v-if="q.answered" class="ms-2 text-gold-dark">✓ answered</span>
+                  <button v-if="room.instructor && !q.answered && isLive" type="button" :disabled="busy" class="ms-2 text-gold-dark underline" @click="action(() => eventsApi.liveAnswer(slug,q.id))">{{ tr('Mark answered','علامت پاسخ') }}</button><span v-if="q.answered" class="ms-2 text-gold-dark">{{ tr('✓ answered','✓ پاسخ‌داده‌شده') }}</span>
                 </p>
               </div>
             </div>
@@ -323,12 +284,12 @@ useReveal()
           <!-- Input -->
           <form class="border-t border-parchment-deep/60 p-3 flex items-center gap-2" @submit.prevent="send">
             <input
-              v-model="draft"
+              v-model="draft" maxlength="1000" :disabled="conversationClosed || busy"
               type="text"
-              :placeholder="t('events.active.chatPlaceholder')"
-              class="flex-1 bg-parchment-light border border-parchment-deep/70 rounded-md px-3.5 py-2.5 text-sm font-light text-ink placeholder:text-ink-hint focus:outline-none focus:border-gold/60 transition-colors"
+              :placeholder="conversationClosed ? tr('Conversation is paused.','گفت‌وگو فعلاً بسته است.') : panel === 'chat' ? t('events.active.chatPlaceholder') : tr('Ask a question…','سؤال خود را بپرسید…')" :aria-label="panel === 'chat' ? tr('Message','پیام') : tr('Question','پرسش')"
+              class="min-w-0 flex-1 bg-parchment-light border border-parchment-deep/70 rounded-md px-3.5 py-2.5 text-sm font-light text-ink placeholder:text-ink-hint focus:outline-none focus:border-gold/60 transition-colors"
             />
-            <button type="submit" class="shrink-0 w-10 h-10 rounded-md bg-ink text-parchment-light hover:bg-gold-dark transition-colors flex items-center justify-center" :aria-label="t('events.active.send')">
+            <button type="submit" :disabled="conversationClosed || busy || !draft.trim()" class="shrink-0 w-10 h-10 rounded-md bg-ink text-parchment-light hover:bg-gold-dark transition-colors flex items-center justify-center" :aria-label="t('events.active.send')">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 2 11 13 M22 2 15 22l-4-9-9-4z" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </form>
@@ -336,7 +297,7 @@ useReveal()
 
         <!-- Venue Guide & Event Agenda — on-site (physical) events only.
              Location details, a flat top-down hall map and the day's timings. -->
-        <div v-if="isOnsite" class="rounded-lg border border-parchment-deep/70 bg-parchment shadow-card p-6">
+        <div v-if="item.kind === 'onsite' || item.venue" class="rounded-lg border border-parchment-deep/70 bg-parchment shadow-card p-6">
           <h2 class="font-serif font-light text-lg text-ink mb-4">{{ t('events.active.venueTitle') }}</h2>
 
           <!-- Location details -->
@@ -346,13 +307,13 @@ useReveal()
             </span>
             <div class="min-w-0">
               <p class="text-sm text-ink font-light leading-snug">{{ item.venue || presenter }}</p>
-              <p class="text-[12px] text-ink-muted font-light mt-0.5">{{ t('events.active.venueAddress') }}</p>
+              <p class="text-[12px] text-ink-muted font-light mt-0.5">{{ new Date(item.starts_at).toLocaleString(locale, { timeZone: item.timezone }) }}</p>
             </div>
           </div>
 
           <!-- Flat top-down hall map (decorative schematic) -->
-          <div class="mt-5">
-            <p class="text-[10px] uppercase tracking-[0.25em] text-gold-dark font-light mb-2">{{ t('events.active.venueMapLabel') }}</p>
+          <div v-if="item.kind === 'onsite'" class="mt-5">
+            <p class="text-[10px] uppercase tracking-[0.25em] text-gold-dark font-light mb-2">{{ tr('Illustrative seating layout','چیدمان نمایشی سالن') }}</p>
             <div class="rounded-md border border-parchment-deep/60 bg-parchment-light p-3">
               <svg viewBox="0 0 200 120" class="w-full h-auto" role="img" :aria-label="t('events.active.venueMapLabel')">
                 <g fill="none" stroke="rgb(var(--c-gold) / 0.55)" stroke-width="1">
@@ -395,12 +356,12 @@ useReveal()
           <h2 class="font-serif font-light text-lg text-ink mb-4">{{ t('events.active.docsTitle') }}</h2>
           <ul class="space-y-2.5">
             <li v-for="doc in documents" :key="doc.name">
-              <a href="#" @click.prevent class="group flex items-center gap-3 rounded-md border border-parchment-deep/60 bg-parchment-light px-3.5 py-3 hover:border-gold/50 transition-colors">
+              <a :href="download(doc.url)" target="_blank" rel="noopener noreferrer" class="group flex min-w-0 max-w-full items-center gap-3 overflow-hidden rounded-md border border-parchment-deep/60 bg-parchment-light px-3.5 py-3 hover:border-gold/50 transition-colors">
                 <span class="shrink-0 w-9 h-9 rounded border border-gold/40 flex items-center justify-center text-gold-dark">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path :d="docIcon(doc.type)" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </span>
                 <span class="min-w-0 flex-1">
-                  <span class="block text-sm text-ink font-light leading-snug group-hover:text-gold-dark transition-colors">{{ doc.name }}</span>
+                  <span class="block max-w-full truncate text-sm text-ink font-light leading-snug group-hover:text-gold-dark transition-colors" :title="doc.name">{{ doc.name }}</span>
                   <span class="block text-[10px] uppercase tracking-[0.15em] text-ink-hint font-light mt-0.5">{{ doc.type }} · {{ doc.size }}</span>
                 </span>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" class="shrink-0 text-ink-muted group-hover:text-gold-dark transition-colors"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -413,7 +374,7 @@ useReveal()
     </div>
   </div>
 
-  <div v-else class="py-32 text-center">
+  <div v-else class="py-32 px-6 text-center"><p role="status" class="mb-6 text-sm text-ink-muted">{{ loading ? tr('Loading event…','در حال دریافت رویداد…') : error }}</p><router-link v-if="!loading" :to="`/events/reserve/online/${slug}`" class="inline-block mx-4 text-sm text-gold-dark underline">{{ tr('Reserve a place','رزرو رویداد') }}</router-link>
     <button class="text-[11px] uppercase tracking-[0.25em] text-gold-dark border-b border-gold/50 pb-1" @click="router.push('/events')">
       {{ t('events.active.back') }}
     </button>
@@ -439,3 +400,5 @@ useReveal()
   .alert-collapse-leave-to { transform: none; }
 }
 </style>
+
+

@@ -10,7 +10,7 @@ const error = ref('')
 let initialized = false
 
 const imagerySlugs = courseMedia.map((item) => item.slug)
-const docTypes = ['pdf', 'slides', 'protocol', 'dataset', 'link']
+const docTypes = ['pdf', 'document', 'slides', 'spreadsheet', 'archive', 'image', 'video', 'audio', 'protocol', 'dataset']
 
 const mapCourse = (course) => {
   const english = course.translations?.find((item) => item.locale === 'en') || {}
@@ -22,9 +22,13 @@ const mapCourse = (course) => {
     slug: course.slug,
     title: english.title || course.title,
     instructor: english.instructor_name || course.instructor_name || '',
+    instructorPartnerId: course.instructor_partner_id || null,
+    instructorPartnerSlug: course.instructor_partner_slug || null,
     level: course.level,
     duration: english.duration_label || course.duration_label || '',
     desc: english.description || course.description || '',
+    summary: english.summary || '',
+    faSummary: persian.summary || '',
     faTitle: persian.title || '',
     faInstructor: persian.instructor_name || '',
     faDuration: persian.duration_label || '',
@@ -35,9 +39,7 @@ const mapCourse = (course) => {
     price: usd ? usd.amount_minor / 100 : 0,
     irrPrice: irr ? irr.amount_minor : 0,
     published: Boolean(course.published),
-    videoUrl: course.content?.media?.find((item) => item.kind === 'video')?.external_url
-      || course.content?.media?.find((item) => item.kind === 'video')?.storage_path
-      || '',
+    playlistId: course.youtube_playlist_id || '',
     documents: (course.content?.resources || []).map((item) => ({
       id: nextId(),
       name: item.name,
@@ -70,6 +72,7 @@ const mutationPayload = (draft) => {
     locale: 'en',
     title: draft.title,
     description: draft.desc || draft.title,
+    summary: draft.summary || '',
     instructor_name: draft.instructor,
     duration_label: draft.duration,
   }
@@ -77,6 +80,7 @@ const mutationPayload = (draft) => {
     locale: 'fa',
     title: draft.faTitle,
     description: draft.faDesc || draft.faTitle,
+    summary: draft.faSummary || '',
     instructor_name: draft.faInstructor,
     duration_label: draft.faDuration,
   }
@@ -91,6 +95,8 @@ const mutationPayload = (draft) => {
     tier: draft.tier,
     field: draft.field,
     level: String(draft.level).toLowerCase(),
+    youtube_playlist_id: draft.playlistId.trim() || null,
+    instructor_partner_id: draft.instructorPartnerId || null,
     translations,
     prices,
   }
@@ -111,9 +117,6 @@ const contentPayload = (draft) => {
       storage_path,
       external_url,
     }))
-  const existingVideo = (draft.content?.media || []).find((item) => item.kind === 'video')
-  const videoPosition = existingVideo?.position
-    || Math.max(0, ...retainedMedia.map((item) => item.position)) + 1
   return {
     sections: (draft.content?.sections || []).map((section) => ({
       position: section.position,
@@ -139,18 +142,7 @@ const contentPayload = (draft) => {
         kind: document.type,
         ...sourceFields(document.url),
       })),
-    media: draft.videoUrl.trim()
-      ? [
-          ...retainedMedia,
-          {
-            kind: 'video',
-            position: videoPosition,
-            locale: null,
-            mime_type: null,
-            ...sourceFields(draft.videoUrl),
-          },
-        ]
-      : retainedMedia,
+    media: retainedMedia,
   }
 }
 
@@ -161,24 +153,42 @@ export function useCourseAdmin() {
   const saveCourse = async (draft) => {
     error.value = ''
     let unpublishedForMutation = false
+    let approvalPending = false
     try {
       const isNew = String(draft.id).startsWith('draft-')
       const payload = mutationPayload(draft)
       const content = contentPayload(draft)
       const contentChanged = isNew || JSON.stringify(content) !== draft._contentSnapshot
       if (!isNew && draft._published && (!draft.published || contentChanged)) {
-        await academyApi.adminUnpublish(draft.id)
+        const unpublishResponse = await academyApi.adminUnpublish(draft.id)
+        approvalPending ||= Boolean(unpublishResponse.data?.approval)
         unpublishedForMutation = true
       }
       const response = isNew
-        ? await academyApi.adminCreate({ ...payload, slug: draft.slug })
+        ? await academyApi.adminCreate({
+          ...payload,
+          slug: draft.slug,
+          content,
+          published: draft.published,
+        })
         : await academyApi.adminUpdate(draft.id, payload)
-      const id = response.data.id
-      if (contentChanged) await academyApi.adminReplaceContent(id, content)
+      approvalPending ||= Boolean(response.data?.approval)
+      if (isNew && response.data?.approval) {
+        await loadCourses(true)
+        return { _approvalPending: true }
+      }
+      const id = isNew ? response.data.id : draft.id
+      if (isNew) draft.id = id
+      if (!isNew && contentChanged) {
+        const contentResponse = await academyApi.adminReplaceContent(id, content)
+        approvalPending ||= Boolean(contentResponse.data?.approval)
+      }
       if (draft.published && (!draft._published || contentChanged)) {
-        await academyApi.adminPublish(id)
+        const publishResponse = await academyApi.adminPublish(id)
+        approvalPending ||= Boolean(publishResponse.data?.approval)
       }
       await loadCourses(true)
+      if (approvalPending) return { _approvalPending: true }
       return findById(id)
     } catch (problem) {
       if (unpublishedForMutation) {
@@ -207,13 +217,17 @@ export function useCourseAdmin() {
       slug: `untitled-course-${Date.now()}`,
       title: '',
       instructor: '',
+      instructorPartnerId: null,
+      instructorPartnerSlug: null,
       level: 'beginner',
       duration: '',
+      summary: '',
       desc: '',
       faTitle: '',
       faInstructor: '',
       faDuration: '',
       faDesc: '',
+      faSummary: '',
       tier: 'free',
       field: 'clinicalNeurology',
       category: 'Clinical',
@@ -221,13 +235,12 @@ export function useCourseAdmin() {
       irrPrice: 0,
       published: false,
       _published: false,
-      videoUrl: '',
-      documents: [],
+      playlistId: '',
+      documents: [newDocument()],
       translations: [],
       prices: [],
       content: { sections: [], outcomes: [], media: [], resources: [] },
     }
-    courses.value.unshift(draft)
     return draft
   }
 
@@ -258,10 +271,12 @@ export function useCourseAdmin() {
   const draftFrom = (course) => {
     const draft = {
       ...course,
-      documents: course.documents.map((document) => ({ ...document })),
+      documents: course.documents.length
+        ? course.documents.map((document) => ({ ...document }))
+        : [newDocument()],
       translations: course.translations.map((translation) => ({ ...translation })),
       prices: course.prices.map((price) => ({ ...price })),
-      content: structuredClone(course.content),
+      content: JSON.parse(JSON.stringify(course.content)),
     }
     draft._contentSnapshot = JSON.stringify(contentPayload(draft))
     return draft
@@ -287,7 +302,7 @@ export function useCourseAdmin() {
       { locale: 'en', title: '' },
       { locale: 'fa', title: '' },
     ],
-    lessons: [],
+    lessons: [newLesson(1)],
   })
 
   return {

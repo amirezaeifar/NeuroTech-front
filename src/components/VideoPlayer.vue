@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import EventStream from './EventStream.vue'
 
 const { t } = useI18n()
 
@@ -15,11 +16,13 @@ const props = defineProps({
   /** Embeddable iframe URL (e.g. a YouTube embed). When set, the play button
    *  swaps the luxe poster for the real responsive video. Empty = mock only. */
   embedUrl: { type: String, default: '' },
+  mediaUrl: { type: String, default: '' },
+  managed: { type: Boolean, default: false },
   /** Notice shown over the poster while the embed is a replaceable placeholder. */
   notice: { type: String, default: '' },
 })
 
-const hasEmbed = computed(() => !!props.embedUrl)
+const hasEmbed = computed(() => !!(props.mediaUrl || props.embedUrl))
 
 // Poster-first: the real iframe is only mounted once the viewer hits play, so
 // the page stays light and the design leads. Switching lesson (embedUrl change)
@@ -28,11 +31,12 @@ const activated = ref(false)
 const iframeSrc = computed(() =>
   props.embedUrl + (props.embedUrl.includes('?') ? '&' : '?') + 'autoplay=1')
 watch(() => props.embedUrl, () => { activated.value = false; playing.value = false })
+watch(() => props.mediaUrl, () => { activated.value = false; playing.value = false })
 
 const playing = ref(false)
 const onPlay = () => {
   if (hasEmbed.value) { activated.value = true; playing.value = true }
-  else playing.value = !playing.value
+  else if (!props.managed) playing.value = !playing.value
 }
 const togglePlay = () => { if (!activated.value) onPlay() }
 </script>
@@ -42,8 +46,9 @@ const togglePlay = () => { if (!activated.value) onPlay() }
     <!-- Stage -->
     <div class="relative aspect-video w-full select-none">
       <!-- Real responsive embed — mounted only after the viewer hits play. -->
+      <EventStream v-if="activated && mediaUrl" :url="mediaUrl" :title="title" class="absolute inset-0" />
       <iframe
-        v-if="activated && hasEmbed"
+        v-else-if="activated && hasEmbed"
         class="absolute inset-0 w-full h-full"
         :src="iframeSrc"
         :title="title || subtitle || t('common.courseVideo')"
@@ -88,6 +93,7 @@ const togglePlay = () => { if (!activated.value) onPlay() }
       <button
         type="button"
         @click="onPlay"
+        :disabled="managed && !hasEmbed"
         class="absolute inset-0 m-auto w-16 h-16 md:w-20 md:h-20 rounded-full bg-gold/90 hover:bg-gold text-ink flex items-center justify-center shadow-soft transition-all hover:scale-105"
         :aria-label="hasEmbed ? t('common.playVideo') : (playing ? t('common.pause') : t('common.play'))"
       >
@@ -102,7 +108,7 @@ const togglePlay = () => { if (!activated.value) onPlay() }
       >{{ notice }}</p>
 
       <!-- Quality / time badges -->
-      <span class="absolute top-1/2 right-4 -translate-y-1/2 hidden md:inline-flex items-center gap-1.5 bg-black/40 text-parchment-light/80 text-[10px] tracking-[0.2em] uppercase px-2 py-1 rounded">
+      <span v-if="!managed" class="absolute top-1/2 right-4 -translate-y-1/2 hidden md:inline-flex items-center gap-1.5 bg-black/40 text-parchment-light/80 text-[10px] tracking-[0.2em] uppercase px-2 py-1 rounded">
         1080p · HD
       </span>
 
@@ -110,7 +116,7 @@ const togglePlay = () => { if (!activated.value) onPlay() }
       <div class="absolute bottom-0 inset-x-0 px-4 md:px-5 pb-4 pt-8 bg-gradient-to-t from-black/80 to-transparent">
         <!-- Scrubber -->
         <div class="group h-1 w-full bg-white/20 rounded-full cursor-pointer">
-          <div class="relative h-full rounded-full bg-gold" :style="{ width: live ? '100%' : '34%' }">
+          <div class="relative h-full rounded-full bg-gold" :style="{ width: live ? '100%' : managed ? '0%' : '34%' }">
             <span v-if="!live" class="absolute -right-1.5 -top-1 w-3 h-3 rounded-full bg-gold shadow"></span>
           </div>
         </div>

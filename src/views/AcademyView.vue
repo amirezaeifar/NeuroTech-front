@@ -9,6 +9,7 @@ import { resolveCourseCover } from '../data/courseBackgrounds.js'
 import { brandLogoUrl } from '../data/brandAssets.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useReveal } from '../composables/useReveal.js'
+import { courseImage } from '../utils/courseImages.js'
 import { academyApi } from '../api/academy.js'
 
 const { t, locale } = useI18n()
@@ -50,7 +51,7 @@ const loadCourses = async () => {
     const response = await academyApi.list({ locale: locale.value, page: 1, page_size: 50 })
     courses.value = response.data.map((course) => ({
       ...course,
-      desc: course.description,
+      desc: course.summary || course.description,
       instructor: course.instructor_name,
       duration: course.duration_label,
     }))
@@ -66,7 +67,7 @@ onMounted(loadCourses)
 watch(locale, loadCourses)
 
 const courseIndex = (course) => courses.value.findIndex((item) => item.slug === course.slug)
-const courseCover = (course) => resolveCourseCover(course.slug, isDark.value)
+const courseCover = (course) => courseImage(course, isDark.value) || resolveCourseCover(course.slug, isDark.value)
 const filtered = computed(() => courses.value.filter((c) =>
   (activeStatus.value === 'all' || c.tier === activeStatus.value) &&
   (activeField.value === 'all' || c.field === activeField.value)
@@ -228,6 +229,7 @@ useReveal()
             :section-id="`plate-${c.slug}`"
             :code="courseCode(courses, courseIndex(c))"
             :course="c"
+            :item-id="c.id"
             :cover="courseCover(c)"
             :to="`/academy/course/${c.slug}`"
             :field-label="t(`academy.fields.${c.field}`)"

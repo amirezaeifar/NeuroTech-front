@@ -34,6 +34,7 @@ const submitting = ref(false)
 const challengeId = ref(null)
 const errorMessage = ref('')
 const successMessage = ref('')
+let lastVerificationKey = null
 
 const isLogin = computed(() => mode.value === 'login')
 const invitationToken = computed(() =>
@@ -42,14 +43,20 @@ const title = computed(() => (isLogin.value ? t('auth.loginTitle') : t('auth.reg
 const subtitle = computed(() => (isLogin.value ? t('auth.loginSubtitle') : t('auth.registerSubtitle')))
 
 const clearFeedback = () => { errorMessage.value = ''; successMessage.value = '' }
-const setMode = (m) => { mode.value = m; codeSent.value = false; clearFeedback() }
-const setMethod = (m) => { method.value = m; codeSent.value = false; clearFeedback() }
+const resetOtpFlow = () => {
+  codeSent.value = false
+  challengeId.value = null
+  lastVerificationKey = null
+}
+const setMode = (m) => { mode.value = m; resetOtpFlow(); clearFeedback() }
+const setMethod = (m) => { method.value = m; resetOtpFlow(); clearFeedback() }
 const redirectAfterLogin = () => {
   const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
   router.replace(redirect)
 }
 
 const submitPassword = async () => {
+  if (submitting.value) return
   clearFeedback()
   submitting.value = true
   try {
@@ -90,12 +97,13 @@ onMounted(async () => {
 })
 
 const sendCode = async () => {
-  if (!form.phone.trim()) return
+  if (submitting.value || !form.phone.trim()) return
   clearFeedback()
   submitting.value = true
   try {
     const response = await requestOtp(form.phone, mode.value)
     challengeId.value = response.data.challenge_id
+    lastVerificationKey = null
     codeSent.value = true
   } catch (problem) {
     errorMessage.value = problem.message
@@ -105,19 +113,31 @@ const sendCode = async () => {
 }
 
 const verifyCode = async () => {
-  if (form.code.replace(/\D/g, '').length < 6) return
+  const normalizedCode = form.code.replace(/\D/g, '')
+  const verificationKey = `${challengeId.value}:${normalizedCode}`
+  if (
+    submitting.value
+    || normalizedCode.length < 6
+    || verificationKey === lastVerificationKey
+  ) return
+  lastVerificationKey = verificationKey
   clearFeedback()
   submitting.value = true
   try {
     await verifyOtp({
       phone: form.phone,
-      code: form.code,
+      code: normalizedCode,
       challengeId: challengeId.value,
       displayName: form.name,
+      email: form.email,
       mode: mode.value,
     })
-    redirectAfterLogin()
+    if (mode.value === 'register') {
+      successMessage.value = t('auth.verificationEmailSent')
+      resetOtpFlow()
+    } else redirectAfterLogin()
   } catch (problem) {
+    if (![401, 422, 429].includes(problem.status)) lastVerificationKey = null
     errorMessage.value = problem.message
   } finally {
     submitting.value = false
@@ -178,10 +198,14 @@ const verifyCode = async () => {
         <form v-if="method === 'password'" key="password" class="auth-form" @submit.prevent="submitPassword">
           <Transition name="auth-field">
             <div v-if="!isLogin" class="auth-field">
-              <input id="name" v-model="form.name" type="text" required class="auth-input" placeholder=" " />
+              <input minlength="2" maxlength="120" id="name" v-model="form.name" type="text" required class="auth-input" placeholder=" " />
               <label for="name" class="auth-flabel">{{ t('auth.fields.name') }}</label>
             </div>
           </Transition>
+          <div v-if="!isLogin" class="auth-field">
+            <input id="sms-email" v-model="form.email" type="email" required class="auth-input" placeholder=" " autocomplete="email" />
+            <label for="sms-email" class="auth-flabel">{{ t('auth.fields.email') }}</label>
+          </div>
 
           <div v-if="isLogin || !invitationToken" class="auth-field">
             <input id="email" v-model="form.email" type="email" required class="auth-input" placeholder=" " autocomplete="email" />
@@ -189,7 +213,7 @@ const verifyCode = async () => {
           </div>
 
           <div class="auth-field">
-            <input id="password" v-model="form.password" type="password" required class="auth-input" placeholder=" " autocomplete="current-password" />
+            <input :minlength="isLogin ? undefined : 10" maxlength="128" id="password" v-model="form.password" type="password" required class="auth-input" placeholder=" " autocomplete="current-password" />
             <label for="password" class="auth-flabel">{{ t('auth.fields.password') }}</label>
           </div>
 
@@ -224,19 +248,19 @@ const verifyCode = async () => {
               <input id="phone" v-model="form.phone" type="tel" required class="auth-input" placeholder=" " :disabled="codeSent" autocomplete="tel" />
               <label for="phone" class="auth-flabel">{{ t('auth.fields.phone') }}</label>
             </div>
-            <button v-if="!codeSent" type="submit" class="auth-ghost auth-phone-send shrink-0">{{ t('auth.sendCode') }}</button>
+            <button v-if="!codeSent" type="submit" :disabled="submitting" class="auth-ghost auth-phone-send shrink-0">{{ t('auth.sendCode') }}</button>
           </div>
 
           <Transition name="auth-field">
             <div v-if="codeSent">
               <p class="auth-hint mb-3">{{ t('auth.codeSent', { phone: form.phone }) }}</p>
               <div class="auth-field">
-                <input id="code" v-model="form.code" inputmode="numeric" maxlength="6" required class="auth-input auth-input--code" placeholder=" " />
+                <input minlength="6" pattern="[0-9]{6}" id="code" v-model="form.code" inputmode="numeric" maxlength="6" required class="auth-input auth-input--code" placeholder=" " />
                 <label for="code" class="auth-flabel">{{ t('auth.fields.code') }}</label>
               </div>
               <div class="auth-meta">
-                <button type="button" class="auth-mini" @click="codeSent = false; challengeId = null">{{ t('auth.changeNumber') }}</button>
-                <button type="button" class="auth-link" @click="sendCode">{{ t('auth.resendCode') }}</button>
+                <button type="button" class="auth-mini" @click="resetOtpFlow">{{ t('auth.changeNumber') }}</button>
+                <button type="button" class="auth-link" :disabled="submitting" @click="sendCode">{{ t('auth.resendCode') }}</button>
               </div>
               <p class="auth-hint auth-hint--italic mt-2">{{ t('auth.codeHint') }}</p>
             </div>

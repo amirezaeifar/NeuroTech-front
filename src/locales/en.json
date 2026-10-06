@@ -22,11 +22,13 @@
     "viewFullscreen": "View fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "courseVideo": "Course video",
-    "live": "Live"
+    "live": "Live",
+    "loading": "Loading…"
   },
   "nav": {
     "home": "Home",
     "academy": "Academy",
+    "articles": "Articles",
     "events": "Events",
     "products": "Products",
     "globalTrade": "Global Trade",
@@ -152,15 +154,26 @@
     "courses": [
       {
         "title": "Foundations of Clinical Neuroanatomy",
-        "modules": ["The Neuron & the Synapse", "Cortical Organisation", "Ascending Sensory Pathways"]
+        "modules": [
+          "The Neuron & the Synapse",
+          "Cortical Organisation",
+          "Ascending Sensory Pathways"
+        ]
       },
       {
         "title": "Acute Ischaemic Stroke Protocols",
-        "modules": ["The Ischaemic Cascade", "The Thrombolysis Window", "Endovascular Triage"]
+        "modules": [
+          "The Ischaemic Cascade",
+          "The Thrombolysis Window",
+          "Endovascular Triage"
+        ]
       },
       {
         "title": "Psychiatric Emergencies",
-        "modules": ["De-escalating Acute Agitation", "Structured Suicide-Risk Assessment"]
+        "modules": [
+          "De-escalating Acute Agitation",
+          "Structured Suicide-Risk Assessment"
+        ]
       }
     ]
   },
@@ -201,7 +214,12 @@
       "priceNote": "Each system is configured to your clinical specification.",
       "ctaPrimary": "Request a quote",
       "ctaSecondary": "Download brochure",
-      "badges": ["CE Marked", "ISO 13485", "2-Year Warranty", "Clinical-grade"],
+      "badges": [
+        "CE Marked",
+        "ISO 13485",
+        "2-Year Warranty",
+        "Clinical-grade"
+      ],
       "featuresTitle": "Key Features",
       "essenceLabel": "Technical Essence",
       "blueprintTitle": "Technical Blueprint",
@@ -215,7 +233,12 @@
         "Modular, serviceable design for a long operating life"
       ],
       "viewsLabel": "Views",
-      "views": ["Full system", "Console detail", "Interface & ports", "Accessories"],
+      "views": [
+        "Full system",
+        "Console detail",
+        "Interface & ports",
+        "Accessories"
+      ],
       "tabs": {
         "overview": "Overview",
         "specs": "Specifications",
@@ -227,56 +250,157 @@
       "overviewBody": "Every device in the collection is selected for clinical merit and engineering integrity, then finished to the standards of the maison. Precise, quiet and dependable in daily use — built to earn a clinician's trust across years of service.",
       "specsTitle": "Technical Specifications",
       "specs": [
-        { "label": "Acquisition channels", "value": "32 referential / 16 bipolar" },
-        { "label": "Sampling rate", "value": "Up to 16 kHz per channel" },
-        { "label": "Resolution", "value": "24-bit" },
-        { "label": "Input impedance", "value": "> 1 GΩ" },
-        { "label": "Connectivity", "value": "Gigabit Ethernet · Wi-Fi 6 · USB-C" },
-        { "label": "Power", "value": "Medical-grade isolated supply (IEC 60601-1)" },
-        { "label": "Compliance", "value": "CE · ISO 13485 · IEC 60601" },
-        { "label": "Dimensions", "value": "320 × 240 × 90 mm" },
-        { "label": "Weight", "value": "3.4 kg" },
-        { "label": "Warranty", "value": "24 months, extendable" }
+        {
+          "label": "Acquisition channels",
+          "value": "32 referential / 16 bipolar"
+        },
+        {
+          "label": "Sampling rate",
+          "value": "Up to 16 kHz per channel"
+        },
+        {
+          "label": "Resolution",
+          "value": "24-bit"
+        },
+        {
+          "label": "Input impedance",
+          "value": "> 1 GΩ"
+        },
+        {
+          "label": "Connectivity",
+          "value": "Gigabit Ethernet · Wi-Fi 6 · USB-C"
+        },
+        {
+          "label": "Power",
+          "value": "Medical-grade isolated supply (IEC 60601-1)"
+        },
+        {
+          "label": "Compliance",
+          "value": "CE · ISO 13485 · IEC 60601"
+        },
+        {
+          "label": "Dimensions",
+          "value": "320 × 240 × 90 mm"
+        },
+        {
+          "label": "Weight",
+          "value": "3.4 kg"
+        },
+        {
+          "label": "Warranty",
+          "value": "24 months, extendable"
+        }
       ],
       "docsTitle": "Clinical Documentation",
       "docsNote": "Full documentation is released to verified clinical accounts.",
       "docs": [
-        { "name": "Product datasheet", "type": "PDF", "size": "1.8 MB" },
-        { "name": "Clinical evaluation summary", "type": "PDF", "size": "3.2 MB" },
-        { "name": "Quick-start guide", "type": "PDF", "size": "760 KB" },
-        { "name": "Declaration of conformity", "type": "PDF", "size": "420 KB" }
+        {
+          "name": "Product datasheet",
+          "type": "PDF",
+          "size": "1.8 MB"
+        },
+        {
+          "name": "Clinical evaluation summary",
+          "type": "PDF",
+          "size": "3.2 MB"
+        },
+        {
+          "name": "Quick-start guide",
+          "type": "PDF",
+          "size": "760 KB"
+        },
+        {
+          "name": "Declaration of conformity",
+          "type": "PDF",
+          "size": "420 KB"
+        }
       ],
       "reviewsTitle": "Reviews & Ratings",
       "reviewsKicker": "Clinical Voices",
       "ratingSuffix": "verified clinical accounts",
       "reviews": [
-        { "author": "Dr. A. Karimi", "role": "Functional Neurosurgeon", "rating": 5, "text": "Dependable acquisition and a workflow my team trusts in theatre. It has become part of our standard setup." },
-        { "author": "Dr. S. Moradi", "role": "Clinical Neurophysiologist", "rating": 5, "text": "Clean signal, quiet operation and reporting that integrates neatly with our records. Excellent build quality." },
-        { "author": "Eng. R. Tabrizi", "role": "Biomedical Engineer", "rating": 4, "text": "Serviceable, well-documented and robust. Calibration and maintenance are refreshingly straightforward." }
+        {
+          "author": "Dr. A. Karimi",
+          "role": "Functional Neurosurgeon",
+          "rating": 5,
+          "text": "Dependable acquisition and a workflow my team trusts in theatre. It has become part of our standard setup."
+        },
+        {
+          "author": "Dr. S. Moradi",
+          "role": "Clinical Neurophysiologist",
+          "rating": 5,
+          "text": "Clean signal, quiet operation and reporting that integrates neatly with our records. Excellent build quality."
+        },
+        {
+          "author": "Eng. R. Tabrizi",
+          "role": "Biomedical Engineer",
+          "rating": 4,
+          "text": "Serviceable, well-documented and robust. Calibration and maintenance are refreshingly straightforward."
+        }
       ],
       "validationTitle": "Clinical Validation & Certifications",
       "validationKicker": "Trusted Evidence",
       "validationLead": "Independently verified, regulator-cleared, and proven in daily clinical practice.",
       "certs": [
-        { "mark": "FDA", "name": "510(k) Cleared", "note": "Cleared for clinical use by the U.S. Food & Drug Administration." },
-        { "mark": "CE", "name": "CE Marked · MDR", "note": "Conforms to EU Medical Device Regulation 2017/745." },
-        { "mark": "ISO", "name": "ISO 13485", "note": "Built under a certified medical quality-management system." },
-        { "mark": "IEC", "name": "IEC 60601-1", "note": "Meets international standards for medical electrical safety." }
+        {
+          "mark": "FDA",
+          "name": "510(k) Cleared",
+          "note": "Cleared for clinical use by the U.S. Food & Drug Administration."
+        },
+        {
+          "mark": "CE",
+          "name": "CE Marked · MDR",
+          "note": "Conforms to EU Medical Device Regulation 2017/745."
+        },
+        {
+          "mark": "ISO",
+          "name": "ISO 13485",
+          "note": "Built under a certified medical quality-management system."
+        },
+        {
+          "mark": "IEC",
+          "name": "IEC 60601-1",
+          "note": "Meets international standards for medical electrical safety."
+        }
       ],
       "trialsLabel": "Clinical Evidence",
       "trials": [
-        { "stat": "98.6%", "label": "Signal fidelity", "note": "Agreement with reference-grade acquisition across a 1,200-record multi-site study." },
-        { "stat": "n = 420", "label": "Prospective cohort", "note": "Peer-reviewed evaluation across three tertiary neurology centres." },
-        { "stat": "< 0.4%", "label": "Adverse events", "note": "No device-related serious adverse events over 24 months of monitored use." }
+        {
+          "stat": "98.6%",
+          "label": "Signal fidelity",
+          "note": "Agreement with reference-grade acquisition across a 1,200-record multi-site study."
+        },
+        {
+          "stat": "n = 420",
+          "label": "Prospective cohort",
+          "note": "Peer-reviewed evaluation across three tertiary neurology centres."
+        },
+        {
+          "stat": "< 0.4%",
+          "label": "Adverse events",
+          "note": "No device-related serious adverse events over 24 months of monitored use."
+        }
       ],
       "ecosystemTitle": "Software Ecosystem",
       "ecosystemKicker": "Connected Platform",
       "ecosystemLead": "Every device is a node in a secure, connected clinical platform — from bedside to record.",
       "ecosystem": [
-        { "name": "Clinical Dashboard", "desc": "A unified web console for live review, annotation and multi-patient oversight." },
-        { "name": "Cloud Sync & Archive", "desc": "Encrypted, redundant storage with instant cross-site retrieval of every study." },
-        { "name": "EHR · HL7-FHIR", "desc": "One-click, standards-based export straight into the patient record." },
-        { "name": "Developer API", "desc": "A documented REST & streaming API for research pipelines and custom tooling." }
+        {
+          "name": "Clinical Dashboard",
+          "desc": "A unified web console for live review, annotation and multi-patient oversight."
+        },
+        {
+          "name": "Cloud Sync & Archive",
+          "desc": "Encrypted, redundant storage with instant cross-site retrieval of every study."
+        },
+        {
+          "name": "EHR · HL7-FHIR",
+          "desc": "One-click, standards-based export straight into the patient record."
+        },
+        {
+          "name": "Developer API",
+          "desc": "A documented REST & streaming API for research pipelines and custom tooling."
+        }
       ],
       "ecosystemNote": "Single sign-on, role-based access and full audit trails are standard across the platform."
     },
@@ -440,7 +564,13 @@
       "lesson": "Lesson",
       "progressTitle": "Your Progress",
       "progressLabel": "lessons completed",
+      "progressJourney": "Completed lesson journey",
+      "progressDone": "Completed",
+      "progressStart": "Start here — not counted yet",
       "videosTitle": "Course Videos",
+      "resourcesTitle": "Course Resources",
+      "downloadResource": "Download",
+      "resourceLocked": "Unlock to download",
       "courseContent": "Course Content",
       "play": "Play",
       "locked": "Locked",
@@ -465,6 +595,7 @@
       "placeholder": "Share a question or observation…",
       "submit": "Post",
       "pendingNotice": "Your comment will appear once a teacher approves it.",
+      "membersOnly": "Only enrolled learners can post a comment about this course.",
       "list": [
         {
           "name": "P. Ahmadi",
@@ -996,14 +1127,32 @@
         "affiliation": "Neuro Tech · Mashhad",
         "demo": true,
         "bio": "A neurologist specializing in clinical research, responsible medical-device adoption, and applied neurotechnology programs in Mashhad.",
-        "collaborations": ["Clinical Research", "Medical Device Consulting", "Neurotechnology"],
+        "collaborations": [
+          "Clinical Research",
+          "Medical Device Consulting",
+          "Neurotechnology"
+        ],
         "experience": [
-          { "role": "Chief Executive Officer", "org": "Neuro Tech · Mashhad", "period": "Present" },
-          { "role": "Clinical Researcher", "org": "Mashhad Neurology Research Center", "period": "2019–Present" }
+          {
+            "role": "Chief Executive Officer",
+            "org": "Neuro Tech · Mashhad",
+            "period": "Present"
+          },
+          {
+            "role": "Clinical Researcher",
+            "org": "Mashhad Neurology Research Center",
+            "period": "2019–Present"
+          }
         ],
         "education": [
-          { "degree": "Neurology Specialty", "school": "Mashhad University of Medical Sciences" },
-          { "degree": "Doctor of Medicine", "school": "Mashhad University of Medical Sciences" }
+          {
+            "degree": "Neurology Specialty",
+            "school": "Mashhad University of Medical Sciences"
+          },
+          {
+            "degree": "Doctor of Medicine",
+            "school": "Mashhad University of Medical Sciences"
+          }
         ]
       },
       {
@@ -1014,13 +1163,28 @@
         "affiliation": "Neuro Tech · Mashhad",
         "demo": true,
         "bio": "An electronics engineer focused on medical-device integration, prototype evaluation, and technical coordination for neurotechnology projects.",
-        "collaborations": ["Medical Device Engineering", "R&D Engineering", "Technical Consulting"],
+        "collaborations": [
+          "Medical Device Engineering",
+          "R&D Engineering",
+          "Technical Consulting"
+        ],
         "experience": [
-          { "role": "Vice President", "org": "Neuro Tech · Mashhad", "period": "Present" },
-          { "role": "R&D Engineer", "org": "Mashhad Biomedical Innovation Center", "period": "2020–Present" }
+          {
+            "role": "Vice President",
+            "org": "Neuro Tech · Mashhad",
+            "period": "Present"
+          },
+          {
+            "role": "R&D Engineer",
+            "org": "Mashhad Biomedical Innovation Center",
+            "period": "2020–Present"
+          }
         ],
         "education": [
-          { "degree": "Bachelor's Degree in Electronic Engineering", "school": "Ferdowsi University of Mashhad" }
+          {
+            "degree": "Bachelor's Degree in Electronic Engineering",
+            "school": "Ferdowsi University of Mashhad"
+          }
         ]
       },
       {
@@ -1031,13 +1195,28 @@
         "affiliation": "Neuro Tech · Mashhad",
         "demo": true,
         "bio": "A computer engineer working on healthcare software, clinical-data workflows, and the technical integration of neurology systems.",
-        "collaborations": ["Healthcare Software", "AI Research", "Systems Integration"],
+        "collaborations": [
+          "Healthcare Software",
+          "AI Research",
+          "Systems Integration"
+        ],
         "experience": [
-          { "role": "Technical Director", "org": "Neuro Tech · Mashhad", "period": "Present" },
-          { "role": "Software Engineer", "org": "Isfahan Healthcare Technology Lab", "period": "2021–Present" }
+          {
+            "role": "Technical Director",
+            "org": "Neuro Tech · Mashhad",
+            "period": "Present"
+          },
+          {
+            "role": "Software Engineer",
+            "org": "Isfahan Healthcare Technology Lab",
+            "period": "2021–Present"
+          }
         ],
         "education": [
-          { "degree": "Bachelor's Degree in Computer Engineering", "school": "Islamic Azad University, Mashhad Branch" }
+          {
+            "degree": "Bachelor's Degree in Computer Engineering",
+            "school": "Islamic Azad University, Mashhad Branch"
+          }
         ]
       },
       {
@@ -1048,13 +1227,28 @@
         "affiliation": "Neuro Tech · Mashhad",
         "demo": true,
         "bio": "A technology specialist focused on medical-device market research, product coordination, and practical commercial planning for healthcare teams.",
-        "collaborations": ["Product Development", "Healthcare Technology", "Medical Device Consulting"],
+        "collaborations": [
+          "Product Development",
+          "Healthcare Technology",
+          "Medical Device Consulting"
+        ],
         "experience": [
-          { "role": "Commercial Director", "org": "Neuro Tech · Islamic Azad University, Mashhad Branch", "period": "Present" },
-          { "role": "Healthcare Technology Specialist", "org": "Biomedical Systems Center, Islamic Azad University, Mashhad Branch", "period": "2020–Present" }
+          {
+            "role": "Commercial Director",
+            "org": "Neuro Tech · Islamic Azad University, Mashhad Branch",
+            "period": "Present"
+          },
+          {
+            "role": "Healthcare Technology Specialist",
+            "org": "Biomedical Systems Center, Islamic Azad University, Mashhad Branch",
+            "period": "2020–Present"
+          }
         ],
         "education": [
-          { "degree": "Bachelor's Degree in Computer Engineering", "school": "Islamic Azad University, Mashhad Branch" }
+          {
+            "degree": "Bachelor's Degree in Computer Engineering",
+            "school": "Islamic Azad University, Mashhad Branch"
+          }
         ]
       }
     ],
@@ -1070,13 +1264,10 @@
       "councilLabel": "Medical Council No.",
       "aboutTitle": "About",
       "expertiseTitle": "Areas of Expertise",
-      "methodologyTitle": "Teaching Methodology",
-      "impactTitle": "Educational Impact",
-      "coursesTaughtTitle": "Courses Taught",
-      "playlistsTitle": "Associated Playlists",
-      "platformLabel": "Platform",
-      "statusLabel": "Status",
-      "lessonsLabel": "lessons",
+      "impactTitle": "Achievements",
+      "playlistsTitle": "Courses Taught",
+      "platformLabel": "LinkedIn",
+      "lessonsLabel": "sessions",
       "experienceTitle": "Experience & Roles",
       "educationTitle": "Education",
       "publicationsTitle": "Publications & Projects",
@@ -1088,9 +1279,21 @@
       "recentTitle": "Recent Publications",
       "upcomingTitle": "Upcoming Clinical Sessions",
       "upcomingNote": "Open to registered clinicians.",
-      "demoNotice": "This profile includes placeholder/demo information and is not a verified biography.",
       "upcoming": []
     }
+  },
+  "cart": {
+    "eyebrow": "Selected access",
+    "title": "Your cart",
+    "course": "Course",
+    "product": "Product",
+    "remove": "Remove from cart",
+    "close": "Close cart",
+    "quantity": "Product quantity",
+    "increase": "Increase quantity",
+    "decrease": "Decrease quantity",
+    "checkout": "Complete purchase",
+    "added": "Added to your cart. Open the cart in the navigation to continue."
   },
   "checkout": {
     "irr": "IRR",
@@ -1121,6 +1324,28 @@
     "emptyDesc": "Browse the academy and choose a course to enrol in.",
     "browseCta": "Browse the Academy",
     "proceedCta": "Proceed to Payment",
+    "stepsLabel": "Checkout progress",
+    "steps": { "profile": "Basic information", "review": "Review", "payment": "Payment" },
+    "profileTitle": "Basic information",
+    "profileHint": "We pre-filled details already saved to your account. Check them before continuing.",
+    "reviewHint": "Confirm the selected items and amount before payment.",
+    "fields": {
+      "name": "Full name",
+      "email": "Email",
+      "phone": "Phone number",
+      "nationalId": "National ID (optional)",
+      "address": "Address"
+    },
+    "fieldErrors": {
+      "name": "Enter at least 2 characters for your full name.",
+      "email": "Enter a valid email address.",
+      "phone": "Enter a valid phone number, for example +989121234567.",
+      "nationalId": "National ID cannot exceed 20 characters.",
+      "address": "Enter the complete delivery address for this physical product."
+    },
+    "quantity": "Quantity: {count}",
+    "next": "Continue to review",
+    "backProfile": "Back to information",
     "back": "Back to cart",
     "paymentTitle": "Payment Method",
     "paymentOptions": {
@@ -1128,13 +1353,31 @@
       "bank": "Bank Transfer"
     },
     "securedNote": "Encrypted & secure — your details are protected.",
+    "gatewayNote": "Payment details are entered only on the secure gateway and are not stored by NeuroTech.",
+    "errors": {
+      "basicRequired": "Enter your full name, email and phone number to continue.",
+      "email": "Enter a valid email address.",
+      "deliveryRequired": "Enter the delivery address for physical products.",
+      "empty": "Your cart is empty.",
+      "currency": "The items in your cart are not available in the selected currency.",
+      "separateOrders": "Courses and products must be purchased in separate orders. Keep one course or your products in the cart.",
+        "cancelled": "Payment was cancelled. Your cart is still available.",
+        "failed": "Payment failed. Please try again or use another payment method."
+    },
     "submit": "Complete Enrolment",
     "processing": "Confirming your enrolment…",
-    "successTitle": "Subscription confirmed",
-    "successDesc": "Your access has been unlocked. You may now return to the course.",
-    "successToast": "Payment successful — course unlocked.",
-    "backCta": "Return to course",
-    "continueCta": "Continue browsing"
+    "success": {
+      "product": {
+        "title": "Product purchase completed",
+        "description": "Your order has been recorded and is now being prepared for delivery.",
+        "cta": "Browse products"
+      },
+      "course": {
+        "title": "Course enrolment confirmed",
+        "description": "Your payment was successful and access to the course content is now unlocked.",
+        "cta": "Enter the course"
+      }
+    }
   },
   "admin": {
     "hero": {
@@ -1149,15 +1392,67 @@
     "roles": {
       "admin": "Administrator",
       "specialist": "Specialist",
+      "content_manager": "Content manager",
+      "super_admin": "Principal administrator",
       "user": "Learner"
     },
     "sections": {
-      "dashboard": { "label": "Overview", "blurb": "Academy health and shortcuts" },
-      "courses": { "label": "Courses", "blurb": "Catalogue and curriculum" },
-      "moderation": { "label": "Moderation", "blurb": "Pending course discussions" },
-      "users": { "label": "Users", "blurb": "Member directory" },
-      "content": { "label": "Site content", "blurb": "Public website copy" },
-      "settings": { "label": "Settings", "blurb": "Platform controls" }
+      "dashboard": {
+        "label": "Overview",
+        "blurb": "Academy health and shortcuts"
+      },
+      "orders": {
+        "label": "Orders",
+        "blurb": "Payments and product fulfillment"
+      },
+      "courses": {
+        "label": "Courses",
+        "blurb": "Catalogue and curriculum"
+      },
+      "products": {
+        "label": "Products",
+        "blurb": "Catalogue, pricing and inquiries"
+      },
+      "events": {
+        "label": "Events",
+        "blurb": "Sessions and reservations"
+      },
+      "partners": {
+        "label": "Partners",
+        "blurb": "Public expert profiles"
+      },
+      "blog": {
+        "label": "Articles",
+        "blurb": "Scientific articles and blog publishing"
+      },
+      "approvals": {
+        "label": "Approvals",
+        "blurb": "Review and apply change requests"
+      },
+      "trade": {
+        "label": "Global trade",
+        "blurb": "Documents and reports"
+      },
+      "moderation": {
+        "label": "Moderation",
+        "blurb": "Pending course discussions"
+      },
+      "users": {
+        "label": "Users",
+        "blurb": "Member directory"
+      },
+      "content": {
+        "label": "Site content",
+        "blurb": "Public website copy"
+      },
+      "settings": {
+        "label": "Settings",
+        "blurb": "Platform controls"
+      },
+      "tickets": {
+        "label": "Tickets",
+        "blurb": "Tickets"
+      }
     },
     "dashboard": {
       "welcome": "Welcome back",
@@ -1181,8 +1476,8 @@
       "add": "Add course",
       "search": "Search courses",
       "edit": "Edit",
-      "remove": "Archive",
-      "confirm": "Confirm archive",
+      "remove": "Delete",
+      "confirm": "Confirm delete",
       "editing": "Editing course",
       "save": "Save",
       "saved": "Course saved",
@@ -1200,7 +1495,7 @@
       },
       "tabs": {
         "metadata": "Metadata & pricing",
-        "curriculum": "Curriculum",
+        "curriculum": "Educational content",
         "media": "Media",
         "documents": "Resources",
         "imagery": "Imagery"
@@ -1224,14 +1519,14 @@
         "priceUsd": "USD price",
         "priceIrr": "IRR amount",
         "published": "Published",
-        "videoUrl": "Course-level media URL",
-        "videoUrlHint": "Use an HTTPS URL or a storage-relative path.",
-        "videoPreview": "Preview",
-        "documentsHint": "Add downloadable or external learning resources.",
+        "videoUrl": "YouTube playlist ID",
+        "videoUrlHint": "Enter only the value after list=.",
+        "videoPreview": "Playlist preview",
+        "documentsHint": "",
         "addDocument": "Add resource",
         "docName": "Name",
         "docType": "Type",
-        "docUrl": "URL or storage path",
+        "docUrl": "Resource file",
         "noDocuments": "No resources added.",
         "imagerySlug": "Stable course slug",
         "imageryHint": "The slug is immutable after creation and selects the matching local artwork when available.",
@@ -1242,7 +1537,7 @@
       },
       "curriculum": {
         "sections": "Sections and lessons",
-        "hint": "Publishing requires bilingual titles, at least one lesson per section and bilingual outcomes.",
+        "hint": "",
         "addSection": "Add section",
         "section": "Section",
         "titleEn": "English section title",
@@ -1262,10 +1557,15 @@
       },
       "docTypes": {
         "pdf": "PDF",
+        "document": "Document",
         "slides": "Slides",
+        "spreadsheet": "Spreadsheet",
+        "archive": "Archive",
+        "image": "Image",
+        "video": "Video",
+        "audio": "Audio",
         "protocol": "Protocol",
-        "dataset": "Dataset",
-        "link": "Link"
+        "dataset": "Dataset"
       }
     },
     "users": {
@@ -1274,13 +1574,33 @@
       "search": "Search members",
       "directory": "Member directory",
       "empty": "No members found.",
-      "inviteEmail": "Invitee email",
+      "inviteEmail": "Member name, email or phone",
+      "existingIdentifier": "For a new member, enter an email address. Names and phone numbers can select an existing member.",
+      "ambiguousIdentifier": "More than one member has this name. Select the intended member from the directory.",
+      "details": "Member details",
+      "activatedAt": "Activated",
+      "lastActiveAt": "Last activity",
+      "save": "Save changes",
       "inviteRole": "Invited role",
-      "sendInvite": "Send invitation",
-      "invited": "Invitation sent. The link expires in seven days.",
+      "sendInvite": "Grant access / invite",
+      "changeRole": "Change role",
+      "select": "Select",
+      "clearSelection": "Clear selected member",
+      "outcomes": {
+        "invitation_sent": "Invitation sent. The link expires in seven days.",
+        "access_updated": "The existing member's access was upgraded successfully.",
+        "access_unchanged": "This member already has the same or a higher access level.",
+        "role_updated": "The member's role was changed successfully."
+      },
       "active": "Active",
       "inactive": "Inactive",
-      "cols": { "member": "Member", "role": "Role", "joined": "Joined", "active": "Active" }
+      "cols": {
+        "member": "Member",
+        "role": "Role",
+        "joined": "Joined",
+        "active": "Active",
+        "actions": "Actions"
+      }
     },
     "settings": {
       "title": "Platform settings",
@@ -1308,7 +1628,7 @@
     },
     "moderation": {
       "title": "Pending comments",
-      "subtitle": "New discussion waits here until a teacher approves or rejects it.",
+      "subtitle": "Review and approve or reject comments.",
       "log": "Recent decisions",
       "approve": "Approve",
       "reject": "Reject",
@@ -1538,7 +1858,8 @@
     "info": {
       "address": {
         "title": "Office",
-        "value": "Unit 2, First Floor, City Hall Building, Chamran Street, between Chamran 11 and Golestan Street, Mashhad, Iran"      },
+        "value": "Unit 2, First Floor, City Hall Building, Chamran Street, between Chamran 11 and Golestan Street, Mashhad, Iran"
+      },
       "phone": {
         "title": "Telephone",
         "value": "+98 91 5257 4529"

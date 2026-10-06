@@ -7,6 +7,7 @@ import SectionEyebrow from '../components/SectionEyebrow.vue'
 import { useReveal } from '../composables/useReveal.js'
 import { documents as englishDocuments } from '../data/tradeReports.js'
 
+
 const { t, tm, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()

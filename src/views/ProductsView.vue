@@ -8,31 +8,50 @@
  * product grid on quiet, static backgrounds. Dark-mode inverts the bands
  * (top-light / bottom-dark) via src/style.css.
  */
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useReveal } from '../composables/useReveal.js'
 import { deviceArt } from '../composables/useDeviceArt.js'
+import { resolveApiUrl } from '../api/client.js'
+import { productsApi } from '../api/products.js'
+import FavoriteButton from '../components/FavoriteButton.vue'
 
-const { t, tm } = useI18n()
+const { t, tm, locale } = useI18n()
 
-const filters = [
-  { key: 'all', label: 'products.filters.all' },
-  { key: 'eeg', label: 'products.filters.eeg' },
-  { key: 'emg', label: 'products.filters.emg' },
-  { key: 'neurostim', label: 'products.filters.neurostim' },
-  { key: 'monitoring', label: 'products.filters.monitoring' },
-]
+const categories = ref([])
+const loadError = ref('')
+const filters = computed(() => [{key:'all',title:t('products.filters.all')},...categories.value.map(c=>({key:c.slug,title:c.title}))])
 
 const active = ref('all')
-const products = computed(() => tm('products.items'))
+const apiProducts = ref([])
+const loadProducts = async () => {
+  try {
+    const [response, categoryResponse] = await Promise.all([productsApi.list({ locale: locale.value, page_size: 100 }),productsApi.categories(locale.value)])
+    categories.value = categoryResponse.data
+    loadError.value = ''
+    apiProducts.value = response.data.map((product) => ({
+      ...product,
+      desc: product.short_description,
+      category: product.category,
+      categoryTitle: product.category_title,
+    }))
+  } catch (error) {
+    loadError.value = error.message
+    apiProducts.value = []
+  }
+}
+onMounted(loadProducts)
+watch(locale, loadProducts)
+
+const products = computed(() => apiProducts.value)
 const filtered = computed(() =>
   active.value === 'all' ? products.value : products.value.filter((p) => p.category === active.value)
 )
-const categoryLabel = (k) => t(`products.filters.${k}`)
+const categoryLabel = (product) => product.categoryTitle || t(`products.filters.${product.category}`)
 const pad2 = (n) => String(n + 1).padStart(2, '0')
 // Resolve a product's stable index in the full catalogue (the filtered loop
 // index is not stable) so cards route to the correct detail page.
-const productId = (p) => products.value.findIndex((x) => x.name === p.name)
+const productId = (p) => p.slug || products.value.findIndex((x) => x.name === p.name)
 
 useReveal()
 </script>
@@ -81,26 +100,28 @@ useReveal()
               class="stage-tab"
               :class="{ 'is-active': active === f.key }"
             >
-              {{ t(f.label) }}
+              {{ f.title }}
               <span class="stage-tab-rule" :class="active === f.key ? 'scale-x-100' : 'scale-x-0'"></span>
             </button>
           </div>
 
+          <p v-if="loadError" role="alert" class="text-center mt-8">{{ loadError }}</p>
           <!-- Premium glassmorphic product grid — each card is a single flat
                link: a framed device "render" up top, blueprint type below. -->
           <div class="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3 pb-28">
+            <div v-for="(p, i) in filtered" :key="p.id || p.slug" class="product-card-shell">
+            <FavoriteButton v-if="p.id" class="product-card-favorite" type="product" :item-id="p.id" />
             <router-link
-              v-for="(p, i) in filtered"
-              :key="p.name + i"
               :to="`/products/${productId(p)}`"
               class="glass-card"
               :style="{ animationDelay: `${(i % 6) * 70}ms` }"
             >
               <!-- Top half — framed product imagery (flat line-art device) -->
               <div class="card-media">
-                <span class="card-cat">{{ categoryLabel(p.category) }}</span>
+                <span class="card-cat">{{ categoryLabel(p) }}</span>
                 <span class="card-index">{{ pad2(i) }}</span>
-                <svg
+                <img v-if="p.media?.length" :src="resolveApiUrl(p.media[0].file_url || p.media[0].external_url)" :alt="p.media[0].alt_text || p.name" class="absolute inset-0 w-full h-full object-contain p-8">
+                <svg v-else
                   class="card-art"
                   viewBox="0 0 48 36"
                   fill="none"
@@ -130,6 +151,7 @@ useReveal()
                 </span>
               </div>
             </router-link>
+            </div>
           </div>
         </div>
       </div>
@@ -138,6 +160,9 @@ useReveal()
 </template>
 
 <style scoped>
+.product-card-shell { position: relative; min-width: 0; }
+.product-card-shell .glass-card { height: 100%; }
+.product-card-favorite { position: absolute; z-index: 4; inset-block-start: 1rem; inset-inline-end: 1rem; }
 /* ── Page shell ─────────────────────────────────────────────────────────────
    A quiet two-band layout: charcoal header above a parchment catalogue. The
    dark-mode inversion lives in src/style.css (html.dark .products-hero / .products-stage). */

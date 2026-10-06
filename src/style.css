@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .admin-card { @apply rounded-2xl border border-parchment-deep/60 bg-parchment shadow-card; }
+  .admin-card-hover { @apply transition duration-300 hover:-translate-y-0.5 hover:shadow-card-hover; }
+  .admin-panel { @apply rounded-xl border border-parchment-deep/60 bg-parchment-light; }
+  .admin-eyebrow { @apply text-[10px] font-light uppercase tracking-[0.28em] text-gold-dark; }
+  .admin-h1 { @apply font-serif text-3xl font-light tracking-wide text-ink md:text-4xl; }
+  .admin-h2 { @apply font-serif text-xl font-light tracking-wide text-ink; }
+  .admin-label { @apply mb-2 block text-[10px] font-light uppercase tracking-[0.18em] text-ink-muted; }
+  .admin-input, .admin-select, .admin-textarea {
+    @apply w-full rounded-lg border border-parchment-deep bg-parchment-light px-3 py-2.5 text-sm font-light text-ink outline-none transition focus:border-gold;
+  }
+  .admin-textarea { @apply resize-y; }
+  .admin-btn { @apply inline-flex items-center justify-center rounded-lg border px-4 py-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50; }
+  .admin-btn-sm { @apply px-3 py-1.5 text-[11px]; }
+  .admin-btn-primary { @apply border-gold bg-gold text-[#17130d] hover:brightness-105; }
+  .admin-btn-ghost { @apply border-parchment-deep bg-transparent text-ink hover:border-gold hover:text-gold-dark; }
+  .admin-btn-danger { @apply border-red-400/40 bg-red-500/5 text-red-600 hover:bg-red-500/10; }
+  .admin-scroll { @apply overflow-x-auto; }
+  .admin-table { @apply w-full border-collapse text-start text-sm text-ink-soft; }
+  .admin-table th { @apply border-b border-parchment-deep px-3 py-3 text-start text-[10px] font-light uppercase tracking-[0.15em] text-ink-muted; }
+  .admin-table td { @apply border-b border-parchment-deep/40 px-3 py-3 align-middle; }
+  .admin-badge { @apply inline-flex rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide; }
+  .admin-badge-gold { @apply border-gold/40 bg-gold/10 text-gold-dark; }
+  .admin-badge-green { @apply border-emerald-500/30 bg-emerald-500/10 text-emerald-600; }
+  .admin-badge-muted { @apply border-parchment-deep bg-parchment-light text-ink-muted; }
+}
+
+html[lang='fa'] .admin-eyebrow,
+html[lang='fa'] .admin-label,
+html[lang='fa'] .admin-table th,
+html[lang='fa'] .admin-badge { letter-spacing: 0; }
+
 :root {
   /* RGB triplets consumed by Tailwind via rgb(var(--c-…) / <alpha>) */
   --c-parchment: 245 240 232;
@@ -552,3 +584,18 @@ html[dir='rtl'] .dir-arrow-back::before { content: '\2192'; } /* → back (RTL) 
   background: var(--parchment-light);
   border: 1px solid var(--gold);
 }
+
+/* Shared form guidance and restrained console motion. */
+.field-error{display:block;color:#b42336;font-size:.78rem;line-height:1.7;margin-top:.45rem;white-space:normal;grid-column:1/-1}
+[aria-invalid="true"]{border-color:#b42336!important;outline-color:#b42336!important}
+.dark .field-error{color:#ff9ca9}
+.ticket-status-submitted{--ticket-color:#956012}.ticket-status-in_progress{--ticket-color:#2365a0}.ticket-status-resolved{--ticket-color:#28735a}.ticket-status-rejected{--ticket-color:#a33b4b}
+.ticket-subject,.ticket-status-submitted>.admin-badge,.ticket-status-in_progress>.admin-badge,.ticket-status-resolved>.admin-badge,.ticket-status-rejected>.admin-badge{color:var(--ticket-color,inherit)}
+.dark .ticket-status-submitted{--ticket-color:#e8c276}.dark .ticket-status-in_progress{--ticket-color:#8bbdff}.dark .ticket-status-resolved{--ticket-color:#85d3b2}.dark .ticket-status-rejected{--ticket-color:#ff9ca9}
+.admin-shell .admin-btn,.admin-shell .ticket-row,.admin-shell .quick-action{transition:background-color .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease}
+.admin-shell .admin-btn:active{transform:translateY(1px)}
+.admin-shell .ticket-row:hover{background:rgb(var(--c-ink)/.035)}
+.admin-shell .admin-card,.admin-shell .collection-card,.admin-shell .support-focus{animation:admin-reveal .28s ease both}
+.admin-shell .collection-card:nth-child(2){animation-delay:40ms}.admin-shell .collection-card:nth-child(3){animation-delay:80ms}
+@keyframes admin-reveal{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.admin-shell *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

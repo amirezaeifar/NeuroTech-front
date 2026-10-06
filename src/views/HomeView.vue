@@ -1,6 +1,8 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import SectionEyebrow from '../components/SectionEyebrow.vue'
+import LivingBrain from '../components/LivingBrain.vue'
+import HomeHeroStars from '../components/HomeHeroStars.vue'
 import { useReveal } from '../composables/useReveal.js'
 
 const { t, tm } = useI18n()
@@ -17,8 +19,10 @@ useReveal()
 <template>
   <div>
     <!-- Hero — the ONE dark section -->
-    <section class="hero-ink-texture relative min-h-[88vh] flex items-center">
-      <div class="max-w-5xl mx-auto px-8 py-24 w-full">
+    <section class="home-living-hero hero-ink-texture relative flex items-center">
+      <HomeHeroStars />
+      <div class="home-hero-layout mx-auto px-8 w-full">
+        <div class="home-hero-copy">
         <p class="reveal text-[11px] uppercase tracking-[0.35em] text-gold/80 font-light mb-10">
           {{ t('home.hero.eyebrow') }}
         </p>
@@ -38,6 +42,8 @@ useReveal()
             <span class="dir-arrow" aria-hidden="true"></span>
           </router-link>
         </div>
+        </div>
+        <div class="home-brain-wrap reveal" style="transition-delay: 180ms"><LivingBrain /></div>
       </div>
       <!-- Bottom fading gold rule -->
       <div class="absolute left-0 right-0 bottom-0 gold-fade-rule"></div>
@@ -111,6 +117,11 @@ useReveal()
 </template>
 
 <style scoped>
+.home-living-hero { min-height: clamp(580px,74svh,760px); isolation: isolate; }
+.home-hero-layout { position: relative; z-index: 1; max-width: 1280px; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 32px; padding-block: 48px; }
+.home-hero-copy { min-width: 0; }.home-brain-wrap { min-width: 0; display: flex; justify-content: center; }
+@media (max-width: 900px) { .home-living-hero { min-height: 0; }.home-hero-layout { grid-template-columns: 1fr; padding-block: 40px 24px; gap: 5px; }.home-brain-wrap { width: min(480px,100%); justify-self: center; }.home-hero-copy h1 { max-width: 650px; } }
+@media (prefers-reduced-motion: reduce) { .home-living-hero .reveal { opacity: 1; transform: none; transition: none; } }
 .partner-name-latin {
   direction: ltr;
   unicode-bidi: isolate;
